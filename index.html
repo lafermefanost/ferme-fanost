@@ -1534,8 +1534,11 @@
     <button class="burger" id="burger" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
-    <button id="lang-btn" onclick="toggleLang()" style="flex-shrink:0;margin-left:auto;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.9);background:transparent;border:none;cursor:pointer;white-space:nowrap;">EN</button>
   </nav>
+
+  <div id="lang-toggle" style="position:fixed;top:16px;right:20px;z-index:9999;">
+    <button id="lang-btn" onclick="toggleLang()" style="font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--earth,#7A6248);background:rgba(255,255,255,0.92);border:1px solid rgba(122,98,72,0.25);border-radius:2px;padding:5px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.1);">EN</button>
+  </div>
 
   <!-- Mobile menu -->
   <div class="mobile-menu" id="mobileMenu">
@@ -2382,7 +2385,9 @@
 <script>
 (function(){
   var lang = localStorage.getItem('lang') || 'fr';
-  document.documentElement.className = (document.documentElement.className || '') + ' lang-' + lang;
+  var cl = document.documentElement.className || '';
+  cl = cl.replace(/\blang-(?:fr|en)\b/g, '').trim();
+  document.documentElement.className = cl + (cl ? ' ' : '') + 'lang-' + lang;
   document.addEventListener('DOMContentLoaded', function() {
     var btn = document.getElementById('lang-btn');
     if (btn) btn.textContent = lang === 'fr' ? 'EN' : 'FR';
@@ -2393,7 +2398,7 @@ function toggleLang() {
   var next = cur === 'fr' ? 'en' : 'fr';
   localStorage.setItem('lang', next);
   var cl = document.documentElement.className;
-  document.documentElement.className = cl.replace('lang-' + cur, 'lang-' + next);
+  document.documentElement.className = cl.replace(/\blang-(?:fr|en)\b/g, '').trim() + ' lang-' + next;
   document.getElementById('lang-btn').textContent = next === 'fr' ? 'EN' : 'FR';
 }
 </script>
