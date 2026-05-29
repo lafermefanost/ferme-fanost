@@ -1,1 +1,1021 @@
-test
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>La Ferme Fanost — Table d'Hôtes</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --cream:   #F7F2EA;
+      --warm:    #EDE4D3;
+      --sand:    #C9B99A;
+      --earth:   #7A6248;
+      --dark:    #2E2218;
+      --olive:   #6B7055;
+      --accent:  #9C6B3C;
+      --rule:    rgba(122, 98, 72, 0.25);
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'Jost', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--dark);
+      font-family: var(--font-body);
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 0 60px;
+      background: var(--cream);
+    }
+
+    /* ─── Header ─── */
+    .header {
+      text-align: center;
+      padding: 36px 20px 28px;
+      background: #7A8C65;
+      color: var(--cream);
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 80%, rgba(156,107,60,.18) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(107,112,85,.15) 0%, transparent 45%);
+      pointer-events: none;
+    }
+    .header-eyebrow {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #fff;
+      opacity: 0.75;
+      margin-bottom: 14px;
+    }
+    .header-logo-img {
+      width: min(280px, 65vw);
+      height: auto;
+      display: block;
+      margin: 0 auto 4px;
+    }
+    .header-sub {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 21px;
+      color: #fff;
+      margin-top: 12px;
+      opacity: 0.85;
+    }
+    .ornament {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0 0;
+    }
+    .ornament::before, .ornament::after {
+      content: '';
+      height: 1px;
+      width: 48px;
+      background: #fff;
+      opacity: 0.35;
+    }
+    .ornament-leaf { font-size: 17px; color: #fff; opacity: 0.35; }
+
+    /* ─── Bandeau info ─── */
+    .info-band {
+      background: #5C6E4A;
+      color: var(--cream);
+      text-align: center;
+      padding: 12px 20px;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .info-band span { display: flex; align-items: center; gap: 6px; opacity: 0.92; }
+    .info-band .dot { color: #fff; opacity: 0.35; }
+
+    /* ─── Contenu ─── */
+    .content { padding: 0 28px; }
+
+    .section { margin-top: 42px; }
+
+    .section-title { text-align: center; position: relative; margin-bottom: 28px; }
+    .section-title h2 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 26px;
+      letter-spacing: 0.04em;
+      color: var(--dark);
+      display: inline-block;
+    }
+    .section-title .section-label {
+      display: block;
+      font-family: var(--font-body);
+      font-size: 13px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--earth);
+      margin-bottom: 6px;
+    }
+    .section-rule {
+      border: none;
+      border-top: 1px solid var(--rule);
+      margin: 14px auto 0;
+      width: 60px;
+    }
+
+    .formula-box {
+      border: 1px solid var(--sand);
+      border-radius: 2px;
+      padding: 22px 24px;
+      text-align: center;
+      background: var(--warm);
+      margin-bottom: 28px;
+    }
+    .formula-box .price-badge {
+      display: inline-block;
+      background: #5C6E4A;
+      color: #F7F2EA;
+      font-family: var(--font-display);
+      font-size: 28px;
+      padding: 4px 18px;
+      margin-bottom: 10px;
+      transition: background 0.2s;
+    }
+    .formula-box .price-badge:hover {
+      background: #3d4c31;
+    }
+    .formula-box .formula-desc {
+      font-size: 16px;
+      color: var(--earth);
+      font-style: italic;
+      font-family: var(--font-display);
+    }
+
+    .dish {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .dish:last-child { border-bottom: none; }
+    .dish-left { flex: 1; }
+    .dish-name {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 400;
+      color: var(--dark);
+      line-height: 1.2;
+    }
+    .dish-name em { font-style: italic; font-weight: 300; }
+    .dish-desc { font-size: 15px; color: var(--earth); margin-top: 3px; line-height: 1.55; }
+    .dish-tag {
+      display: inline-block;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--olive);
+      border: 1px solid var(--olive);
+      padding: 1px 6px;
+      border-radius: 20px;
+      margin-top: 4px;
+      opacity: 0.8;
+    }
+    .dish-price {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 400;
+      color: var(--earth);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .sub-category {
+      font-family: var(--font-body);
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--earth);
+      margin: 22px 0 4px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .note-box {
+      background: var(--warm);
+      border-left: 3px solid var(--sand);
+      padding: 14px 16px;
+      margin-top: 24px;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--earth);
+      font-style: italic;
+      font-family: var(--font-display);
+    }
+
+    .allergens {
+      text-align: center;
+      font-size: 15px;
+      color: var(--sand);
+      margin-top: 32px;
+      padding: 0 8px;
+      line-height: 1.6;
+    }
+
+    .footer { text-align: center; padding: 40px 28px 0; }
+    .footer-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .footer-divider::before, .footer-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+    .footer-divider-icon { font-size: 19px; opacity: 0.4; }
+    .footer-name {
+      font-family: var(--font-display);
+      font-size: 21px;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: var(--earth);
+      margin-bottom: 6px;
+    }
+    .footer-address { font-size: 15px; color: var(--sand); letter-spacing: 0.05em; line-height: 1.8; }
+
+    /* ─── Cartes restaurant (style fiche Google Maps) ─── */
+    .resto-card {
+      background: #fff;
+      border: 1px solid #e0d8cc;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .resto-card:hover {
+      box-shadow: 0 4px 14px rgba(0,0,0,0.13);
+      transform: translateY(-1px);
+    }
+    .resto-card-header {
+      background: #5C6E4A;
+      padding: 12px 16px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .resto-name {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 400;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .resto-type {
+      font-size: 12px;
+      color: rgba(255,255,255,0.75);
+      margin-top: 3px;
+      letter-spacing: 0.03em;
+    }
+    .resto-badge {
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 4px 10px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .resto-rating {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1;
+    }
+    .resto-stars {
+      font-size: 12px;
+      color: #FFD700;
+      letter-spacing: 1px;
+    }
+    .resto-count {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      font-family: var(--font-body);
+    }
+    .resto-body {
+      padding: 14px 16px;
+    }
+    .resto-desc {
+      font-size: 16px;
+      color: var(--earth);
+      line-height: 1.6;
+      font-style: italic;
+      font-family: var(--font-display);
+      margin-bottom: 12px;
+    }
+    .resto-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 15px;
+      color: #555;
+      letter-spacing: 0.01em;
+      margin-bottom: 14px;
+    }
+    .resto-meta span { display: flex; align-items: center; gap: 6px; }
+    .resto-cta {
+      display: inline-block;
+      background: #5C6E4A;
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .resto-cta:hover { background: #3d4c31; }
+
+    /* ─── Bouton action vert ─── */
+    .btn-action {
+      display: inline-block;
+      background: #5C6E4A;
+      color: var(--cream);
+      font-family: var(--font-body);
+      font-size: 14px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+    .btn-action:hover {
+      background: #3d4c31;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .section { animation: fadeUp 0.5s ease both; }
+      .section:nth-child(1) { animation-delay: 0.05s; }
+      .section:nth-child(2) { animation-delay: 0.12s; }
+      .section:nth-child(3) { animation-delay: 0.18s; }
+      .section:nth-child(4) { animation-delay: 0.24s; }
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(14px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+    }
+
+    /* Language toggle */
+    .lang-en .fr { display: none !important; }
+    .lang-fr .en { display: none !important; }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
+  <link rel="icon" href="../photos/favicon.jpg" type="image/jpeg" />
+  <link rel="apple-touch-icon" href="../photos/favicon.jpg" />
+  <meta name="apple-mobile-web-app-title" content="La Ferme Fanost" />
+  <meta name="theme-color" content="#7A8C65" />
+</head>
+<body>
+<div class="page">
+
+  <!-- ═══ EN-TÊTE ══════════════════════════════════ -->
+  <header class="header">
+    <p class="header-eyebrow">Morangis · Essonne</p>
+    <img src="../photos/1774740617407_logolaferme-02.png" alt="La Ferme Fanost" class="header-logo-img" />
+    <p class="header-sub"><span class="fr">Chambres d'hôtes & Table d'hôtes</span><span class="en">Bed & Breakfast & Shared Dining</span></p>
+    <div class="ornament"><span class="ornament-leaf">✦</span></div>
+  </header>
+
+  <nav style="position:sticky;top:0;z-index:100;background:#5E6E52;display:flex;overflow-x:auto;scrollbar-width:none">
+    <a href="#acces" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;"><i class="ph-thin ph-key" style="font-size:15px;"></i> <span class="fr">Accès</span><span class="en">Access</span></a>
+    <a href="#wifi" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;"><i class="ph-thin ph-wifi-high" style="font-size:15px;"></i> WiFi</a>
+    <a href="#dejeuner" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;"><i class="ph-thin ph-coffee" style="font-size:15px;"></i> <span class="fr">Petit-déj</span><span class="en">Breakfast</span></a>
+    <a href="#diner" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;"><i class="ph-thin ph-fork-knife" style="font-size:15px;"></i> <span class="fr">Dîner</span><span class="en">Dinner</span></a>
+    <a href="#boissons" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;"><i class="ph-thin ph-wine" style="font-size:15px;"></i> <span class="fr">Boissons</span><span class="en">Drinks</span></a>
+    <a href="#resto" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;"><i class="ph-thin ph-map-pin" style="font-size:15px;"></i> <span class="fr">Sortir</span><span class="en">Going out</span></a>
+    <a href="#chambre" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;"><i class="ph-thin ph-credit-card" style="font-size:15px;"></i> <span class="fr">Chambre</span><span class="en">Room</span></a>
+    <a href="#contact" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;"><i class="ph-thin ph-chat-circle" style="font-size:15px;"></i> Contact</a>
+    <a href="#avis" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;"><i class="ph-thin ph-star" style="font-size:15px;"></i> <span class="fr">Avis</span><span class="en">Reviews</span></a>
+  </nav>
+
+  <div id="lang-toggle" style="position:fixed;top:9px;right:10px;z-index:9999;">
+    <button id="lang-btn" onclick="toggleLang()" style="font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,0.9);background:rgba(94,110,74,0.88);border:none;border-radius:2px;padding:5px 10px;cursor:pointer;">EN</button>
+  </div>
+
+  <div class="content">
+    <span id="wifi"></span>
+    <!-- ═══ ACCÈS ═══════════════════════════════════ -->
+    <span id="acces"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Entrée & sortie</span><span class="en">Entrance & exit</span></span>
+        <h2><span class="fr">Accès</span><span class="en">Access</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:center;gap:16px;">
+          <span style="font-size:30px;">🔑</span>
+          <div>
+            <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Code portillon</span><span class="en">Gate code</span></p>
+            <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:34px;font-weight:400;color:var(--dark);letter-spacing:.18em;">0512</p>
+          </div>
+        </div>
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:center;gap:16px;">
+          <span style="font-size:30px;">🔵</span>
+          <div>
+            <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Pour sortir</span><span class="en">To exit</span></p>
+            <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--dark);"><span class="fr">Appuyez sur le petit bouton bleu à côté du portillon</span><span class="en">Press the small blue button next to the gate</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ WIFI ══════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Connexion internet</span><span class="en">Internet connection</span></span>
+        <h2><span class="fr">WiFi Invités</span><span class="en">Guest WiFi</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div style="text-align:center; background:var(--warm); border:1px solid var(--sand); border-radius:2px; padding:28px 24px;">
+        <div id="wifi-qr" style="display:inline-block;"></div>
+
+        <div style="margin-top:22px; border-top:1px solid var(--rule); padding-top:18px;">
+          <p style="font-family:var(--font-body); font-size:12px; letter-spacing:0.18em; text-transform:uppercase; color:var(--earth); margin-bottom:12px;"><span class="fr">Ou connectez-vous manuellement</span><span class="en">Or connect manually</span></p>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="background:var(--cream); padding:10px 16px; border-radius:2px;">
+              <p style="font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--earth); margin-bottom:3px;"><span class="fr">Réseau</span><span class="en">Network</span></p>
+              <p style="font-family:var(--font-display); font-size:18px; color:var(--dark); letter-spacing:0.02em;">LaFermeFanostInvite</p>
+            </div>
+            <div style="background:var(--cream); padding:10px 16px; border-radius:2px;">
+              <p style="font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--earth); margin-bottom:3px;"><span class="fr">Mot de passe</span><span class="en">Password</span></p>
+              <p style="font-family:var(--font-display); font-size:18px; color:var(--dark); letter-spacing:0.02em;">@4rueCharlesFanost</p>
+            </div>
+          </div>
+          <button onclick="copyWifiPassword(this)" style="margin-top:16px;width:100%;padding:12px 20px;background:var(--warm);border:1px solid var(--sand);border-radius:2px;font-family:var(--font-body);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--earth);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.2s,color 0.2s;">
+            <i class="ph-thin ph-wifi-high" style="font-size:16px;"></i> <span class="fr">Se connecter au WiFi</span><span class="en">Connect to WiFi</span>
+          </button>
+        </div>
+      </div>
+    </section>
+    <span id="dejeuner"></span>
+    <!-- ═══ PETIT-DÉJEUNER ═══════════════════════════ -->
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Le matin</span><span class="en">In the morning</span></span>
+        <h2><span class="fr">Petit-Déjeuner</span><span class="en">Breakfast</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div class="formula-box">
+        <div class="price-badge"><span class="fr">Inclus</span><span class="en">Included</span></div>
+        <p class="formula-desc"><span class="fr">Servi de 7h30 à 9h30 · En salle ou sur plateau en chambre · Commande la veille</span><span class="en">Served from 7:30 to 9:30 · In the dining room or on a tray in your room · Order the evening before</span></p>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Viennoiseries & pains</span><span class="en">Pastries & breads</span></div>
+          <div class="dish-desc"><span class="fr">Baguette tradition & graines · Sur commande : pain au levain bio, brioche, pain sans gluten</span><span class="en">Traditional baguette & seeded bread · On request: organic sourdough, brioche, gluten-free bread</span></div>
+          <span class="dish-tag"><span class="fr">sur commande</span><span class="en">on request</span></span>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Confitures & miel <em>bio</em></span><span class="en">Organic jams & honey</span></div>
+          <div class="dish-desc"><span class="fr">Sélection de confitures bio · Miel bio</span><span class="en">Selection of organic jams · Organic honey</span></div>
+          <span class="dish-tag"><span class="fr">bio</span><span class="en">organic</span></span>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Pâtes à tartiner <em>bio</em></span><span class="en">Organic nut butters & spreads</span></div>
+          <div class="dish-desc"><span class="fr">Chocolat, amande, cajou, cacahuète · en libre-service</span><span class="en">Chocolate, almond, cashew, peanut · self-service</span></div>
+          <span class="dish-tag"><span class="fr">bio · libre-service</span><span class="en">organic · self-service</span></span>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Fruits secs & muesli <em>bio</em></span><span class="en">Organic dried fruits & muesli</span></div>
+          <div class="dish-desc"><span class="fr">Sélection de fruits secs et muesli · en libre-service</span><span class="en">Selection of dried fruits and muesli · self-service</span></div>
+          <span class="dish-tag"><span class="fr">bio · libre-service</span><span class="en">organic · self-service</span></span>
+          <span class="dish-tag"><span class="fr">bio · fait maison</span><span class="en">organic · homemade</span></span>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Yaourt <em>maison</em></span><span class="en">Homemade yogurt</span></div>
+          <div class="dish-desc"><span class="fr">Préparé sur place</span><span class="en">Made on-site</span></div>
+          <span class="dish-tag"><span class="fr">fait maison</span><span class="en">homemade</span></span>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Salade de fruits frais <em>bio</em></span><span class="en">Organic fresh fruit salad</span></div>
+          <div class="dish-desc"><span class="fr">Préparée le matin même</span><span class="en">Prepared fresh every morning</span></div>
+          <span class="dish-tag"><span class="fr">bio · fait maison</span><span class="en">organic · homemade</span></span>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Jus de fruits <em>bio</em></span><span class="en">Organic fruit juice</span></div>
+          <div class="dish-desc"><span class="fr">Sélection de jus bio de saison</span><span class="en">Selection of seasonal organic juices</span></div>
+          <span class="dish-tag"><span class="fr">bio</span><span class="en">organic</span></span>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Boissons chaudes</span><span class="en">Hot drinks</span></div>
+          <div class="dish-desc"><span class="fr">Café, thé, chocolat chaud · machine à expresso</span><span class="en">Coffee, tea, hot chocolate · espresso machine</span></div>
+        </div>
+      </div>
+
+      <p class="sub-category"><span class="fr">Option salée <em>· en supplément</em></span><span class="en">Savoury option <em>· extra charge</em></span></p>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Œufs brouillés</span><span class="en">Scrambled eggs</span></div>
+          <div class="dish-desc"><span class="fr">À commander plusieurs jours à l'avance</span><span class="en">Order a few days in advance</span></div>
+          <span class="dish-tag"><span class="fr">sur commande</span><span class="en">on request</span></span>
+        </div>
+        <div class="dish-price">4 €</div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Charcuterie</div>
+          <div class="dish-desc"><span class="fr">Sélection du moment</span><span class="en">Today's selection</span></div>
+          <span class="dish-tag"><span class="fr">sur commande</span><span class="en">on request</span></span>
+        </div>
+        <div class="dish-price">5 €</div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Fromage</span><span class="en">Cheese</span></div>
+          <div class="dish-desc"><span class="fr">Sélection affinée</span><span class="en">Aged selection</span></div>
+          <span class="dish-tag"><span class="fr">sur commande</span><span class="en">on request</span></span>
+        </div>
+        <div class="dish-price">4 €</div>
+      </div>
+    </section>
+    <span id="diner"></span>
+    <!-- ═══ TABLE D'HÔTES ════════════════════════════ -->
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Le soir</span><span class="en">In the evening</span></span>
+        <h2><span class="fr">Table d'Hôtes</span><span class="en">Shared Dinner Table</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <p style="text-align:center;font-family:'Jost',sans-serif;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#7A6248;opacity:.85;margin-bottom:22px;">
+        <span class="fr">🕖 Accueil à table dès 19h30 &nbsp;·&nbsp; Lun → Jeu &nbsp;·&nbsp; Réservation la veille</span><span class="en">🕖 Dinner from 7:30 pm &nbsp;·&nbsp; Mon → Thu &nbsp;·&nbsp; Reservation the day before</span>
+      </p>
+      <div class="formula-box">
+        <div class="price-badge">25 € <span class="fr">/ personne</span><span class="en">/ person</span></div>
+        <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.1em;color:var(--earth);margin-bottom:8px;"><span class="fr">+ 5 € pour les non-résidents</span><span class="en">+ 5 € for non-residents</span></p>
+        <p class="formula-desc"><span class="fr">Menu 3 services · Boissons à la carte · Café & infusion offerts</span><span class="en">3-course menu · Drinks à la carte · Coffee & herbal tea included</span></p>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Menu du marché <em>du jour</em></span><span class="en">Daily market menu</span></div>
+          <div class="dish-desc"><span class="fr">Menu différent et renouvelé chaque jour selon l'inspiration et les arrivages</span><span class="en">A different menu every day, inspired by what's freshest at the market</span></div>
+          <span class="dish-tag"><span class="fr">fait maison</span><span class="en">homemade</span></span>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Fruits & légumes <em>bio de saison</em></span><span class="en">Organic seasonal fruit & vegetables</span></div>
+          <div class="dish-desc"><span class="fr">Sélection locale et saisonnière · cuisine équilibrée et saine</span><span class="en">Local and seasonal selection · balanced and healthy cooking</span></div>
+          <span class="dish-tag"><span class="fr">bio · local</span><span class="en">organic · local</span></span>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Intolérances & régimes spéciaux</span><span class="en">Dietary requirements & allergies</span></div>
+          <div class="dish-desc"><span class="fr">Alternatives possibles sur demande · à signaler impérativement à la réservation</span><span class="en">Alternatives available on request · must be specified at booking</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Service en salle <em>ou en chambre</em></span><span class="en">Served in the dining room <em>or in your room</em></span></div>
+          <div class="dish-desc"><span class="fr">Le dîner peut être servi en salle ou sur plateau en chambre, au choix</span><span class="en">Dinner can be served in the dining room or on a tray in your room, your choice</span></div>
+        </div>
+      </div>
+
+      <div class="note-box">
+        <span class="fr">La table d'hôtes est un moment partagé — tous les résidents dînent autour d'un menu unique, préparé sur place le jour même avec les produits frais du marché. Les boissons sont proposées à la carte. Le café et les infusions sont offerts en fin de repas.</span><span class="en" style="display:block">The shared dinner table is a convivial moment — all guests dine together around a single seasonal menu, prepared on-site each day with fresh market produce. Drinks are ordered separately. Coffee and herbal teas are offered at the end of the meal.</span>
+      </div>
+    </section>
+    <span id="boissons"></span>
+    <!-- ═══ BOISSONS ═════════════════════════════════ -->
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">À toute heure</span><span class="en">At any time</span></span>
+        <h2><span class="fr">Boissons</span><span class="en">Drinks</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <p class="sub-category"><span class="fr">Softs & eaux</span><span class="en">Soft drinks & water</span></p>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Eau minérale</span><span class="en">Still or sparkling water</span></div>
+          <div class="dish-desc"><span class="fr">Plate ou gazeuse · 75 cl</span><span class="en">Still or sparkling · 75 cl</span></div>
+        </div>
+        <div class="dish-price">2 €</div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Sodas & jus de fruits <em>bio</em></span><span class="en">Organic sodas & fruit juices</span></div>
+        </div>
+        <div class="dish-price">3,50 €</div>
+      </div>
+
+      <p class="sub-category"><span class="fr">Softs originaux</span><span class="en">Specialty soft drinks</span></p>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Kombucha</div>
+          <div class="dish-desc"><span class="fr">Citron vert menthe · Fraise hibiscus · Pêche · Citron gingembre</span><span class="en">Lime mint · Strawberry hibiscus · Peach · Lemon ginger</span></div>
+          <span class="dish-tag"><span class="fr">vivant & naturel</span><span class="en">live & natural</span></span>
+        </div>
+        <div class="dish-price">5,50 €</div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Bière sans alcool <em>belge</em></span><span class="en">Belgian alcohol-free beer</span></div>
+          <div class="dish-desc"><span class="fr">33 cl · 3 houblons · goût cerise · consignée</span><span class="en">33 cl · 3 hops · cherry flavour · returnable bottle</span></div>
+          <span class="dish-tag"><span class="fr">sélection maison</span><span class="en">house selection</span></span>
+        </div>
+        <div class="dish-price">5,50 €</div>
+      </div>
+
+      <p class="sub-category"><span class="fr">Vins</span><span class="en">Wine</span></p>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Vin rouge, blanc, rosé <em>ou pétillant</em></span><span class="en">Red, white, rosé or sparkling wine</span></div>
+          <div class="dish-desc"><span class="fr">Verre · sélection bio ou Demeter du moment</span><span class="en">Glass · organic or Demeter selection of the moment</span></div>
+          <span class="dish-tag"><span class="fr">bio · Demeter</span><span class="en">organic · Demeter</span></span>
+        </div>
+        <div class="dish-price">4,50 €</div>
+      </div>
+
+      <p class="sub-category"><span class="fr">Bière</span><span class="en">Beer</span></p>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Bière belge <em>artisanale</em></span><span class="en">Artisan Belgian beer</span></div>
+          <div class="dish-desc"><span class="fr">33 cl · sélection ramenée par nos soins · consignée</span><span class="en">33 cl · hand-picked selection · returnable bottle</span></div>
+          <span class="dish-tag"><span class="fr">sélection maison</span><span class="en">house selection</span></span>
+        </div>
+        <div class="dish-price">5,50 €</div>
+      </div>
+
+      <p class="sub-category"><span class="fr">Cocktails du moment</span><span class="en">Cocktails of the moment</span></p>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Hugo Spritz, Aperol Spritz, Moscow Mule, Caïpirinha</div>
+          <div class="dish-desc"><span class="fr">Cocktail surprise du moment · création maison selon l'envie du jour</span><span class="en">Cocktail of the moment · homemade creation of the day</span></div>
+          <span class="dish-tag"><span class="fr">fait maison</span><span class="en">homemade</span></span>
+        </div>
+        <div class="dish-price">8 €</div>
+      </div>
+
+      <p class="sub-category"><span class="fr">Digestifs & spiritueux</span><span class="en">Digestifs & spirits</span></p>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Whisky, Cognac, Calvados <em>& autres</em></div>
+          <div class="dish-desc"><span class="fr">Sélection du moment · demandez-nous</span><span class="en">Today's selection · just ask</span></div>
+        </div>
+        <div class="dish-price">6 €</div>
+      </div>
+
+      <p class="sub-category"><span class="fr">Chaudes</span><span class="en">Hot drinks</span></p>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Café expresso, thé, infusion</span><span class="en">Espresso, tea, herbal tea</span></div>
+        </div>
+        <div class="dish-price">2 €</div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Chocolat chaud, Cappuccino</span><span class="en">Hot chocolate, Cappuccino</span></div>
+        </div>
+        <div class="dish-price">3,50 €</div>
+      </div>
+    </section>
+    <span id="resto"></span>
+    <!-- ═══ OÙ DÉJEUNER ? ═══════════════════════════════ -->
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Nos coups de cœur</span><span class="en">Our recommendations</span></span>
+        <h2><span class="fr">Où déjeuner ?</span><span class="en">Where to eat?</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div class="note-box">
+        <span class="fr">Quelques adresses testées et approuvées dans un rayon de 10 minutes. Pensez à réserver, les bonnes tables se remplissent vite !</span><span class="en" style="display:block">A few tried and tested addresses within 10 minutes. Book ahead — the best spots fill up fast!</span>
+      </div>
+
+      <!-- Osteria Pietrinella -->
+      <div class="resto-card">
+        <div class="resto-card-header">
+          <div>
+            <div class="resto-name">Osteria Pietrinella</div>
+            <div class="resto-type">🍝 Italien · Antony</div>
+          </div>
+          <div class="resto-badge">
+            <div class="resto-rating">4,8</div>
+            <div class="resto-stars">★★★★★</div>
+            <div class="resto-count">693 <span class="fr">avis</span><span class="en">reviews</span></div>
+          </div>
+        </div>
+        <div class="resto-body">
+          <div class="resto-desc"><span class="fr">Cuisine calabraise authentique dans un cadre de village. Les tagliatelles au ragù sont remarquables. Réservation indispensable.</span><span class="en" style="display:block">Authentic Calabrian cuisine in a charming village setting. The tagliatelle al ragù are remarkable. Reservation essential.</span></div>
+          <div class="resto-meta">
+            <span>📍 8 rue de l'Église, Antony · ~8 min</span>
+            <span>🕐 <span class="fr">Mar–Ven midi · soir Mar–Ven</span><span class="en">Tue–Fri lunch · Tue–Fri dinner</span></span>
+          </div>
+          <a href="https://maps.google.com/?q=Osteria+Pietrinella+8+Rue+de+l+Eglise+Antony" target="_blank" class="resto-cta"><span class="fr">Voir sur Google Maps</span><span class="en">View on Google Maps</span></a>
+        </div>
+      </div>
+
+      <!-- Les Galopins -->
+      <div class="resto-card">
+        <div class="resto-card-header">
+          <div>
+            <div class="resto-name">Les Galopins</div>
+            <div class="resto-type">🥩 Brasserie française · Antony</div>
+          </div>
+          <div class="resto-badge">
+            <div class="resto-rating">4,6</div>
+            <div class="resto-stars">★★★★★</div>
+            <div class="resto-count">1 308 <span class="fr">avis</span><span class="en">reviews</span></div>
+          </div>
+        </div>
+        <div class="resto-body">
+          <div class="resto-desc"><span class="fr">Grande brasserie conviviale réputée pour ses viandes et burgers Angus. Service attentionné, salle animée. Ouvert 7j/7.</span><span class="en" style="display:block">A lively brasserie renowned for its meats and Angus burgers. Attentive service, buzzing atmosphere. Open 7 days a week.</span></div>
+          <div class="resto-meta">
+            <span>📍 56 av. Division Leclerc, Antony · ~8 min</span>
+            <span>🕐 <span class="fr">Tous les jours midi & soir</span><span class="en">Every day lunch & dinner</span></span>
+          </div>
+          <a href="https://maps.google.com/?q=Les+Galopins+56+Avenue+Division+Leclerc+Antony" target="_blank" class="resto-cta"><span class="fr">Voir sur Google Maps</span><span class="en">View on Google Maps</span></a>
+        </div>
+      </div>
+
+      <!-- La Grange aux Dîmes -->
+      <div class="resto-card">
+        <div class="resto-card-header">
+          <div>
+            <div class="resto-name">La Grange aux Dîmes</div>
+            <div class="resto-type">🇫🇷 Gastronomique · Wissous</div>
+          </div>
+          <div class="resto-badge">
+            <div class="resto-rating">4,4</div>
+            <div class="resto-stars">★★★★☆</div>
+            <div class="resto-count">692 <span class="fr">avis</span><span class="en">reviews</span></div>
+          </div>
+        </div>
+        <div class="resto-body">
+          <div class="resto-desc"><span class="fr">Cadre exceptionnel dans une bâtisse du XIII<sup>e</sup> siècle. Cuisine française soignée, cave à vins remarquable. Idéal pour un repas d'affaires.</span><span class="en" style="display:block">An exceptional setting in a 13th-century building. Refined French cuisine and a remarkable wine cellar. Ideal for a business lunch.</span></div>
+          <div class="resto-meta">
+            <span>📍 3 rue André Dolimier, Wissous · ~5 min</span>
+            <span>🕐 <span class="fr">Mar–Sam midi & soir</span><span class="en">Tue–Sat lunch & dinner</span></span>
+          </div>
+          <a href="https://maps.google.com/?q=La+Grange+aux+Dimes+3+Rue+Andre+Dolimier+Wissous" target="_blank" class="resto-cta"><span class="fr">Voir sur Google Maps</span><span class="en">View on Google Maps</span></a>
+        </div>
+      </div>
+
+      <!-- Chez Maria -->
+      <div class="resto-card">
+        <div class="resto-card-header">
+          <div>
+            <div class="resto-name">Chez Maria</div>
+            <div class="resto-type">🇵🇹 Portugais · Wissous</div>
+          </div>
+          <div class="resto-badge">
+            <div class="resto-rating">4,8</div>
+            <div class="resto-stars">★★★★★</div>
+            <div class="resto-count">97 <span class="fr">avis</span><span class="en">reviews</span></div>
+          </div>
+        </div>
+        <div class="resto-body">
+          <div class="resto-desc"><span class="fr">Une pépite discrète à deux pas. Cuisine maison généreuse, accueil chaleureux et portions copieuses. Le vrai Portugal dans l'assiette.</span><span class="en" style="display:block">A hidden gem nearby. Hearty homemade cooking, warm welcome and generous portions. Authentic Portuguese cuisine.</span></div>
+          <div class="resto-meta">
+            <span>📍 17 voie du Bon Puits, Wissous · ~5 min</span>
+            <span>🕐 <span class="fr">Mar–Dim midi · Ven–Sam soir</span><span class="en">Tue–Sun lunch · Fri–Sat dinner</span></span>
+          </div>
+          <a href="https://maps.google.com/?q=Chez+Maria+17+Voie+du+Bon+Puits+Wissous" target="_blank" class="resto-cta"><span class="fr">Voir sur Google Maps</span><span class="en">View on Google Maps</span></a>
+        </div>
+      </div>
+
+    </section>
+    <span id="chambre"></span>
+    <!-- ═══ RÈGLEMENT CHAMBRE ════════════════════════ -->
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Votre séjour</span><span class="en">Your stay</span></span>
+        <h2><span class="fr">Règlement Chambre</span><span class="en">Room Payment</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div class="note-box">
+        <span class="fr">Le prix de votre chambre vous a été communiqué lors de la réservation. Merci de vous rapprocher de votre hôte pour confirmer le montant avant de procéder au paiement.</span><span class="en" style="display:block">The price of your room was communicated to you at the time of booking. Please check with your host to confirm the amount before making your payment.</span>
+      </div>
+
+      <div style="text-align:center; margin-top:28px;">
+        <a href="https://pay.sumup.com/b2c/Q1WIA7R5"
+           target="_blank"
+           class="btn-action">
+          💳 &nbsp;<span class="fr">Payer ma chambre</span><span class="en">Pay for my room</span>
+        </a>
+        <p style="font-size:14px; color:var(--earth); margin-top:14px; font-family:var(--font-body); letter-spacing:0.04em;">
+          🔒 <span class="fr">Paiement sécurisé · CB, Apple Pay, Google Pay</span><span class="en">Secure payment · Credit card, Apple Pay, Google Pay</span>
+        </p>
+      </div>
+    </section>
+    <span id="contact"></span>
+    <!-- ═══ CONTACT WHATSAPP ═════════════════════════ -->
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Une question ?</span><span class="en">Any questions?</span></span>
+        <h2><span class="fr">Nous contacter</span><span class="en">Contact us</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div class="note-box">
+        <span class="fr">Pour toute question sur votre séjour, la table d'hôtes ou les environs, n'hésitez pas à nous écrire directement via WhatsApp — nous répondons en général dans la journée.</span><span class="en" style="display:block">For any question about your stay, dinner, or the local area, feel free to message us on WhatsApp — we usually reply the same day.</span>
+      </div>
+
+      <div style="text-align:center; margin-top:28px;">
+        <a href="https://wa.me/33620312119"
+           target="_blank"
+           style="display:inline-block; background:#25D366; color:#fff;
+                  font-family:var(--font-body); font-size:14px; letter-spacing:0.12em;
+                  text-transform:uppercase; text-decoration:none; padding:16px 32px;
+                  border-radius:2px;">
+          💬 &nbsp;<span class="fr">Écrire sur WhatsApp</span><span class="en">Message on WhatsApp</span>
+        </a>
+      </div>
+    </section>
+    <span id="avis"></span>
+    <!-- ═══ AVIS GOOGLE ═══════════════════════════════ -->
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Votre retour compte</span><span class="en">Your feedback matters</span></span>
+        <h2><span class="fr">Laisser un avis</span><span class="en">Leave a review</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div class="note-box">
+        <span class="fr">Votre séjour vous a plu ? Un petit avis sur Google nous aide énormément à faire connaître La Ferme Fanost et à accueillir de nouveaux voyageurs dans les meilleures conditions. Merci du fond du cœur 🙏</span><span class="en" style="display:block">Did you enjoy your stay? A quick Google review helps us enormously in welcoming new guests in the best possible conditions. Thank you so much 🙏</span>
+      </div>
+
+      <div style="text-align:center; margin-top:28px;">
+        <a href="https://search.google.com/local/writereview?placeid=ChIJ11XPNBh25kcRLkuZLRrDpNA"
+           target="_blank"
+           style="display:inline-block; background:#4285F4; color:#fff;
+                  font-family:var(--font-body); font-size:14px; letter-spacing:0.12em;
+                  text-transform:uppercase; text-decoration:none; padding:16px 32px;
+                  border-radius:2px;">
+          ⭐ &nbsp;<span class="fr">Donner mon avis sur Google</span><span class="en">Leave a Google review</span>
+        </a>
+        <p style="font-size:16px; color:var(--earth); margin-top:14px; font-family:var(--font-display); letter-spacing:0.04em;">
+          ⭐ <strong style="font-size:18px; color:var(--dark);">4,9 / 5</strong> &nbsp;·&nbsp; 36 <span class="fr">avis Google</span><span class="en">Google reviews</span>
+        </p>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+
+  <footer class="footer">
+    <div class="footer-divider">
+      <span class="footer-divider-icon">✦</span>
+    </div>
+    <p class="footer-name">La Ferme Fanost</p>
+    <p class="footer-address">
+      4 rue Charles Fanost · 91420 Morangis
+    </p>
+  </footer>
+
+</div><!-- /page -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+  const SSID     = 'LaFermeFanostInvite';
+  const PASSWORD = '@4rueCharlesFanost';
+  const wifiString = 'WIFI:T:WPA;S:' + SSID + ';P:' + PASSWORD + ';;';
+
+  new QRCode(document.getElementById('wifi-qr'), {
+    text: wifiString,
+    width: 160,
+    height: 160,
+    colorDark: '#2E2218',
+    colorLight: '#EDE4D3',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  function copyWifiPassword(btn) {
+    var wifiLink = 'WIFI:T:WPA;S:' + SSID + ';P:' + PASSWORD + ';;';
+    var originalHTML = btn.innerHTML;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(PASSWORD).then(function() {
+        btn.innerHTML = '<i class="ph-thin ph-check" style="font-size:16px;"></i> <span class="fr">Mot de passe copié !</span><span class="en">Password copied!</span>';
+        btn.style.background = '#5C6E4A';
+        btn.style.color = '#fff';
+        btn.style.borderColor = '#5C6E4A';
+        setTimeout(function() {
+          btn.innerHTML = originalHTML;
+          btn.style.background = '';
+          btn.style.color = '';
+          btn.style.borderColor = '';
+        }, 2500);
+      });
+    } else {
+      var el = document.createElement('textarea');
+      el.value = PASSWORD;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      btn.innerHTML = '<i class="ph-thin ph-check" style="font-size:16px;"></i> Copié !';
+      setTimeout(function() { btn.innerHTML = originalHTML; }, 2000);
+    }
+  }
+</script>
+
+<script>
+(function(){
+  var lang = localStorage.getItem('lang') || 'fr';
+  var cl = document.documentElement.className || '';
+  cl = cl.replace(/\blang-(?:fr|en)\b/g, '').trim();
+  document.documentElement.className = cl + (cl ? ' ' : '') + 'lang-' + lang;
+  document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('lang-btn');
+    if (btn) btn.textContent = lang === 'fr' ? 'EN' : 'FR';
+  });
+})();
+function toggleLang() {
+  var cur = localStorage.getItem('lang') || 'fr';
+  var next = cur === 'fr' ? 'en' : 'fr';
+  localStorage.setItem('lang', next);
+  var cl = document.documentElement.className;
+  document.documentElement.className = cl.replace(/\blang-(?:fr|en)\b/g, '').trim() + ' lang-' + next;
+  document.getElementById('lang-btn').textContent = next === 'fr' ? 'EN' : 'FR';
+}
+</script>
+
+</body>
+</html>
