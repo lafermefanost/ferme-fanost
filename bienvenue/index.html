@@ -427,8 +427,11 @@
     <a href="#chambre" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;"><i class="ph-thin ph-credit-card" style="font-size:15px;"></i> <span class="fr">Chambre</span><span class="en">Room</span></a>
     <a href="#contact" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;"><i class="ph-thin ph-chat-circle" style="font-size:15px;"></i> Contact</a>
     <a href="#avis" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;"><i class="ph-thin ph-star" style="font-size:15px;"></i> <span class="fr">Avis</span><span class="en">Reviews</span></a>
-    <button id="lang-btn" onclick="toggleLang()" style="flex-shrink:0;margin-left:auto;padding:11px 13px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,.9);background:transparent;border:none;cursor:pointer;white-space:nowrap;">EN</button>
   </nav>
+
+  <div id="lang-toggle" style="position:fixed;top:9px;right:10px;z-index:9999;">
+    <button id="lang-btn" onclick="toggleLang()" style="font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(247,242,234,0.9);background:rgba(94,110,74,0.88);border:none;border-radius:2px;padding:5px 10px;cursor:pointer;">EN</button>
+  </div>
 
   <div class="content">
     <span id="wifi"></span>
@@ -996,7 +999,9 @@
 <script>
 (function(){
   var lang = localStorage.getItem('lang') || 'fr';
-  document.documentElement.className = (document.documentElement.className || '') + ' lang-' + lang;
+  var cl = document.documentElement.className || '';
+  cl = cl.replace(/\blang-(?:fr|en)\b/g, '').trim();
+  document.documentElement.className = cl + (cl ? ' ' : '') + 'lang-' + lang;
   document.addEventListener('DOMContentLoaded', function() {
     var btn = document.getElementById('lang-btn');
     if (btn) btn.textContent = lang === 'fr' ? 'EN' : 'FR';
@@ -1007,7 +1012,7 @@ function toggleLang() {
   var next = cur === 'fr' ? 'en' : 'fr';
   localStorage.setItem('lang', next);
   var cl = document.documentElement.className;
-  document.documentElement.className = cl.replace('lang-' + cur, 'lang-' + next);
+  document.documentElement.className = cl.replace(/\blang-(?:fr|en)\b/g, '').trim() + ' lang-' + next;
   document.getElementById('lang-btn').textContent = next === 'fr' ? 'EN' : 'FR';
 }
 </script>
