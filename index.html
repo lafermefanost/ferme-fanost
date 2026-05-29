@@ -1530,15 +1530,12 @@
       <li><a href="#contact">Contact</a></li>
       <li><a href="https://www.instagram.com/lafermefanost/" target="_blank" rel="noopener">Instagram ↗</a></li>
       <li><a href="#contact" class="nav-cta"><span class="fr">Réserver</span><span class="en">Book</span></a></li>
+      <li style="padding-left:12px;border-left:1px solid rgba(122,98,72,0.2);"><button class="lang-btn" onclick="toggleLang()" style="font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--earth);background:transparent;border:none;cursor:pointer;padding:4px 2px;">EN</button></li>
     </ul>
     <button class="burger" id="burger" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
   </nav>
-
-  <div id="lang-toggle" style="position:fixed;top:16px;right:20px;z-index:9999;">
-    <button id="lang-btn" onclick="toggleLang()" style="font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--earth,#7A6248);background:rgba(255,255,255,0.92);border:1px solid rgba(122,98,72,0.25);border-radius:2px;padding:5px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.1);">EN</button>
-  </div>
 
   <!-- Mobile menu -->
   <div class="mobile-menu" id="mobileMenu">
@@ -1549,6 +1546,7 @@
     <a href="#contact" onclick="closeMobile()">Contact &amp; Localisation</a>
     <a href="https://www.instagram.com/lafermefanost/" target="_blank" rel="noopener">Instagram ↗</a>
     <a href="#contact" onclick="closeMobile()">✦ <span class="fr">Réserver</span><span class="en">Book</span></a>
+    <button class="lang-btn" onclick="toggleLang();closeMobile();" style="font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--earth);background:transparent;border:none;cursor:pointer;padding:14px 24px;text-align:left;width:100%;">EN</button>
   </div>
 
   <!-- ═══════════════════ HERO ═══════════════════ -->
@@ -2083,7 +2081,7 @@
             target="_blank"
             rel="noopener"
             class="btn btn-primary">
-            Laisser un avis Google
+            <span class="fr">Laisser un avis Google</span><span class="en">Leave a Google review</span>
           </a>
         </div>
       </div>
@@ -2263,7 +2261,7 @@
              @lafermefanost
           </a>
           <a href="https://search.google.com/local/writereview?placeid=ChIJ11XPNBh25kcRLkuZLRrDpNA" target="_blank" rel="noopener" style="margin-top:10px;">
-             Laisser un avis Google
+             <span class="fr">Laisser un avis Google</span><span class="en">Leave a Google review</span>
           </a>
         </div>
       </div>
@@ -2389,8 +2387,7 @@
   cl = cl.replace(/\blang-(?:fr|en)\b/g, '').trim();
   document.documentElement.className = cl + (cl ? ' ' : '') + 'lang-' + lang;
   document.addEventListener('DOMContentLoaded', function() {
-    var btn = document.getElementById('lang-btn');
-    if (btn) btn.textContent = lang === 'fr' ? 'EN' : 'FR';
+    document.querySelectorAll('.lang-btn').forEach(function(b){ b.textContent = lang === 'fr' ? 'EN' : 'FR'; });
   });
 })();
 function toggleLang() {
@@ -2399,7 +2396,7 @@ function toggleLang() {
   localStorage.setItem('lang', next);
   var cl = document.documentElement.className;
   document.documentElement.className = cl.replace(/\blang-(?:fr|en)\b/g, '').trim() + ' lang-' + next;
-  document.getElementById('lang-btn').textContent = next === 'fr' ? 'EN' : 'FR';
+  document.querySelectorAll('.lang-btn').forEach(function(b){ b.textContent = next === 'fr' ? 'EN' : 'FR'; });
 }
 </script>
 
