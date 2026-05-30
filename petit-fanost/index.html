@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Le Petit Fanost — Guide d'accueil</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" href="../photos/favicon.jpg">
+  <link rel="apple-touch-icon" href="../photos/favicon.jpg">
+
+  <style>
+    :root {
+      --cream:   #FAF5EF;
+      --warm:    #F2E8DC;
+      --sand:    #C9A898;
+      --earth:   #8B5E52;
+      --dark:    #2E1A14;
+      --olive:   #A06552;
+      --accent:  #B5705A;
+      --rule:    rgba(139, 94, 82, 0.25);
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'Jost', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--dark);
+      font-family: var(--font-body);
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 0 60px;
+      background: var(--cream);
+    }
+
+    /* ─── Header ─── */
+    .header {
+      text-align: center;
+      padding: 36px 20px 28px;
+      background: #B08070;
+      color: var(--cream);
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 80%, rgba(156,107,60,.18) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(107,112,85,.15) 0%, transparent 45%);
+      pointer-events: none;
+    }
+    .header-eyebrow {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #fff;
+      opacity: 0.75;
+      margin-bottom: 14px;
+    }
+    .header h1 {
+      font-family: var(--font-display);
+      font-weight: 300;
+      font-size: 44px;
+      line-height: 1.05;
+      letter-spacing: 0.02em;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+    .header h1 em {
+      font-style: italic;
+      font-weight: 300;
+      display: block;
+      font-size: 28px;
+      color: #fff;
+      opacity: 0.85;
+    }
+    .header-sub {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 20px;
+      color: #fff;
+      margin-top: 12px;
+      opacity: 0.85;
+    }
+    .ornament {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0 0;
+    }
+    .ornament::before, .ornament::after {
+      content: '';
+      height: 1px;
+      width: 48px;
+      background: #fff;
+      opacity: 0.35;
+    }
+    .ornament-leaf { font-size: 16px; color: #fff; opacity: 0.35; }
+
+    /* ─── Bandeau info ─── */
+    .info-band {
+      background: #9A6C60;
+      color: var(--cream);
+      text-align: center;
+      padding: 12px 20px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .info-band span { display: flex; align-items: center; gap: 6px; opacity: 0.92; }
+    .info-band .dot { color: #fff; opacity: 0.35; }
+
+    /* ─── Contenu ─── */
+    .content { padding: 0 28px; }
+
+    .section { margin-top: 42px; }
+
+    .section-title { text-align: center; position: relative; margin-bottom: 28px; }
+    .section-title h2 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 26px;
+      letter-spacing: 0.04em;
+      color: var(--dark);
+      display: inline-block;
+    }
+    .section-title .section-label {
+      display: block;
+      font-family: var(--font-body);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--earth);
+      margin-bottom: 6px;
+    }
+    .section-rule {
+      border: none;
+      border-top: 1px solid var(--rule);
+      margin: 14px auto 0;
+      width: 60px;
+    }
+
+    /* ─── Items liste — même pattern .dish que la Ferme Fanost ─── */
+    .dish {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .dish:last-child { border-bottom: none; }
+    .dish-left { flex: 1; min-width: 0; }
+    .dish-name {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 400;
+      color: var(--dark);
+      line-height: 1.2;
+    }
+    .dish-name em { font-style: italic; font-weight: 300; }
+    .dish-desc { font-size: 15px; color: var(--earth); margin-top: 4px; line-height: 1.6; }
+    .dish-tag {
+      display: inline-block;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--olive);
+      border: 1px solid var(--olive);
+      padding: 1px 6px;
+      border-radius: 20px;
+      margin-top: 4px;
+      opacity: 0.8;
+    }
+
+    .sub-category {
+      font-family: var(--font-body);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--earth);
+      margin: 22px 0 4px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .note-box {
+      background: var(--warm);
+      border-left: 3px solid var(--sand);
+      padding: 14px 16px;
+      margin-top: 24px;
+      font-size: 17px;
+      line-height: 1.75;
+      color: var(--earth);
+      font-style: italic;
+      font-family: var(--font-display);
+    }
+
+    .footer { text-align: center; padding: 40px 28px 0; }
+    .footer-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .footer-divider::before, .footer-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+    .footer-divider-icon { font-size: 18px; opacity: 0.4; }
+    .footer-name {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: var(--earth);
+      margin-bottom: 6px;
+    }
+    .footer-address { font-size: 14px; color: var(--sand); letter-spacing: 0.05em; line-height: 1.8; }
+
+    /* ─── Cartes restaurant ─── */
+    .resto-card {
+      background: var(--warm);
+      border: 1px solid var(--sand);
+      border-radius: 2px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .resto-card:hover { border-color: var(--earth); }
+    .resto-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .resto-name {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--dark);
+      line-height: 1.2;
+    }
+    .resto-type { font-size: 13px; color: var(--earth); margin-top: 3px; letter-spacing: 0.03em; }
+    .resto-rating {
+      font-family: var(--font-display);
+      font-size: 15px;
+      color: var(--accent);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .resto-count { font-size: 12px; color: var(--earth); font-family: var(--font-body); }
+    .resto-desc {
+      font-size: 17px;
+      color: var(--earth);
+      line-height: 1.65;
+      font-style: italic;
+      font-family: var(--font-display);
+      margin-bottom: 10px;
+    }
+    .resto-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 13px;
+      color: var(--earth);
+      letter-spacing: 0.02em;
+    }
+
+    /* lang toggle */
+    .lang-en .fr { display: none !important; }
+    .lang-fr .en { display: none !important; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .section { animation: fadeUp 0.5s ease both; }
+      .section:nth-child(1) { animation-delay: 0.05s; }
+      .section:nth-child(2) { animation-delay: 0.12s; }
+      .section:nth-child(3) { animation-delay: 0.18s; }
+      .section:nth-child(4) { animation-delay: 0.24s; }
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(14px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ═══ EN-TÊTE ═══════════════════════════════════ -->
+  <header class="header">
+    <p class="header-eyebrow">Orly · Rungis · Paris</p>
+    <h1>Le Petit Fanost</h1>
+    <p class="header-sub"><span class="fr">Gîte de charme</span><span class="en">Charming cottage</span></p>
+    <div class="ornament"><span class="ornament-leaf">✦</span></div>
+  </header>
+
+  <div class="info-band">
+    <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> 19Ter rue du Gal de Gressot, 91320 Wissous</span>
+    <span class="dot">·</span>
+    <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> <span class="fr">Gîte entier</span><span class="en">Entire cottage</span></span>
+    <span class="dot">·</span>
+    <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 2c-2-2-4-2-5.5-.5L10 5 1.8 6.2c-.5.1-.9.5-.9 1l-.1.7c-.1.6.3 1.2.9 1.3L7 10.5 5 12.6 3 12c-.4-.1-.8 0-1 .3l-.4.6c-.3.5-.1 1.2.5 1.4L5 15l1.1 2.9c.2.6.9.8 1.4.5l.6-.4c.3-.2.4-.7.3-1L8 15l2.1-2.1 4.5 5.3c.2.2.4.3.7.3h.7c.5.1 1-.3 1-.8z"/></svg> Orly 15 min</span>
+  </div>
+
+  <nav style="position:sticky;top:0;z-index:100;background:#9A6C60;display:flex;overflow-x:auto;scrollbar-width:none">
+    <a href="#acces" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5l3 3"/></svg><span><span class="fr">Accès</span><span class="en">Access</span></span></a>
+    <a href="#depart" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span><span class="fr">Départ</span><span class="en">Checkout</span></span></a>
+    <a href="#parking" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg><span><span class="fr">Parking</span><span class="en">Parking</span></span></a>
+    <a href="#wifi" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg><span><span class="fr">WiFi</span><span class="en">WiFi</span></span></a>
+    <a href="#inclus" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span><span class="fr">Inclus</span><span class="en">Included</span></span></a>
+    <a href="#dechets" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg><span><span class="fr">Déchets</span><span class="en">Waste</span></span></a>
+    <a href="#commerces" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span><span class="fr">Commerces</span><span class="en">Shops</span></span></a>
+    <a href="#transport" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="12" rx="2"/><path d="M4 15l-2 3h20l-2-3"/><line x1="8" y1="9" x2="16" y2="9"/></svg><span><span class="fr">Transports</span><span class="en">Transport</span></span></a>
+    <a href="#sortir" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 2v4"/><circle cx="12" cy="13" r="3"/></svg><span><span class="fr">Sortir</span><span class="en">Outings</span></span></a>
+    <a href="#restos" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg><span><span class="fr">Restos</span><span class="en">Dining</span></span></a>
+    <a href="#depart" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span><span class="fr">Départ</span><span class="en">Checkout</span></span></a><a href="#paiement" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span><span class="fr">Paiement</span><span class="en">Payment</span></span></a>
+    <a href="#contact" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span><span class="fr">Contact</span><span class="en">Contact</span></span></a>
+    <a href="#avis" style="flex-shrink:0;padding:11px 13px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,.6);text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(250,245,239,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span><span class="fr">Avis</span><span class="en">Reviews</span></span></a>
+  </nav>
+
+
+  <div id="lang-toggle" style="position:fixed;top:9px;right:10px;z-index:9999;">
+    <button class="lang-btn" onclick="toggleLang()" style="font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,0.9);background:rgba(154,108,96,0.88);border:none;border-radius:2px;padding:5px 10px;cursor:pointer;">EN</button>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ ACCÈS ════════════════════════════════════ -->
+    <span id="acces"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Entrée &amp; sortie</span><span class="en">Entry &amp; exit</span></span>
+        <h2><span class="fr">Accès</span><span class="en">Access</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:center;gap:16px;">
+          <span style="flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5l3 3"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Portail</span><span class="en">Gate</span></p>
+            <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--dark);line-height:1.45;"><span class="fr">Nous serons présents pour vous accueillir à votre arrivée.</span><span class="en">We will be there to welcome you on arrival.</span></p>
+            <p style="font-size:15px;color:var(--earth);margin-top:5px;line-height:1.55;font-style:italic;"><span class="fr">Le portail est un peu rigide — tirez-le fermement et tournez la clé deux fois pour bien le fermer à chaque passage.</span><span class="en">The gate is a bit stiff — pull it firmly and turn the key twice to lock it properly each time.</span></p>
+          </div>
+        </div>
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:center;gap:16px;">
+          <span style="flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Boîte à clé</span><span class="en">Key box</span></p>
+            <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:32px;font-weight:400;color:var(--dark);letter-spacing:.2em;">0704</p>
+            <p style="font-size:15px;color:var(--earth);margin-top:5px;line-height:1.55;font-style:italic;"><span class="fr">Boîte à gauche du portail. Changez le code après fermeture et vérifiez qu'elle est bien verrouillée.</span><span class="en">Box to the left of the gate. Change the code after closing and make sure it is properly locked.</span></p>
+          </div>
+        </div>
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:flex-start;gap:16px;">
+          <span style="flex-shrink:0;margin-top:2px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Sécurité</span><span class="en">Security</span></p>
+            <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--dark);line-height:1.45;"><span class="fr">Merci de bien fermer toutes les ouvertures à chaque sortie.</span><span class="en">Please close all openings every time you leave.</span></p>
+            <p style="font-size:15px;color:var(--earth);margin-top:5px;line-height:1.55;font-style:italic;"><span class="fr">En particulier le velux de la chambre du haut et toutes les portes — pour éviter tout risque d'infiltration ou d'intrusion en votre absence.</span><span class="en">In particular the skylight in the upper bedroom and all doors — to avoid any risk of water damage or intrusion during your absence.</span></p>
+            <p style="font-size:15px;color:var(--earth);margin-top:10px;line-height:1.55;font-style:italic;"><span class="fr">Une caméra orientée exclusivement vers le jardin est présente sur site. Elle ne couvre aucun espace intérieur de la maison et a pour seul objet la sécurité des abords de la maison et la protection de votre séjour.</span><span class="en">A camera pointing exclusively towards the garden is on site. It does not cover any interior space and is solely for the security of the property surroundings and the protection of your stay.</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+<!-- ═══ CHECKLIST DÉPART ════════════════════════════ -->
+    <span id="depart"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Avant de partir</span><span class="en">Before you leave</span></span>
+        <h2><span class="fr">Checklist de départ</span><span class="en">Checkout checklist</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div class="note-box">
+        <span class="fr">Merci de laisser la maison dans l'état dans lequel vous l'avez trouvée à votre arrivée. Voici les points essentiels à vérifier avant de remettre les clés.</span><span class="en">Please leave the house in the condition you found it on arrival. Here are the key points to check before returning the keys.</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:0;margin-top:8px;">
+
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:13px 0;border-bottom:1px solid var(--rule);">
+          <span style="flex-shrink:0;margin-top:2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:var(--font-display);font-size:19px;font-weight:400;color:var(--dark);line-height:1.2;"><span class="fr">Poubelles</span><span class="en">Bins</span></p>
+            <p style="font-size:15px;color:var(--earth);margin-top:3px;line-height:1.55;"><span class="fr">Sacs-poubelle vidés et jetés dans les bacs de tri. Nouveaux sacs en place si disponibles.</span><span class="en">Bin bags emptied and placed in the recycling bins. New bags in place if available.</span></p>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:13px 0;border-bottom:1px solid var(--rule);">
+          <span style="flex-shrink:0;margin-top:2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:var(--font-display);font-size:19px;font-weight:400;color:var(--dark);line-height:1.2;"><span class="fr">Vaisselle &amp; cuisine</span><span class="en">Dishes &amp; kitchen</span></p>
+            <p style="font-size:15px;color:var(--earth);margin-top:3px;line-height:1.55;"><span class="fr">Vaisselle faite et rangée, plaques et plan de travail nettoyés, réfrigérateur vidé de vos affaires.</span><span class="en">Dishes washed and put away, hob and worktop cleaned, fridge emptied of your belongings.</span></p>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:13px 0;border-bottom:1px solid var(--rule);">
+          <span style="flex-shrink:0;margin-top:2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:var(--font-display);font-size:19px;font-weight:400;color:var(--dark);line-height:1.2;"><span class="fr">Propreté générale</span><span class="en">General cleanliness</span></p>
+            <p style="font-size:15px;color:var(--earth);margin-top:3px;line-height:1.55;"><span class="fr">Maison rangée, sols balayés si besoin, salle de bain laissée propre. Pas de grand ménage attendu — juste un minimum de respect.</span><span class="en">House tidy, floors swept if needed, bathroom left clean. No deep cleaning expected — just basic respect.</span></p>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:13px 0;border-bottom:1px solid var(--rule);">
+          <span style="flex-shrink:0;margin-top:2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:var(--font-display);font-size:19px;font-weight:400;color:var(--dark);line-height:1.2;"><span class="fr">Linge de bain &amp; draps</span><span class="en">Towels &amp; bed linen</span></p>
+            <p style="font-size:15px;color:var(--earth);margin-top:3px;line-height:1.55;"><span class="fr">Serviettes utilisées déposées dans la panière à linge sale. Draps laissés en place sur les lits.</span><span class="en">Used towels placed in the laundry basket. Sheets left in place on the beds.</span></p>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:13px 0;border-bottom:1px solid var(--rule);">
+          <span style="flex-shrink:0;margin-top:2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:var(--font-display);font-size:19px;font-weight:400;color:var(--dark);line-height:1.2;"><span class="fr">Électricité &amp; chauffage</span><span class="en">Electricity &amp; heating</span></p>
+            <p style="font-size:15px;color:var(--earth);margin-top:3px;line-height:1.55;"><span class="fr">Lumières, électroménager et radiateurs éteints dans toutes les pièces.</span><span class="en">Lights, appliances and radiators switched off in all rooms.</span></p>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:13px 0;border-bottom:1px solid var(--rule);">
+          <span style="flex-shrink:0;margin-top:2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:var(--font-display);font-size:19px;font-weight:400;color:var(--dark);line-height:1.2;"><span class="fr">Fermeture de la maison</span><span class="en">Securing the house</span></p>
+            <p style="font-size:15px;color:var(--earth);margin-top:3px;line-height:1.55;"><span class="fr">Toutes les fenêtres et le velux de la chambre du haut fermés à clé. Portes intérieures et extérieures vérouillées.</span><span class="en">All windows and the skylight in the upper bedroom locked. Interior and exterior doors locked.</span></p>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:13px 0;">
+          <span style="flex-shrink:0;margin-top:2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:var(--font-display);font-size:19px;font-weight:400;color:var(--dark);line-height:1.2;"><span class="fr">Remise des clés</span><span class="en">Returning the keys</span></p>
+            <p style="font-size:15px;color:var(--earth);margin-top:3px;line-height:1.55;"><span class="fr">Clés déposées dans la boîte à clé à gauche du portail · Code <strong>0704</strong> · Merci de bien refermer le portail et de brouiller le code de la boîte à clé.</span><span class="en">Keys left in the key box to the left of the gate · Code <strong>0704</strong> · Please close the gate and scramble the code on the key box.</span></p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ PARKING ═══════════════════════════════════ -->
+    <span id="parking"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Stationnement</span><span class="en">Parking</span></span>
+        <h2>Parking</h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:center;gap:16px;">
+          <span style="flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Parking du Parc</span><span class="en">Parc car park</span></p>
+            <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--dark);"><span class="fr">20 mètres à gauche, juste avant la maison.</span><span class="en">20 metres to the left, just before the house.</span></p>
+            <p style="font-size:15px;color:var(--earth);margin-top:5px;font-style:italic;"><span class="fr">Option principale recommandée.</span><span class="en">Main recommended option.</span></p>
+          </div>
+        </div>
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:center;gap:16px;">
+          <span style="flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14l-5-9-5 9h10z"/><path d="M15 20l-3-6-3 6h6z"/><line x1="12" y1="20" x2="12" y2="22"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;">Rue du Parc</p>
+            <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--dark);"><span class="fr">Stationnement gratuit en voirie, première à gauche après la maison, le long du parc.</span><span class="en">Free on-street parking, first left after the house, along the park.</span></p>
+          </div>
+        </div>
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:center;gap:16px;">
+          <span style="flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          <div style="flex:1;min-width:0;">
+            <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Déchargement</span><span class="en">Unloading</span></p>
+            <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--dark);"><span class="fr">Arrêtez-vous en double-file avec les feux de détresse allumés pour déposer vos bagages.</span><span class="en">Stop with hazard lights on to unload your luggage.</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ WIFI ═══════════════════════════════════════ -->
+    <span id="wifi"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Connexion internet</span><span class="en">Internet connection</span></span>
+        <h2><span class="fr">WiFi Invités</span><span class="en">Guest WiFi</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div style="text-align:center; background:var(--warm); border:1px solid var(--sand); border-radius:2px; padding:28px 24px;">
+        <div id="wifi-qr" style="display:inline-block;"></div>
+
+        <div style="margin-top:22px; border-top:1px solid var(--rule); padding-top:18px;">
+          <p style="font-family:var(--font-body); font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--earth); margin-bottom:12px;"><span class="fr">Ou connectez-vous manuellement</span><span class="en">Or connect manually</span></p>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="background:var(--cream); padding:10px 16px; border-radius:2px;">
+              <p style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--earth); margin-bottom:3px;"><span class="fr">Réseau</span><span class="en">Network</span></p>
+              <p style="font-family:var(--font-display); font-size:17px; color:var(--dark); letter-spacing:0.02em; overflow-wrap:break-word; word-break:break-all;">Gite_LePetitFanost_Client</p>
+            </div>
+            <div style="background:var(--cream); padding:10px 16px; border-radius:2px;">
+              <p style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--earth); margin-bottom:3px;"><span class="fr">Mot de passe</span><span class="en">Password</span></p>
+              <p style="font-family:var(--font-display); font-size:17px; color:var(--dark); letter-spacing:0.02em; overflow-wrap:break-word;">@4rueCharlesFanost</p>
+              <div style="margin-top:10px;text-align:center;">
+                <button onclick="copyWifi()" style="background:none;border:1px solid var(--sand);color:var(--earth);font-family:var(--font-body);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:6px 16px;border-radius:2px;cursor:pointer;"><span class="fr">Copier le mot de passe</span><span class="en">Copy password</span></button>
+                <span id="wifi-copied" style="display:block;font-size:11px;color:var(--olive);margin-top:5px;opacity:0;transition:opacity .3s;"><span class="fr">Copié ✓</span><span class="en">Copied ✓</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ CE QUI EST INCLUS ══════════════════════════ -->
+    <span id="inclus"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Votre séjour</span><span class="en">Your stay</span></span>
+        <h2><span class="fr">Ce qui est inclus</span><span class="en">What's included</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Linge de maison</span><span class="en">Household linen</span></div>
+          <div class="dish-desc"><span class="fr">Draps, linge de lit et serviettes fournis et lits faits à votre arrivée.</span><span class="en">Sheets, bed linen and towels provided, beds made on arrival.</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Produits d'accueil</span><span class="en">Welcome products</span></div>
+          <div class="dish-desc"><span class="fr">Produits ménagers, de douche et d'hygiène disponibles sur place. Quelques petites surprises vous attendent — n'hésitez pas à les utiliser !</span><span class="en">Cleaning, shower and hygiene products available on site. A few little surprises await — feel free to use them!</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Cuisine équipée</span><span class="en">Equipped kitchen</span></div>
+          <div class="dish-desc"><span class="fr">Ustensiles, vaisselle et équipements de base à disposition.</span><span class="en">Utensils, crockery and basic equipment available.</span></div>
+          <span class="dish-tag"><span class="fr">libre-service</span><span class="en">self-service</span></span>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Smart TV</div>
+          <div class="dish-desc"><span class="fr">Télévisions connectées dans les chambres. Utilisez l'application <strong>Molotov</strong> (depuis le menu) pour regarder les chaînes TV en direct.</span><span class="en">Smart TVs in the bedrooms. Use the <strong>Molotov</strong> app (from the menu) to watch live TV channels.</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Jardin privatif</span><span class="en">Private garden</span></div>
+          <div class="dish-desc"><span class="fr">Jardin à votre disposition pour profiter du calme et de la végétation.</span><span class="en">Garden at your disposal to enjoy the peace and greenery.</span></div>
+          <span class="dish-tag"><span class="fr">espace privatif</span><span class="en">private space</span></span>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Ménage &amp; renouvellement</span><span class="en">Cleaning &amp; restocking</span></div>
+          <div class="dish-desc"><span class="fr">Un ménage complet (réalisé par nous) est inclus toutes les deux semaines, avec changement du linge, réapprovisionnement des essentiels et petites interventions si besoin. Signalez-nous si vous souhaitez qu'il ait lieu pendant votre séjour.</span><span class="en">A full clean (carried out by us) is included every two weeks, with linen change, restocking of essentials and small interventions if needed. Let us know if you would like it to take place during your stay.</span></div>
+          <span class="dish-tag"><span class="fr">toutes les 2 semaines</span><span class="en">every 2 weeks</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ TRI DES DÉCHETS ════════════════════════════ -->
+    <span id="dechets"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Consignes</span><span class="en">Instructions</span></span>
+        <h2><span class="fr">Tri des déchets</span><span class="en">Waste sorting</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div class="note-box">
+        <span class="fr">Les poubelles se trouvent dans la petite cour/garage sur le côté gauche du jardin, derrière le petit portillon en bois. Si l'un des bacs commence à se remplir, n'hésitez pas à nous le signaler — nous les sortirons au bord de la rue.</span><span class="en">The bins are in the small courtyard/garage on the left side of the garden, behind the small wooden gate. If one of the bins starts to fill up, let us know — we will take them out to the roadside.</span>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name" style="display:flex;align-items:center;gap:9px;"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#4A8C4A;flex-shrink:0;"></span><span class="fr">Verre</span><span class="en">Glass</span></div>
+          <div class="dish-desc"><span class="fr">Petit bac vert avec un pictogramme bouteille en verre.</span><span class="en">Small green bin with a glass bottle pictogram.</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name" style="display:flex;align-items:center;gap:9px;"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#D4A017;flex-shrink:0;"></span><span class="fr">Emballages &amp; recyclage</span><span class="en">Packaging &amp; recycling</span></div>
+          <div class="dish-desc"><span class="fr">Bac jaune avec un pictogramme emballage.</span><span class="en">Yellow bin with a packaging pictogram.</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name" style="display:flex;align-items:center;gap:9px;"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#7A5230;flex-shrink:0;"></span><span class="fr">Ordures ménagères</span><span class="en">Household waste</span></div>
+          <div class="dish-desc"><span class="fr">Petit bac vert sans étiquette.</span><span class="en">Small green bin with no label.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ COMMERCES ═════════════════════════════════ -->
+    <span id="commerces"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">À proximité</span><span class="en">Nearby</span></span>
+        <h2><span class="fr">Commerces</span><span class="en">Shops</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <p class="sub-category"><span class="fr">Boulangeries</span><span class="en">Bakeries</span></p>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Boulangerie du vieux village</span><span class="en">Village bakery</span></div>
+          <div class="dish-desc"><span class="fr">Remontez la rue vers le vieux village, à côté de l'église.</span><span class="en">Walk up the street towards the old village, next to the church.</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Boulangerie du bas de rue</span><span class="en">Lower street bakery</span></div>
+          <div class="dish-desc"><span class="fr">Un peu plus loin, après le rond-point et le Carrefour City.</span><span class="en">A bit further on, past the roundabout and the Carrefour City.</span></div>
+        </div>
+      </div>
+
+      <p class="sub-category"><span class="fr">Marché &amp; alimentation</span><span class="en">Market &amp; food</span></p>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Marché d'Antony</div>
+          <div class="dish-desc"><span class="fr">Un très beau marché ! Mardi, jeudi et dimanche matin jusqu'à 13h30. Quelques commerces alimentaires locaux autour.</span><span class="en">A wonderful market! Tuesday, Thursday and Sunday morning until 1:30pm. Some local food shops nearby.</span></div>
+          <span class="dish-tag"><span class="fr">mar · jeu · dim</span><span class="en">tue · thu · sun</span></span>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Carrefour City</div>
+          <div class="dish-desc"><span class="fr">À quelques minutes à pied, en bas de la rue après le rond-point.</span><span class="en">A few minutes on foot, down the street past the roundabout.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ TRANSPORTS ════════════════════════════════ -->
+    <span id="transport"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Se déplacer</span><span class="en">Getting around</span></span>
+        <h2><span class="fr">Transports</span><span class="en">Transport</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div style="border-radius:2px; overflow:hidden; border:1px solid var(--sand); margin-bottom:24px;">
+        <iframe
+          src="https://maps.google.com/maps?q=19+Ter+rue+du+G%C3%A9n%C3%A9ral+de+Gressot,+91320+Wissous,+France&t=&z=16&ie=UTF8&iwloc=B&output=embed"
+          width="100%"
+          height="260"
+          style="display:block; border:none;"
+          allowfullscreen=""
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title="Le Petit Fanost — 19Ter rue du Général de Gressot, Wissous">
+        </iframe>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">RER B — Gare d'Antony</div>
+          <div class="dish-desc"><span class="fr">Accès direct à Paris · Stationnement disponible dans les rues proches.</span><span class="en">Direct access to Paris · Parking available in nearby streets.</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name"><span class="fr">Aéroport d'Orly</span><span class="en">Orly Airport</span></div>
+          <div class="dish-desc"><span class="fr">15 minutes en voiture.</span><span class="en">15 minutes by car.</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Paris — A6 ou N20</div>
+          <div class="dish-desc"><span class="fr">Accès rapide à Paris par l'autoroute A6 ou la nationale N20.</span><span class="en">Quick access to Paris via the A6 motorway or the N20.</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Bus 297</div>
+          <div class="dish-desc"><span class="fr">Arrêt à proximité · Dessert Antony, Massy et Paris.</span><span class="en">Stop nearby · Serves Antony, Massy and Paris.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ À FAIRE AUTOUR ════════════════════════════ -->
+    <span id="sortir"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Idées de balades &amp; visites</span><span class="en">Ideas for walks &amp; visits</span></span>
+        <h2><span class="fr">Autour de Wissous</span><span class="en">Around Wissous</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <p class="sub-category"><span class="fr">Nature &amp; promenades</span><span class="en">Nature &amp; walks</span></p>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Arboretum de Châtenay-Malabry</div>
+          <div class="dish-desc"><span class="fr">Un parc botanique apaisant, idéal pour une promenade en famille ou une pause verte. ~10 min en voiture.</span><span class="en">A soothing botanical park, ideal for a family walk or a green break. ~10 min by car.</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Parc de Sceaux</div>
+          <div class="dish-desc"><span class="fr">Magnifique domaine avec château, jardins à la française et pièces d'eau. Un incontournable. ~15 min en voiture.</span><span class="en">Magnificent estate with château, French formal gardens and water features. A must-see. ~15 min by car.</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Forêt de Montjean & coulée verte</div>
+          <div class="dish-desc"><span class="fr">Belles promenades boisées entre Antony et Sceaux, accessibles en vélo ou à pied.</span><span class="en">Beautiful woodland walks between Antony and Sceaux, accessible by bike or on foot.</span></div>
+        </div>
+      </div>
+
+      <p class="sub-category"><span class="fr">Culture &amp; patrimoine</span><span class="en">Culture &amp; heritage</span></p>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Vieux Sceaux</div>
+          <div class="dish-desc"><span class="fr">Charmant centre historique avec boutiques et cafés, à deux pas du parc.</span><span class="en">Charming historic centre with shops and cafés, a stone's throw from the park.</span></div>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish-left">
+          <div class="dish-name">Versailles ou Fontainebleau</div>
+          <div class="dish-desc"><span class="fr">Deux châteaux royaux pour une belle journée de visite. ~30–45 min en voiture ou en RER.</span><span class="en">Two royal châteaux for a wonderful day trip. ~30–45 min by car or RER.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ RESTAURANTS ═══════════════════════════════ -->
+    <span id="restos"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Nos coups de cœur</span><span class="en">Our favourites</span></span>
+        <h2><span class="fr">Où dîner ?</span><span class="en">Where to dine?</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div class="note-box">
+        <span class="fr">Quelques adresses testées et approuvées dans un rayon de 10 minutes. Pensez à réserver, les bonnes tables se remplissent vite !</span><span class="en">A few tried-and-tested addresses within 10 minutes. Remember to book — good tables fill up fast!</span>
+      </div>
+
+      <p class="sub-category"><span class="fr">Notre table d'hôtes</span><span class="en">Our dining table</span></p>
+
+      <a href="https://lafermefanost.com" target="_blank" style="text-decoration:none; display:block;">
+        <div class="resto-card" style="border-color:var(--accent);">
+          <div class="resto-header">
+            <div>
+              <div class="resto-name">La Ferme Fanost</div>
+              <div class="resto-type"><span class="fr">Table d'hôtes · Morangis</span><span class="en">Dining table · Morangis</span></div>
+            </div>
+            <div class="resto-rating">★ 4,9 <span class="resto-count">(Google)</span></div>
+          </div>
+          <div class="resto-desc"><span class="fr">Notre table d'hôtes à deux pas, dans un ancien corps de ferme du XVII<sup>e</sup> siècle. Menu unique renouvelé chaque soir au fil du marché et des saisons — cuisine bio, généreuse et soignée.</span><span class="en">Our dining table nearby, in a 17th-century farmhouse. A single set menu renewed each evening with the market and the seasons — organic, generous and refined cuisine.</span></div>
+          <div class="resto-meta">
+            <span><span class="fr">Menu 25 € · Entrée, plat, dessert · Boissons non comprises</span><span class="en">Menu €25 · Starter, main, dessert · Drinks not included</span></span>
+            <span><span class="fr">4 rue Charles Fanost, Morangis · ~10 min en voiture</span><span class="en">4 rue Charles Fanost, Morangis · ~10 min by car</span></span>
+            <span><span class="fr">Ouvert lun–jeu soir · Réservation recommandée</span><span class="en">Open Mon–Thu evenings · Reservation recommended</span></span>
+          </div>
+        </div>
+      </a>
+
+      <p class="sub-category"><span class="fr">À Wissous</span><span class="en">In Wissous</span></p>
+
+      <a href="https://maps.google.com/?q=La+Grange+aux+Dimes+3+Rue+Andre+Dolimier+Wissous" target="_blank" style="text-decoration:none; display:block;">
+        <div class="resto-card">
+          <div class="resto-header">
+            <div>
+              <div class="resto-name">La Grange aux Dîmes</div>
+              <div class="resto-type"><span class="fr">Gastronomique · Wissous</span><span class="en">Gastronomic · Wissous</span></div>
+            </div>
+            <div class="resto-rating">★ 4,4 <span class="resto-count">(692)</span></div>
+          </div>
+          <div class="resto-desc"><span class="fr">Cadre exceptionnel dans une bâtisse du XIII<sup>e</sup> siècle, juste à côté de l'église. Cuisine française soignée, cave à vins remarquable.</span><span class="en">Exceptional setting in a 13th-century building, right next to the church. Refined French cuisine, remarkable wine cellar.</span></div>
+          <div class="resto-meta">
+            <span><span class="fr">3 rue André Dolimier, Wissous · ~5 min à pied</span><span class="en">3 rue André Dolimier, Wissous · ~5 min on foot</span></span>
+            <span><span class="fr">Mar–Sam midi &amp; soir</span><span class="en">Tue–Sat lunch &amp; dinner</span></span>
+          </div>
+        </div>
+      </a>
+
+      <p class="sub-category"><span class="fr">À Antony (derrière le marché)</span><span class="en">In Antony (behind the market)</span></p>
+
+      <a href="https://maps.google.com/?q=Osteria+Pietrinella+8+Rue+de+l+Eglise+Antony" target="_blank" style="text-decoration:none; display:block;">
+        <div class="resto-card">
+          <div class="resto-header">
+            <div>
+              <div class="resto-name">Osteria Pietrinella</div>
+              <div class="resto-type"><span class="fr">Italien · Antony</span><span class="en">Italian · Antony</span></div>
+            </div>
+            <div class="resto-rating">★ 4,8 <span class="resto-count">(693)</span></div>
+          </div>
+          <div class="resto-desc"><span class="fr">Cuisine calabraise authentique dans un cadre de village. Les tagliatelles au ragù sont remarquables. Réservation indispensable.</span><span class="en">Authentic Calabrian cuisine in a village setting. The tagliatelle al ragù are outstanding. Booking essential.</span></div>
+          <div class="resto-meta">
+            <span>8 rue de l'Église, Antony · ~8 min</span>
+            <span><span class="fr">Mar–Ven midi &amp; soir</span><span class="en">Tue–Fri lunch &amp; dinner</span></span>
+          </div>
+        </div>
+      </a>
+
+      <a href="https://maps.google.com/?q=Le+Loulou+Antony" target="_blank" style="text-decoration:none; display:block;">
+        <div class="resto-card">
+          <div class="resto-header">
+            <div>
+              <div class="resto-name">Le Loulou</div>
+              <div class="resto-type"><span class="fr">Moderne &amp; convivial · Antony</span><span class="en">Modern &amp; friendly · Antony</span></div>
+            </div>
+            <div class="resto-rating">★ 4,3 <span class="resto-count">(312)</span></div>
+          </div>
+          <div class="resto-desc"><span class="fr">Une adresse moderne et chaleureuse, cuisine du marché soignée dans une ambiance décontractée.</span><span class="en">A modern and welcoming address, refined market cuisine in a relaxed atmosphere.</span></div>
+          <div class="resto-meta">
+            <span>Antony · ~8 min</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="https://maps.google.com/?q=Rosalie+Antony" target="_blank" style="text-decoration:none; display:block;">
+        <div class="resto-card">
+          <div class="resto-header">
+            <div>
+              <div class="resto-name">Rosalie</div>
+              <div class="resto-type"><span class="fr">Bistronomie chic · Antony</span><span class="en">Chic bistronomy · Antony</span></div>
+            </div>
+            <div class="resto-rating">★ 4,5 <span class="resto-count">(187)</span></div>
+          </div>
+          <div class="resto-desc"><span class="fr">Cuisine bistronomique élégante et créative dans un cadre soigné. Une belle table pour une sortie plus habillée.</span><span class="en">Elegant and creative bistronomy in a refined setting. A great table for a more dressed-up evening.</span></div>
+          <div class="resto-meta">
+            <span>Antony · ~8 min</span>
+          </div>
+        </div>
+      </a>
+
+    </section>
+
+        <!-- ═══ PAIEMENT ═══════════════════════════════════ -->
+    <span id="paiement"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Votre séjour</span><span class="en">Your stay</span></span>
+        <h2><span class="fr">Règlement du gîte</span><span class="en">Payment</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div class="note-box">
+        <span class="fr">Le montant de votre séjour vous a été communiqué lors de la réservation. Procédez par virement bancaire ou contactez-nous sur WhatsApp pour tout autre mode de paiement.</span><span class="en">The amount for your stay was communicated at the time of booking. Proceed by bank transfer or contact us on WhatsApp for any other payment method.</span>
+      </div>
+
+      <!-- Virement bancaire -->
+      <p class="sub-category" style="margin-top:24px;"><span class="fr">Virement bancaire</span><span class="en">Bank transfer</span></p>
+
+      <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:20px;display:flex;flex-direction:column;gap:12px;">
+
+        <div>
+          <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Titulaire</span><span class="en">Account holder</span></p>
+          <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--dark);">EI — Marandin César (LMNP)</p>
+        </div>
+
+        <div>
+          <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;">IBAN</p>
+          <p id="iban-val" style="font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;color:var(--dark);letter-spacing:.06em;">FR76 1695 8000 0162 5776 8408 903</p>
+          <button onclick="copyIban()" style="margin-top:6px;background:none;border:1px solid var(--sand);color:var(--earth);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;border-radius:2px;cursor:pointer;"><span class="fr">Copier</span><span class="en">Copy</span></button>
+          <span id="iban-copied" style="font-size:11px;color:var(--olive);margin-left:8px;opacity:0;transition:opacity .3s;"><span class="fr">Copié ✓</span><span class="en">Copied ✓</span></span>
+        </div>
+
+        <div>
+          <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;">BIC / SWIFT</p>
+          <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--dark);letter-spacing:.06em;">QNTOFRP1XXX</p>
+        </div>
+
+        <p style="font-size:15px;color:var(--sand);font-style:italic;font-family:'Cormorant Garamond',Georgia,serif;border-top:1px solid var(--rule);padding-top:10px;line-height:1.6;"><span class="fr">Merci d'indiquer votre nom et dates de séjour en référence du virement. Une confirmation vous sera envoyée dès réception.</span><span class="en">Please include your name and stay dates as the transfer reference. A confirmation will be sent upon receipt.</span></p>
+      </div>
+
+
+
+      <script>
+      function copyWifi() {
+        navigator.clipboard.writeText('@4rueCharlesFanost').then(() => {
+          const el = document.getElementById('wifi-copied');
+          el.style.opacity = '1';
+          setTimeout(() => el.style.opacity = '0', 2000);
+        });
+      }
+      function copyIban() {
+        navigator.clipboard.writeText('FR76169580000162577684089 03').then(() => {
+          const el = document.getElementById('iban-copied');
+          el.style.opacity = '1';
+          setTimeout(() => el.style.opacity = '0', 2000);
+        });
+      }
+      </script>
+    </section>
+
+    <!-- ═══ CONTACT WHATSAPP ═══════════════════════════ -->
+    <span id="contact"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Une question ?</span><span class="en">A question?</span></span>
+        <h2><span class="fr">Nous contacter</span><span class="en">Contact us</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div class="note-box">
+        <span class="fr">Pour toute question avant ou pendant votre séjour, n'hésitez pas à nous écrire directement via WhatsApp — nous répondons en général dans la journée avec grand plaisir !</span><span class="en">For any question before or during your stay, feel free to write to us directly via WhatsApp — we usually reply the same day with great pleasure!</span>
+      </div>
+
+      <div style="text-align:center; margin-top:28px;">
+        <a href="https://wa.me/33620312119"
+           target="_blank"
+           style="display:inline-block; background:#25D366; color:#fff;
+                  font-family:var(--font-body); font-size:13px; letter-spacing:0.12em;
+                  text-transform:uppercase; text-decoration:none; padding:16px 32px;
+                  border-radius:2px;">
+          <span class="fr">Écrire sur WhatsApp</span><span class="en">Message us on WhatsApp</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ═══ AVIS GOOGLE ═══════════════════════════════ -->
+    <span id="avis"></span>
+    <section class="section">
+      <div class="section-title">
+        <span class="section-label"><span class="fr">Votre retour compte</span><span class="en">Your feedback matters</span></span>
+        <h2><span class="fr">Laisser un avis</span><span class="en">Leave a review</span></h2>
+        <hr class="section-rule" />
+      </div>
+
+      <div class="note-box">
+        Votre séjour vous a plu ? Un petit avis sur Google nous aide énormément à faire connaître Le Petit Fanost et à accueillir de nouveaux voyageurs dans les meilleures conditions. Merci du fond du cœur 
+      </div>
+
+      <div style="text-align:center; margin-top:28px;">
+        <a href="https://search.google.com/local/writereview?placeid=ChIJ11XPNBh25kcRLkuZLRrDpNA"
+           target="_blank"
+           style="display:inline-block; background:#4285F4; color:#fff;
+                  font-family:var(--font-body); font-size:13px; letter-spacing:0.12em;
+                  text-transform:uppercase; text-decoration:none; padding:16px 32px;
+                  border-radius:2px;">
+          <span class="fr">Donner mon avis sur Google</span><span class="en">Leave a review on Google</span>
+        </a>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+
+  <footer class="footer">
+    <div class="footer-divider">
+      <span class="footer-divider-icon">✦</span>
+    </div>
+    <p class="footer-name">Le Petit Fanost</p>
+    <p class="footer-address">
+      19Ter rue du Général de Gressot · 91320 Wissous<br>
+      EI — Marandin César · LMNP · SIRET 822 572 996 00020
+    </p>
+  </footer>
+
+</div><!-- /page -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  const SSID     = 'Gite_LePetitFanost_Client';
+  const PASSWORD = '@4rueCharlesFanost';
+  const wifiString = 'WIFI:T:WPA;S:' + SSID + ';P:' + PASSWORD + ';;';
+
+  new QRCode(document.getElementById('wifi-qr'), {
+    text: wifiString,
+    width: 160,
+    height: 160,
+    colorDark: '#2E1A14',
+    colorLight: '#F2E8DC',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+</script>
+
+
+<script>
+(function(){
+  var lang = localStorage.getItem('lang') || 'fr';
+  var cl = document.documentElement.className || '';
+  cl = cl.replace(/\blang-(?:fr|en)\b/g, '').trim();
+  document.documentElement.className = cl + (cl ? ' ' : '') + 'lang-' + lang;
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.lang-btn').forEach(function(b){ b.textContent = lang === 'fr' ? 'EN' : 'FR'; });
+  });
+})();
+function toggleLang() {
+  var cur = localStorage.getItem('lang') || 'fr';
+  var next = cur === 'fr' ? 'en' : 'fr';
+  localStorage.setItem('lang', next);
+  var cl = document.documentElement.className;
+  document.documentElement.className = cl.replace(/\blang-(?:fr|en)\b/g, '').trim() + ' lang-' + next;
+  document.querySelectorAll('.lang-btn').forEach(function(b){ b.textContent = next === 'fr' ? 'EN' : 'FR'; });
+}
+</script>
+</body>
+</html>
