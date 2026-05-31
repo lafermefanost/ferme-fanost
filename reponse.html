@@ -458,47 +458,35 @@
 <footer>La Ferme Fanost · 4 rue Charles Fanost, 91420 Morangis · Outil interne</footer>
 
 <script>
-  // Clé API
+  const MODEL = 'claude-sonnet-4-5';
+
   const apiKeyInput = document.getElementById('apiKeyInput');
   const keyStatus   = document.getElementById('keyStatus');
   const saveKeyBtn  = document.getElementById('saveKeyBtn');
 
-  function getApiKey() {
-    return localStorage.getItem('fanost_api_key') || apiKeyInput.value.trim();
-  }
+  function getApiKey() { return localStorage.getItem('fanost_api_key') || apiKeyInput.value.trim(); }
   function loadKey() {
     const k = localStorage.getItem('fanost_api_key');
     if (k) { apiKeyInput.value = k; keyStatus.textContent = 'Clé enregistrée localement ✓'; }
   }
   function saveKey() {
-    const k = apiKeyInput.value.trim();
-    if (!k) return;
+    const k = apiKeyInput.value.trim(); if (!k) return;
     localStorage.setItem('fanost_api_key', k);
     keyStatus.textContent = 'Clé enregistrée localement ✓';
-    saveKeyBtn.textContent = 'Sauvegardé';
-    saveKeyBtn.classList.add('saved');
+    saveKeyBtn.textContent = 'Sauvegardé'; saveKeyBtn.classList.add('saved');
     setTimeout(() => { saveKeyBtn.textContent = 'Sauvegarder'; saveKeyBtn.classList.remove('saved'); }, 2000);
   }
   loadKey();
 
-  // Filtres mono
-  const filters = {
-    relation: 'nouveau client',
-    ton: 'chaleureux et professionnel',
-    reponse: 'confirmation positive',
-    formule: 'auto',
-    langue: 'français'
-  };
+  const filters = { relation: 'nouveau client', ton: 'chaleureux et professionnel', reponse: 'confirmation positive', formule: 'auto', langue: 'français' };
   document.querySelectorAll('.pill[data-group]').forEach(btn => {
     btn.addEventListener('click', () => {
       const g = btn.dataset.group;
       document.querySelectorAll(`.pill[data-group="${g}"]`).forEach(b => b.classList.remove('on'));
-      btn.classList.add('on');
-      filters[g] = btn.dataset.value;
+      btn.classList.add('on'); filters[g] = btn.dataset.value;
     });
   });
 
-  // Prix — styles inline
   const PRIX_ON  = 'padding:6px 14px;border:1px solid var(--green);background:var(--green);font-family:Jost,sans-serif;font-size:0.72rem;font-weight:400;letter-spacing:0.04em;color:var(--white);cursor:pointer;transition:all 0.15s;border-radius:0;margin:0 6px 6px 0;';
   const PRIX_OFF = 'padding:6px 14px;border:1px solid var(--cream-dark);background:transparent;font-family:Jost,sans-serif;font-size:0.72rem;font-weight:400;letter-spacing:0.04em;color:var(--mid);cursor:pointer;transition:all 0.15s;border-radius:0;margin:0 6px 6px 0;';
 
@@ -509,7 +497,6 @@
     btn.addEventListener('click', () => {
       btn.classList.toggle('on');
       btn.style.cssText = btn.classList.contains('on') ? PRIX_ON : PRIX_OFF;
-      // Désactiver "Ne rien indiquer" si au moins un prix est sélectionné
       const hasPrix = [...document.querySelectorAll('.pill-prix.on')].length > 0;
       document.getElementById('pill-aucun').classList.toggle('on', !hasPrix);
       updatePrixNote();
@@ -517,20 +504,14 @@
   });
 
   function toggleAucun() {
-    // Réactiver "Ne rien indiquer" et désélectionner tous les prix
-    document.querySelectorAll('.pill-prix').forEach(b => {
-      b.classList.remove('on');
-      b.style.cssText = PRIX_OFF;
-    });
+    document.querySelectorAll('.pill-prix').forEach(b => { b.classList.remove('on'); b.style.cssText = PRIX_OFF; });
     document.getElementById('pill-aucun').classList.add('on');
     updatePrixNote();
   }
 
   function updatePrixNote() {
     const sel = [...document.querySelectorAll('.pill-prix.on')].map(b => b.textContent.trim());
-    document.getElementById('prix-note').textContent = sel.length
-      ? 'Mentionnés : ' + sel.join(' · ')
-      : 'Aucun tarif dans la réponse';
+    document.getElementById('prix-note').textContent = sel.length ? 'Mentionnés : ' + sel.join(' · ') : 'Aucun tarif dans la réponse';
   }
 
   function getPrixInstruction() {
@@ -550,31 +531,33 @@
     return 'Rédige en français.';
   }
 
-  // Traduction du mail reçu
+  async function callAPI(messages, system, maxTokens) {
+    const apiKey = getApiKey();
+    const body = { model: MODEL, max_tokens: maxTokens, messages };
+    if (system) body.system = system;
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify(body)
+    });
+    return await res.json();
+  }
+
   document.getElementById('mailInput').addEventListener('input', () => {
-    document.getElementById('translateBar').style.display =
-      document.getElementById('mailInput').value.trim() ? 'block' : 'none';
+    document.getElementById('translateBar').style.display = document.getElementById('mailInput').value.trim() ? 'block' : 'none';
   });
 
   async function translateMail() {
-    const mail = document.getElementById('mailInput').value.trim();
-    if (!mail) return;
-    const apiKey = getApiKey();
-    if (!apiKey) { alert('Entre d\'abord ta clé API.'); return; }
-    const btn  = document.getElementById('translateBtn');
-    const box  = document.getElementById('translationBox');
+    const mail = document.getElementById('mailInput').value.trim(); if (!mail) return;
+    if (!getApiKey()) { alert('Entre d\'abord ta clé API.'); return; }
+    const btn = document.getElementById('translateBtn');
+    const box = document.getElementById('translationBox');
     const text = document.getElementById('translationContent');
     btn.textContent = 'Traduction…'; btn.disabled = true;
     box.style.display = 'block';
     text.textContent = 'Traduction en cours…'; text.classList.add('loading');
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 600,
-          messages: [{ role: 'user', content: 'Traduis ce texte en français de façon fidèle et naturelle. Réponds uniquement avec la traduction, sans commentaire.\n\n' + mail }] })
-      });
-      const data = await res.json();
+      const data = await callAPI([{ role: 'user', content: 'Traduis ce texte en français de façon fidèle et naturelle. Réponds uniquement avec la traduction, sans commentaire.\n\n' + mail }], null, 600);
       text.textContent = data.content?.find(b => b.type === 'text')?.text || (data.error ? 'Erreur : ' + data.error.message : 'Erreur inconnue.');
     } catch(e) { text.textContent = 'Erreur réseau.'; }
     text.classList.remove('loading');
@@ -583,25 +566,20 @@
 
   function closeTranslation() { document.getElementById('translationBox').style.display = 'none'; }
 
-  // Génération
   const variants = [
     { label: 'Version courte',      sub: '3 phrases max',      instruction: 'Réponse très concise, 3 phrases maximum. Essentiel uniquement.' },
     { label: 'Version standard',    sub: 'Ton naturel',        instruction: 'Réponse équilibrée, ton naturel, 4-5 phrases.' },
     { label: 'Version chaleureuse', sub: 'Touche personnelle', instruction: 'Ajoute une touche personnelle sur l\'accueil ou la propriété, sans en faire trop. 4-5 phrases.' },
   ];
-
-  const originals  = {};
-  const translated = {};
+  const originals = {}; const translated = {};
 
   async function generate() {
     const mail = document.getElementById('mailInput').value.trim();
     if (!mail) { alert('Colle d\'abord le mail reçu.'); return; }
-    const apiKey = getApiKey();
-    if (!apiKey) { alert('Entre d\'abord ta clé API Anthropic.'); return; }
+    if (!getApiKey()) { alert('Entre d\'abord ta clé API Anthropic.'); return; }
 
     const btn = document.getElementById('genBtn');
     btn.disabled = true; btn.textContent = 'Génération en cours…';
-
     const panel = document.getElementById('resultsPanel');
     const grid  = document.getElementById('resultsGrid');
     panel.classList.add('visible');
@@ -651,15 +629,10 @@ PARAMÈTRES :
     for (let i = 0; i < variants.length; i++) {
       const rb = document.getElementById(`rb-${i}`);
       try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514', max_tokens: 800, system: sys,
-            messages: [{ role: 'user', content: `Mail reçu :\n\n${mail}\n\n${variants[i].instruction}\n\nRédige uniquement le corps du mail, sans objet.` }]
-          })
-        });
-        const data = await res.json();
+        const data = await callAPI(
+          [{ role: 'user', content: `Mail reçu :\n\n${mail}\n\n${variants[i].instruction}\n\nRédige uniquement le corps du mail, sans objet.` }],
+          sys, 800
+        );
         if (data.content) {
           const text = data.content.find(b => b.type === 'text')?.text || 'Réponse vide.';
           originals[i] = text; delete translated[i];
@@ -677,15 +650,13 @@ PARAMÈTRES :
         rb.classList.remove('loading'); rb.classList.add('error');
       }
     }
-
     btn.disabled = false; btn.textContent = 'Générer les trois versions';
     panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   async function toggleTranslateResp(i) {
-    const rb  = document.getElementById(`rb-${i}`);
+    const rb = document.getElementById(`rb-${i}`);
     const btn = document.getElementById(`bt-${i}`);
-    const apiKey = getApiKey();
     if (translated[i]) {
       rb.textContent = originals[i]; delete translated[i];
       btn.textContent = 'Traduire'; btn.classList.remove('active'); return;
@@ -693,15 +664,10 @@ PARAMÈTRES :
     const mail = document.getElementById('mailInput').value.trim();
     btn.textContent = '…'; btn.disabled = true;
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 600,
-          messages: [{ role: 'user', content: `Le correspondant écrit dans cette langue :\n\n${mail}\n\nTraduis ce texte dans cette même langue, de façon naturelle et fidèle. Réponds uniquement avec la traduction.\n\n${originals[i]}` }]
-        })
-      });
-      const data = await res.json();
+      const data = await callAPI(
+        [{ role: 'user', content: `Le correspondant écrit dans cette langue :\n\n${mail}\n\nTraduis ce texte dans cette même langue, de façon naturelle et fidèle. Réponds uniquement avec la traduction.\n\n${originals[i]}` }],
+        null, 600
+      );
       const text = data.content?.find(b => b.type === 'text')?.text || 'Erreur.';
       translated[i] = text; rb.textContent = text;
       btn.textContent = 'Original'; btn.classList.add('active');
