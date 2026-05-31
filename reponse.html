@@ -13,14 +13,12 @@
     --green: #7A8C65;
     --green-d: #5E6E4D;
     --green-light: #9aac82;
-    --earth: #7A6248;
     --dark: #2E2218;
     --mid: #6b5c4e;
     --white: #FDFAF6;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   html { font-size: 16px; }
 
   body {
@@ -38,7 +36,6 @@
     border-bottom: 1px solid var(--cream-dark);
     background: var(--cream);
   }
-
   .nav-logo {
     font-family: 'Cormorant Garamond', serif;
     font-weight: 400;
@@ -47,7 +44,6 @@
     color: var(--dark);
     text-decoration: none;
   }
-
   .nav-tag {
     font-family: 'Jost', sans-serif;
     font-size: 0.65rem;
@@ -59,11 +55,10 @@
 
   .hero {
     text-align: center;
-    padding: 72px 24px 56px;
+    padding: 64px 24px 48px;
     max-width: 680px;
     margin: 0 auto;
   }
-
   .hero-eyebrow {
     font-family: 'Jost', sans-serif;
     font-size: 0.65rem;
@@ -73,7 +68,6 @@
     color: var(--green);
     margin-bottom: 20px;
   }
-
   .hero h1 {
     font-family: 'Cormorant Garamond', serif;
     font-weight: 300;
@@ -83,9 +77,7 @@
     color: var(--dark);
     margin-bottom: 16px;
   }
-
   .hero h1 em { font-style: italic; color: var(--green); }
-
   .hero-sub {
     font-family: 'Jost', sans-serif;
     font-size: 0.8rem;
@@ -104,11 +96,7 @@
     padding: 0 48px;
   }
   .divider-line { flex: 1; height: 1px; background: var(--cream-dark); }
-  .divider-mark {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1rem;
-    color: var(--cream-dark);
-  }
+  .divider-mark { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: var(--cream-dark); }
 
   .main {
     max-width: 1100px;
@@ -120,11 +108,7 @@
     align-items: start;
   }
 
-  .card {
-    background: var(--white);
-    border: 1px solid var(--cream-dark);
-  }
-
+  .card { background: var(--white); border: 1px solid var(--cream-dark); }
   .card-header {
     padding: 24px 28px 20px;
     border-bottom: 1px solid var(--cream-mid);
@@ -132,7 +116,6 @@
     align-items: baseline;
     gap: 10px;
   }
-
   .card-title {
     font-family: 'Jost', sans-serif;
     font-size: 0.62rem;
@@ -141,7 +124,6 @@
     text-transform: uppercase;
     color: var(--green-d);
   }
-
   .card-body { padding: 24px 28px; }
 
   textarea {
@@ -163,16 +145,78 @@
   textarea::placeholder { color: var(--mid); opacity: 0.6; }
   textarea:focus { border-color: var(--green); }
 
+  /* Traduction mail reçu */
+  .translate-bar {
+    display: none;
+    margin-top: 10px;
+  }
+  .btn-translate {
+    padding: 6px 14px;
+    border: 1px solid var(--cream-dark);
+    background: transparent;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--mid);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-radius: 0;
+  }
+  .btn-translate:hover { border-color: var(--green); color: var(--green-d); }
+  .btn-translate:disabled { opacity: 0.5; cursor: not-allowed; }
+  .translation-box {
+    display: none;
+    margin-top: 10px;
+    border: 1px solid var(--cream-dark);
+    background: var(--cream);
+  }
+  .translation-header {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--cream-dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .translation-label {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+  .btn-close-translation {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    color: var(--mid);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 2px;
+  }
+  .translation-content {
+    padding: 12px 14px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 300;
+    line-height: 1.65;
+    color: var(--dark);
+    white-space: pre-wrap;
+  }
+  .translation-content.loading {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--mid);
+  }
+
+  /* API Key */
   .api-key-section {
     margin-bottom: 24px;
     padding-bottom: 24px;
     border-bottom: 1px solid var(--cream-mid);
   }
-  .api-key-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
+  .api-key-row { display: flex; gap: 8px; align-items: center; }
   .api-key-input {
     flex: 1;
     border: 1px solid var(--cream-dark);
@@ -211,9 +255,9 @@
     color: var(--mid);
   }
 
+  /* Filtres */
   .filter-section { margin-bottom: 24px; }
   .filter-section:last-of-type { margin-bottom: 0; }
-
   .filter-label {
     font-family: 'Jost', sans-serif;
     font-size: 0.6rem;
@@ -224,9 +268,7 @@
     margin-bottom: 10px;
     display: block;
   }
-
   .btn-row { display: flex; flex-wrap: wrap; gap: 6px; }
-
   .pill {
     padding: 6px 14px;
     border: 1px solid var(--cream-dark);
@@ -272,19 +314,10 @@
   .btn-generate:hover { background: var(--green-d); }
   .btn-generate:disabled { background: var(--cream-dark); color: var(--mid); cursor: not-allowed; }
 
-  .results-full {
-    grid-column: 1 / -1;
-    display: none;
-  }
+  /* Résultats */
+  .results-full { grid-column: 1 / -1; display: none; }
   .results-full.visible { display: block; }
-
-  .results-header {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
+  .results-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; }
   .results-title {
     font-family: 'Cormorant Garamond', serif;
     font-weight: 300;
@@ -292,20 +325,10 @@
     letter-spacing: 0.04em;
     color: var(--dark);
   }
-
   .results-title em { font-style: italic; color: var(--green); }
+  .results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 
-  .results-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-  }
-
-  .result-card {
-    background: var(--white);
-    border: 1px solid var(--cream-dark);
-  }
-
+  .result-card { background: var(--white); border: 1px solid var(--cream-dark); }
   .result-card-top {
     padding: 18px 22px 14px;
     border-bottom: 1px solid var(--cream-mid);
@@ -313,7 +336,6 @@
     align-items: center;
     justify-content: space-between;
   }
-
   .result-label {
     font-family: 'Jost', sans-serif;
     font-size: 0.58rem;
@@ -322,7 +344,6 @@
     text-transform: uppercase;
     color: var(--green);
   }
-
   .result-body {
     padding: 20px 22px;
     font-family: 'Jost', sans-serif;
@@ -333,19 +354,9 @@
     white-space: pre-wrap;
     min-height: 100px;
   }
-
-  .result-body.loading {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    color: var(--mid);
-  }
-
-  .result-body.error {
-    font-size: 0.75rem;
-    color: #a05050;
-  }
-
-  .result-footer { padding: 12px 22px 18px; }
+  .result-body.loading { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--mid); }
+  .result-body.error { font-size: 0.75rem; color: #a05050; }
+  .result-footer { padding: 12px 22px 18px; display: flex; gap: 8px; align-items: center; }
 
   .btn-copy {
     padding: 7px 16px;
@@ -364,6 +375,23 @@
   .btn-copy:hover { border-color: var(--green); color: var(--green-d); }
   .btn-copy.copied { background: var(--green); border-color: var(--green); color: var(--white); }
 
+  /* Bouton traduire la réponse */
+  .btn-translate-resp {
+    padding: 7px 14px;
+    background: transparent;
+    border: 1px solid var(--cream-dark);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--mid);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-radius: 0;
+  }
+  .btn-translate-resp:hover { border-color: var(--green-light); color: var(--green-d); }
+  .btn-translate-resp.active { background: var(--green-d); border-color: var(--green-d); color: var(--white); }
+
   footer {
     text-align: center;
     padding: 32px;
@@ -381,6 +409,7 @@
     .main { grid-template-columns: 1fr; padding: 32px 24px 60px; }
     .results-grid { grid-template-columns: 1fr; }
     .hero { padding: 48px 24px 40px; }
+    .divider { padding: 0 24px; }
   }
 </style>
 </head>
@@ -405,15 +434,29 @@
 
 <div class="main">
 
+  <!-- Mail reçu -->
   <div class="card">
     <div class="card-header">
       <span class="card-title">Mail reçu</span>
     </div>
     <div class="card-body">
       <textarea id="mailInput" placeholder="Colle ici le contenu du mail de réservation…"></textarea>
+
+      <div class="translate-bar" id="translateBar">
+        <button class="btn-translate" id="translateBtn" onclick="translateMail()">Traduire en français</button>
+      </div>
+
+      <div class="translation-box" id="translationBox">
+        <div class="translation-header">
+          <span class="translation-label">Traduction</span>
+          <button class="btn-close-translation" onclick="closeTranslation()">&#x2715;</button>
+        </div>
+        <div class="translation-content" id="translationContent"></div>
+      </div>
     </div>
   </div>
 
+  <!-- Paramètres -->
   <div class="card">
     <div class="card-header">
       <span class="card-title">Paramètres</span>
@@ -431,7 +474,7 @@
 
       <div class="filter-section">
         <span class="filter-label">Relation client</span>
-        <div class="btn-row" id="g-relation">
+        <div class="btn-row">
           <button class="pill on" data-group="relation" data-value="nouveau client">Nouveau client</button>
           <button class="pill" data-group="relation" data-value="client régulier">Client régulier</button>
           <button class="pill" data-group="relation" data-value="client très fidèle">Très fidèle</button>
@@ -440,7 +483,7 @@
 
       <div class="filter-section">
         <span class="filter-label">Ton</span>
-        <div class="btn-row" id="g-ton">
+        <div class="btn-row">
           <button class="pill on" data-group="ton" data-value="chaleureux et professionnel">Chaleureux</button>
           <button class="pill" data-group="ton" data-value="formel et courtois">Formel</button>
           <button class="pill" data-group="ton" data-value="familier et détendu">Familier</button>
@@ -450,10 +493,27 @@
 
       <div class="filter-section">
         <span class="filter-label">Réponse</span>
-        <div class="btn-row" id="g-reponse">
+        <div class="btn-row">
           <button class="pill on" data-group="reponse" data-value="confirmation positive">✓ Confirmé</button>
           <button class="pill" data-group="reponse" data-value="refus poli">✗ Non disponible</button>
           <button class="pill" data-group="reponse" data-value="en attente, demande en cours">⏳ On revient vers vous</button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <span class="filter-label">Formule</span>
+        <div class="btn-row">
+          <button class="pill on" data-group="formule" data-value="auto">Auto</button>
+          <button class="pill" data-group="formule" data-value="vouvoiement">Vouvoiement</button>
+          <button class="pill" data-group="formule" data-value="tutoiement">Tutoiement</button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <span class="filter-label">Langue de réponse</span>
+        <div class="btn-row">
+          <button class="pill on" data-group="langue" data-value="français">En français</button>
+          <button class="pill" data-group="langue" data-value="correspondant">Langue du correspondant</button>
         </div>
       </div>
 
@@ -473,6 +533,7 @@
     </div>
   </div>
 
+  <!-- Résultats -->
   <div class="results-full" id="resultsPanel">
     <div class="results-header">
       <span class="results-title">Trois <em>versions proposées</em></span>
@@ -485,16 +546,18 @@
 <footer>La Ferme Fanost · 4 rue Charles Fanost, 91420 Morangis · Outil interne</footer>
 
 <script>
+  // Clé API
   const apiKeyInput = document.getElementById('apiKeyInput');
-  const keyStatus = document.getElementById('keyStatus');
-  const saveKeyBtn = document.getElementById('saveKeyBtn');
+  const keyStatus   = document.getElementById('keyStatus');
+  const saveKeyBtn  = document.getElementById('saveKeyBtn');
+
+  function getApiKey() {
+    return localStorage.getItem('fanost_api_key') || apiKeyInput.value.trim();
+  }
 
   function loadKey() {
     const k = localStorage.getItem('fanost_api_key');
-    if (k) {
-      apiKeyInput.value = k;
-      keyStatus.textContent = 'Clé enregistrée localement ✓';
-    }
+    if (k) { apiKeyInput.value = k; keyStatus.textContent = 'Clé enregistrée localement ✓'; }
   }
 
   function saveKey() {
@@ -509,7 +572,14 @@
 
   loadKey();
 
-  const filters = { relation: 'nouveau client', ton: 'chaleureux et professionnel', reponse: 'confirmation positive' };
+  // Filtres
+  const filters = {
+    relation: 'nouveau client',
+    ton: 'chaleureux et professionnel',
+    reponse: 'confirmation positive',
+    formule: 'auto',
+    langue: 'français'
+  };
 
   document.querySelectorAll('.pill[data-group]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -520,15 +590,16 @@
     });
   });
 
+  // Prix
   document.querySelectorAll('.pill-prix').forEach(btn => {
     btn.style.cssText = 'padding:6px 14px;border:1px solid var(--cream-dark);background:transparent;font-family:Jost,sans-serif;font-size:0.72rem;font-weight:400;letter-spacing:0.04em;color:var(--mid);cursor:pointer;transition:all 0.15s;border-radius:0;margin:0 6px 6px 0;';
     btn.addEventListener('mouseenter', () => { if (!btn.classList.contains('on')) { btn.style.borderColor='var(--green-light)'; btn.style.color='var(--green-d)'; } });
     btn.addEventListener('mouseleave', () => { if (!btn.classList.contains('on')) { btn.style.borderColor='var(--cream-dark)'; btn.style.color='var(--mid)'; } });
     btn.addEventListener('click', () => {
       btn.classList.toggle('on');
-      btn.style.background = btn.classList.contains('on') ? 'var(--green)' : 'transparent';
-      btn.style.borderColor = btn.classList.contains('on') ? 'var(--green)' : 'var(--cream-dark)';
-      btn.style.color = btn.classList.contains('on') ? 'var(--white)' : 'var(--mid)';
+      btn.style.background   = btn.classList.contains('on') ? 'var(--green)' : 'transparent';
+      btn.style.borderColor  = btn.classList.contains('on') ? 'var(--green)' : 'var(--cream-dark)';
+      btn.style.color        = btn.classList.contains('on') ? 'var(--white)' : 'var(--mid)';
       updatePrixNote();
     });
   });
@@ -540,29 +611,96 @@
 
   function getPrixInstruction() {
     const sel = [...document.querySelectorAll('.pill-prix.on')].map(b => b.dataset.prix);
-    if (!sel.length) return 'Ne pas mentionner les prix.';
-    return 'Mentionner si pertinent : ' + sel.join(' / ') + '.';
+    return sel.length ? 'Mentionner si pertinent : ' + sel.join(' / ') + '.' : 'Ne pas mentionner les prix.';
   }
 
+  function getFormuleInstruction() {
+    if (filters.formule === 'tutoiement') return 'Tutoiement systématique.';
+    if (filters.formule === 'vouvoiement') return 'Vouvoiement systématique.';
+    return 'Vouvoiement sauf si le correspondant te tutoie dans son mail.';
+  }
+
+  function getLangueInstruction() {
+    if (filters.langue === 'correspondant') return 'Rédige dans la même langue que le mail reçu (détecte automatiquement).';
+    return 'Rédige en français.';
+  }
+
+  // Traduction du mail reçu
+  document.getElementById('mailInput').addEventListener('input', () => {
+    const bar = document.getElementById('translateBar');
+    bar.style.display = document.getElementById('mailInput').value.trim() ? 'block' : 'none';
+  });
+
+  async function translateMail() {
+    const mail = document.getElementById('mailInput').value.trim();
+    if (!mail) return;
+    const apiKey = getApiKey();
+    if (!apiKey) { alert('Entre d\'abord ta clé API.'); return; }
+
+    const btn  = document.getElementById('translateBtn');
+    const box  = document.getElementById('translationBox');
+    const text = document.getElementById('translationContent');
+
+    btn.textContent = 'Traduction…';
+    btn.disabled = true;
+    box.style.display = 'block';
+    text.textContent = 'Traduction en cours…';
+    text.classList.add('loading');
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 600,
+          messages: [{ role: 'user', content: 'Traduis ce texte en français de façon fidèle et naturelle. Réponds uniquement avec la traduction, sans commentaire.\n\n' + mail }]
+        })
+      });
+      const data = await res.json();
+      text.textContent = data.content?.find(b => b.type === 'text')?.text
+        || (data.error ? 'Erreur : ' + data.error.message : 'Erreur inconnue.');
+    } catch(e) {
+      text.textContent = 'Erreur réseau.';
+    }
+
+    text.classList.remove('loading');
+    btn.textContent = 'Retraduire';
+    btn.disabled = false;
+  }
+
+  function closeTranslation() {
+    document.getElementById('translationBox').style.display = 'none';
+  }
+
+  // Génération
   const variants = [
-    { label: 'Version courte', sub: '3 phrases max', instruction: 'Réponse très concise, 3 phrases maximum. Essentiel uniquement.' },
-    { label: 'Version standard', sub: 'Ton naturel', instruction: 'Réponse équilibrée, ton naturel, 4-5 phrases.' },
+    { label: 'Version courte',      sub: '3 phrases max',     instruction: 'Réponse très concise, 3 phrases maximum. Essentiel uniquement.' },
+    { label: 'Version standard',    sub: 'Ton naturel',       instruction: 'Réponse équilibrée, ton naturel, 4-5 phrases.' },
     { label: 'Version chaleureuse', sub: 'Touche personnelle', instruction: 'Ajoute une touche personnelle sur l\'accueil ou la propriété, sans en faire trop. 4-5 phrases.' },
   ];
+
+  // Stockage des textes originaux pour basculer la traduction des réponses
+  const originals = {};
+  const translated = {};
 
   async function generate() {
     const mail = document.getElementById('mailInput').value.trim();
     if (!mail) { alert('Colle d\'abord le mail reçu.'); return; }
-
-    const apiKey = localStorage.getItem('fanost_api_key') || apiKeyInput.value.trim();
-    if (!apiKey) { alert('Entre d\'abord ta clé API Anthropic dans les paramètres.'); return; }
+    const apiKey = getApiKey();
+    if (!apiKey) { alert('Entre d\'abord ta clé API Anthropic.'); return; }
 
     const btn = document.getElementById('genBtn');
     btn.disabled = true;
     btn.textContent = 'Génération en cours…';
 
     const panel = document.getElementById('resultsPanel');
-    const grid = document.getElementById('resultsGrid');
+    const grid  = document.getElementById('resultsGrid');
     panel.classList.add('visible');
 
     grid.innerHTML = variants.map((v, i) => `
@@ -574,6 +712,7 @@
         <div class="result-body loading" id="rb-${i}">Génération en cours…</div>
         <div class="result-footer">
           <button class="btn-copy" id="bc-${i}" onclick="copyText(${i})" style="display:none">Copier</button>
+          <button class="btn-translate-resp" id="bt-${i}" onclick="toggleTranslateResp(${i})" style="display:none">Traduire</button>
         </div>
       </div>
     `).join('');
@@ -581,20 +720,13 @@
     const sys = `Tu es César Marandin, propriétaire de La Ferme Fanost, chambres d'hôtes et table d'hôtes à Morangis (91420). Tu réponds à des demandes de réservation par email.
 
 STYLE À REPRODUIRE :
+Ouverture : "Bonjour [Prénom]," si prénom connu — sinon "Bonjour Madame," / "Bonjour Monsieur,". Jamais "Cher/Chère", jamais "Madame, Monsieur,".
+Confirmation : "C'est bien noté", "Nous avons bien de la place", "Je vous confirme la réservation", "C'est bien réservé de notre côté"
+Refus : court, porte ouverte ("vous serez le bienvenu(e) une prochaine fois")
+En attente : "Je reviens vers vous dès que possible", "Nous avons une demande en cours"
+Clôture pro : "Bien cordialement, César Marandin" — particulier : "Bien à vous, César" ou "Au plaisir de vous accueillir. César"
 
-Ouverture :
-- Clients pro : "Bonjour [Prénom]," si prénom connu, sinon "Bonjour Madame," / "Bonjour Monsieur,"
-- Particuliers nouveaux : "Bonjour Monsieur," / "Bonjour Madame,"
-- Particuliers réguliers ou connus : "Bonjour [Prénom],"
-- Jamais "Cher/Chère", jamais "Madame, Monsieur,"
-
-Formulations de confirmation : "C'est bien noté", "Nous avons bien de la place", "Je vous confirme la réservation", "C'est bien réservé de notre côté"
-Formulations de refus : courtes, porte ouverte ("vous serez le bienvenu(e) une prochaine fois")
-Formulations en attente : "Je reviens vers vous dès que possible", "Nous avons une demande en cours"
-
-Clôture : Pro → "Bien cordialement, César Marandin" / Particulier → "Bien à vous, César" ou "Au plaisir de vous accueillir. César"
-
-TARIFS OFFICIELS (lafermefanost.com) :
+TARIFS OFFICIELS :
 - Nuitée simple : 100 € petit-déjeuner inclus
 - Nuitée double : 125 € petit-déjeuner inclus
 - Soirée étape : 125 € (table d'hôtes + nuit + PDJ)
@@ -603,9 +735,9 @@ TARIFS OFFICIELS (lafermefanost.com) :
 RÈGLES :
 - 3 à 5 phrases maximum
 - Pas de formules creuses
-- Vouvoiement sauf tutoiement dans le mail reçu
+- ${getFormuleInstruction()}
 - Ne jamais inventer des informations absentes du mail
-- Français uniquement
+- ${getLangueInstruction()}
 
 PARAMÈTRES :
 - Relation : ${filters.relation}
@@ -625,7 +757,7 @@ PARAMÈTRES :
             'anthropic-dangerous-direct-browser-access': 'true'
           },
           body: JSON.stringify({
-            model: 'claude-opus-4-5',
+            model: 'claude-sonnet-4-20250514',
             max_tokens: 800,
             system: sys,
             messages: [{ role: 'user', content: `Mail reçu :\n\n${mail}\n\n${variants[i].instruction}\n\nRédige uniquement le corps du mail, sans objet.` }]
@@ -634,9 +766,14 @@ PARAMÈTRES :
         const data = await res.json();
         if (data.content) {
           const text = data.content.find(b => b.type === 'text')?.text || 'Réponse vide.';
+          originals[i] = text;
+          delete translated[i];
           rb.textContent = text;
           rb.classList.remove('loading');
           document.getElementById(`bc-${i}`).style.display = 'inline-block';
+          document.getElementById(`bt-${i}`).style.display = 'inline-block';
+          document.getElementById(`bt-${i}`).textContent = 'Traduire';
+          document.getElementById(`bt-${i}`).classList.remove('active');
         } else {
           rb.textContent = 'Erreur API : ' + (data.error?.message || JSON.stringify(data));
           rb.classList.remove('loading');
@@ -652,6 +789,53 @@ PARAMÈTRES :
     btn.disabled = false;
     btn.textContent = 'Générer les trois versions';
     panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Bascule traduction/original pour chaque réponse
+  async function toggleTranslateResp(i) {
+    const rb  = document.getElementById(`rb-${i}`);
+    const btn = document.getElementById(`bt-${i}`);
+    const apiKey = getApiKey();
+
+    if (translated[i]) {
+      // Revenir à l'original
+      rb.textContent = originals[i];
+      delete translated[i];
+      btn.textContent = 'Traduire';
+      btn.classList.remove('active');
+      return;
+    }
+
+    // Traduire vers la langue du mail reçu
+    const mail = document.getElementById('mailInput').value.trim();
+    btn.textContent = '…';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 600,
+          messages: [{ role: 'user', content: `Le correspondant écrit dans cette langue :\n\n${mail}\n\nTraduis ce texte dans cette même langue, de façon naturelle et fidèle. Réponds uniquement avec la traduction.\n\n${originals[i]}` }]
+        })
+      });
+      const data = await res.json();
+      const text = data.content?.find(b => b.type === 'text')?.text || 'Erreur.';
+      translated[i] = text;
+      rb.textContent = text;
+      btn.textContent = 'Original';
+      btn.classList.add('active');
+    } catch(e) {
+      btn.textContent = 'Erreur';
+    }
+    btn.disabled = false;
   }
 
   function copyText(i) {
