@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr" class="lang-fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, follow" />
+  <title>Politique de confidentialité — La Ferme Fanost</title>
+  <link rel="icon" href="/photos/favicon.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --cream:  #F7F2EA;
+      --warm:   #EDE4D3;
+      --sand:   #C9B99A;
+      --earth:  #7A6248;
+      --dark:   #2E2218;
+      --green:  #5C6E4A;
+      --rule:   rgba(122, 98, 72, 0.2);
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'Jost', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--dark);
+      font-family: var(--font-body);
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .lang-fr .en { display: none !important; }
+    .lang-en .fr { display: none !important; }
+
+    /* ─── Header ─── */
+    .header {
+      background: var(--green);
+      text-align: center;
+      padding: 28px 24px 24px;
+    }
+    .header a {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: #fff;
+      text-decoration: none;
+      opacity: 0.9;
+    }
+    .header a:hover { opacity: 1; }
+    .header-title {
+      font-family: var(--font-body);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      margin-top: 10px;
+    }
+
+    /* ─── Lang toggle ─── */
+    #lang-toggle {
+      position: fixed;
+      top: 10px;
+      right: 12px;
+      z-index: 9999;
+    }
+    #lang-toggle button {
+      font-family: var(--font-body);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(247,242,234,0.9);
+      background: rgba(92,110,74,0.88);
+      border: none;
+      border-radius: 2px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    /* ─── Content ─── */
+    .page {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 52px 28px 80px;
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--dark);
+      letter-spacing: 0.02em;
+      margin-bottom: 8px;
+    }
+    .update-date {
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--sand);
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--dark);
+      margin: 40px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--earth);
+      margin-bottom: 14px;
+    }
+
+    a {
+      color: var(--green);
+      text-decoration: underline;
+      text-decoration-color: rgba(92,110,74,0.4);
+    }
+    a:hover { text-decoration-color: var(--green); }
+
+    .highlight-box {
+      background: var(--warm);
+      border-left: 3px solid var(--sand);
+      padding: 16px 20px;
+      margin: 24px 0;
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-style: italic;
+      line-height: 1.7;
+      color: var(--earth);
+    }
+
+    ul {
+      margin: 10px 0 14px 20px;
+    }
+    ul li {
+      font-size: 16px;
+      color: var(--earth);
+      line-height: 1.75;
+      margin-bottom: 4px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 52px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--green);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(92,110,74,0.3);
+      padding-bottom: 2px;
+    }
+    .back-link:hover { border-bottom-color: var(--green); }
+  </style>
+
+  <script>
+    (function(){
+      var lang = localStorage.getItem('lang') || 'fr';
+      var cl = document.documentElement.className || '';
+      cl = cl.replace(/\blang-(?:fr|en)\b/g, '').trim();
+      document.documentElement.className = cl + (cl ? ' ' : '') + 'lang-' + lang;
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.lang-btn').forEach(function(b){ b.textContent = lang === 'fr' ? 'EN' : 'FR'; });
+      });
+    })();
+    function toggleLang() {
+      var cur = localStorage.getItem('lang') || 'fr';
+      var next = cur === 'fr' ? 'en' : 'fr';
+      localStorage.setItem('lang', next);
+      var cl = document.documentElement.className;
+      document.documentElement.className = cl.replace(/\blang-(?:fr|en)\b/g, '').trim() + ' lang-' + next;
+      document.querySelectorAll('.lang-btn').forEach(function(b){ b.textContent = next === 'fr' ? 'EN' : 'FR'; });
+    }
+  </script>
+</head>
+<body>
+
+  <div id="lang-toggle">
+    <button class="lang-btn" onclick="toggleLang()">EN</button>
+  </div>
+
+  <header class="header">
+    <a href="/"><span class="fr">← La Ferme Fanost</span><span class="en">← La Ferme Fanost</span></a>
+    <div class="header-title"><span class="fr">Politique de confidentialité</span><span class="en">Privacy Policy</span></div>
+  </header>
+
+  <div class="page">
+
+    <h1><span class="fr">Politique de confidentialité</span><span class="en">Privacy Policy</span></h1>
+    <p class="update-date"><span class="fr">Dernière mise à jour : juin 2026</span><span class="en">Last updated: June 2026</span></p>
+
+    <div class="highlight-box">
+      <span class="fr">Ce site ne collecte aucune donnée personnelle à des fins publicitaires ou commerciales. Les seules données traitées sont celles que vous nous transmettez volontairement via le formulaire de contact.</span>
+      <span class="en">This site collects no personal data for advertising or commercial purposes. The only data processed is what you voluntarily send us through the contact form.</span>
+    </div>
+
+    <!-- ─── Responsable ─── -->
+    <h2><span class="fr">Responsable du traitement</span><span class="en">Data Controller</span></h2>
+    <p>
+      <span class="fr">La Ferme Fanost — SASU, SIRET 942 623 422<br>
+      4 rue Charles Fanost, 91420 Morangis, France<br>
+      Contact : <a href="mailto:lafermefanost@gmail.com">lafermefanost@gmail.com</a> · 06 20 31 21 19</span>
+      <span class="en">La Ferme Fanost — SASU, SIRET 942 623 422<br>
+      4 rue Charles Fanost, 91420 Morangis, France<br>
+      Contact: <a href="mailto:lafermefanost@gmail.com">lafermefanost@gmail.com</a> · +33 6 20 31 21 19</span>
+    </p>
+
+    <!-- ─── Données collectées ─── -->
+    <h2><span class="fr">Données collectées</span><span class="en">Data Collected</span></h2>
+    <p><span class="fr">Lorsque vous remplissez le formulaire de contact, les informations suivantes peuvent être collectées :</span><span class="en">When you fill in the contact form, the following information may be collected:</span></p>
+    <ul>
+      <li><span class="fr">Prénom et nom</span><span class="en">First and last name</span></li>
+      <li><span class="fr">Adresse e-mail</span><span class="en">Email address</span></li>
+      <li><span class="fr">Numéro de téléphone (facultatif)</span><span class="en">Phone number (optional)</span></li>
+      <li><span class="fr">Dates de séjour souhaitées</span><span class="en">Desired stay dates</span></li>
+      <li><span class="fr">Message libre</span><span class="en">Free-form message</span></li>
+    </ul>
+
+    <!-- ─── Finalité ─── -->
+    <h2><span class="fr">Finalité du traitement</span><span class="en">Purpose of Processing</span></h2>
+    <p><span class="fr">Ces données sont utilisées uniquement pour répondre à votre demande de réservation ou d'information. Elles ne sont ni revendues, ni partagées à des tiers à des fins commerciales.</span><span class="en">This data is used solely to respond to your booking or information request. It is never sold or shared with third parties for commercial purposes.</span></p>
+    <p><span class="fr">Base légale du traitement : intérêt légitime (répondre à une demande que vous avez initiée).</span><span class="en">Legal basis for processing: legitimate interest (responding to a request you initiated).</span></p>
+
+    <!-- ─── Formspree ─── -->
+    <h2><span class="fr">Sous-traitant — Formspree</span><span class="en">Sub-processor — Formspree</span></h2>
+    <p><span class="fr">L'envoi du formulaire de contact est techniquement assuré par le service <strong>Formspree</strong> (formspree.io), qui transmet les données à notre adresse e-mail en notre nom. Formspree respecte le RGPD. Consultez leur politique de confidentialité sur <a href="https://formspree.io/legal/privacy-policy" target="_blank" rel="noopener">formspree.io/legal/privacy-policy</a>.</span><span class="en">The contact form submission is technically handled by <strong>Formspree</strong> (formspree.io), which forwards the data to our email address on our behalf. Formspree is GDPR compliant. See their privacy policy at <a href="https://formspree.io/legal/privacy-policy" target="_blank" rel="noopener">formspree.io/legal/privacy-policy</a>.</span></p>
+
+    <!-- ─── Conservation ─── -->
+    <h2><span class="fr">Durée de conservation</span><span class="en">Retention Period</span></h2>
+    <p><span class="fr">Vos données sont conservées le temps nécessaire au traitement de votre demande, et au maximum 3 ans à compter du dernier échange.</span><span class="en">Your data is retained for as long as necessary to process your request, and for a maximum of 3 years from the last exchange.</span></p>
+
+    <!-- ─── Stockage local ─── -->
+    <h2><span class="fr">Cookies et stockage local</span><span class="en">Cookies and Local Storage</span></h2>
+    <p><span class="fr">Ce site n'utilise pas de cookies de suivi, ni d'outil d'analyse statistique (pas de Google Analytics). Une seule donnée est enregistrée dans votre navigateur : votre préférence de langue (français ou anglais), via le stockage local (<em>localStorage</em>). Cette information ne quitte jamais votre appareil.</span><span class="en">This site uses no tracking cookies and no analytics tools (no Google Analytics). A single piece of data is stored in your browser: your language preference (French or English), via <em>localStorage</em>. This information never leaves your device.</span></p>
+
+    <!-- ─── Vos droits ─── -->
+    <h2><span class="fr">Vos droits</span><span class="en">Your Rights</span></h2>
+    <p><span class="fr">Conformément au RGPD et à la loi Informatique et Libertés, vous disposez des droits suivants sur vos données personnelles :</span><span class="en">Under the GDPR and the French Data Protection Act, you have the following rights regarding your personal data:</span></p>
+    <ul>
+      <li><span class="fr">Droit d'accès et de rectification</span><span class="en">Right of access and rectification</span></li>
+      <li><span class="fr">Droit à l'effacement ("droit à l'oubli")</span><span class="en">Right to erasure ("right to be forgotten")</span></li>
+      <li><span class="fr">Droit d'opposition au traitement</span><span class="en">Right to object to processing</span></li>
+      <li><span class="fr">Droit à la portabilité des données</span><span class="en">Right to data portability</span></li>
+    </ul>
+    <p><span class="fr">Pour exercer ces droits, contactez-nous à <a href="mailto:lafermefanost@gmail.com">lafermefanost@gmail.com</a>. Nous répondrons dans un délai maximum de 30 jours.</span><span class="en">To exercise these rights, contact us at <a href="mailto:lafermefanost@gmail.com">lafermefanost@gmail.com</a>. We will respond within 30 days.</span></p>
+
+    <!-- ─── CNIL ─── -->
+    <h2><span class="fr">Réclamation auprès de la CNIL</span><span class="en">Complaint to the CNIL</span></h2>
+    <p><span class="fr">Si vous estimez que le traitement de vos données n'est pas conforme à la réglementation, vous avez le droit d'introduire une réclamation auprès de la <strong>CNIL</strong> (Commission Nationale de l'Informatique et des Libertés) : <a href="https://www.cnil.fr" target="_blank" rel="noopener">cnil.fr</a>.</span><span class="en">If you believe that the processing of your data does not comply with regulations, you have the right to lodge a complaint with the <strong>CNIL</strong> (French Data Protection Authority): <a href="https://www.cnil.fr" target="_blank" rel="noopener">cnil.fr</a>.</span></p>
+
+    <a class="back-link" href="/"><span class="fr">← Retour au site</span><span class="en">← Back to site</span></a>
+
+  </div>
+
+</body>
+</html>
