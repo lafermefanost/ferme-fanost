@@ -16,11 +16,16 @@
     img { border: 0; line-height: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
 
     @media only screen and (max-width: 620px) {
-      .wrap        { width: 100% !important; }
-      .ph          { width: 100% !important; display: block !important; }
-      .ph img      { width: 100% !important; }
-      .pad         { padding: 36px 24px !important; }
-      .padtop      { padding-top: 36px !important; }
+      .wrap     { width: 100% !important; }
+      .pad      { padding: 36px 24px !important; }
+      .grid-cell {
+        width: 100% !important;
+        display: block !important;
+      }
+      .grid-cell img {
+        width: 100% !important;
+        height: auto !important;
+      }
     }
   </style>
 </head>
@@ -76,12 +81,15 @@
       <table width="60" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 24px;">
         <tr><td style="border-top:1px solid #C9B99A;font-size:0;line-height:0;">&nbsp;</td></tr>
       </table>
-      <p style="margin:0;
-                font-family:'Jost',Arial,sans-serif;font-weight:300;
-                font-size:14px;line-height:1.9;color:#7A6248;
-                max-width:420px;display:block;margin:0 auto;">
-        Depuis 25 ans, nous accueillons les professionnels en déplacement dans un cadre authentique. Par choix, nous travaillons <strong style="font-weight:400;">exclusivement avec des clients professionnels</strong> en semaine — pour vous garantir calme, qualité et accueil sincère. Loin des couloirs sans âme, vos équipes repartent vraiment reposées.
-      </p>
+      <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;max-width:420px;">
+        <tr><td>
+          <p style="margin:0;
+                    font-family:'Jost',Arial,sans-serif;font-weight:300;
+                    font-size:14px;line-height:1.9;color:#7A6248;text-align:center;">
+            Depuis 25 ans, nous accueillons les professionnels en déplacement dans un cadre authentique. Par choix, nous travaillons <strong style="font-weight:400;">exclusivement avec des clients professionnels</strong> en semaine — pour vous garantir calme, qualité et accueil sincère. Loin des couloirs sans âme, vos équipes repartent vraiment reposées.
+          </p>
+        </td></tr>
+      </table>
       <p style="margin:20px 0 0;
                 font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;
                 font-size:15px;color:#C9B99A;letter-spacing:0.5px;">
@@ -92,27 +100,6 @@
 
 
   <!-- ══════ LA FERME FANOST ══════ -->
-  <tr>
-    <td style="padding:0;line-height:0;font-size:0;">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="ph" width="290"
-              style="padding:0;line-height:0;font-size:0;vertical-align:top;">
-            <img src="https://lafermefanost.com/photos/1774718203882_piscine.jpg"
-                 alt="La Ferme Fanost — Piscine"
-                 width="290" style="display:block;width:100%;" />
-          </td>
-          <td class="ph" width="290"
-              style="padding:0;line-height:0;font-size:0;vertical-align:top;">
-            <img src="https://lafermefanost.com/photos/tablehoteTeinte_EDJB.jpg"
-                 alt="La Ferme Fanost — Table d'hôtes"
-                 width="290" style="display:block;width:100%;" />
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-
   <tr>
     <td class="pad" bgcolor="#F7F2EA"
         style="padding:40px 56px 44px;">
@@ -156,6 +143,42 @@
     </td>
   </tr>
 
+  <!-- La Ferme — grille 2×2 -->
+  <tr>
+    <td style="padding:0;line-height:0;font-size:0;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="grid-cell" width="290"
+              style="padding:0;line-height:0;font-size:0;vertical-align:top;width:290px;">
+            <img src="https://lafermefanost.com/photos/1774718203882_cour4.jpg"
+                 alt="La Ferme Fanost — Cour" width="290" height="163"
+                 style="display:block;width:290px;height:163px;object-fit:cover;" />
+          </td>
+          <td class="grid-cell" width="290"
+              style="padding:0;line-height:0;font-size:0;vertical-align:top;width:290px;">
+            <img src="https://lafermefanost.com/photos/1774745532616_chambre4.jpg"
+                 alt="La Ferme Fanost — Chambre" width="290" height="163"
+                 style="display:block;width:290px;height:163px;object-fit:cover;" />
+          </td>
+        </tr>
+        <tr>
+          <td class="grid-cell" width="290"
+              style="padding:0;line-height:0;font-size:0;vertical-align:top;width:290px;">
+            <img src="https://lafermefanost.com/photos/1774718203882_piscine2.jpg"
+                 alt="La Ferme Fanost — Piscine" width="290" height="163"
+                 style="display:block;width:290px;height:163px;object-fit:cover;" />
+          </td>
+          <td class="grid-cell" width="290"
+              style="padding:0;line-height:0;font-size:0;vertical-align:top;width:290px;">
+            <img src="https://lafermefanost.com/photos/tablehoteIMG_3231.jpg"
+                 alt="La Ferme Fanost — Table d'hôtes" width="290" height="163"
+                 style="display:block;width:290px;height:163px;object-fit:cover;" />
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
 
   <!-- ══════ SÉPARATEUR ══════ -->
   <tr>
@@ -169,14 +192,6 @@
 
 
   <!-- ══════ LE PETIT FANOST ══════ -->
-  <tr>
-    <td style="padding:0;line-height:0;font-size:0;">
-      <img src="https://lafermefanost.com/photos/1774748505737__MG_8776.jpg"
-           alt="Le Petit Fanost — Wissous"
-           width="580" style="display:block;width:100%;max-width:580px;" />
-    </td>
-  </tr>
-
   <tr>
     <td class="pad" bgcolor="#F7F2EA"
         style="padding:40px 56px 44px;">
@@ -215,21 +230,36 @@
     </td>
   </tr>
 
+  <!-- Petit Fanost — grille 2×2 -->
   <tr>
     <td style="padding:0;line-height:0;font-size:0;">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="ph" width="290"
-              style="padding:0;line-height:0;font-size:0;vertical-align:top;">
-            <img src="https://lafermefanost.com/photos/1774748505735__MG_8625.jpg"
-                 alt="Le Petit Fanost — chambre"
-                 width="290" style="display:block;width:100%;" />
+          <td class="grid-cell" width="290"
+              style="padding:0;line-height:0;font-size:0;vertical-align:top;width:290px;">
+            <img src="https://lafermefanost.com/photos/1774748505737__MG_8776.jpg"
+                 alt="Le Petit Fanost — Extérieur" width="290" height="163"
+                 style="display:block;width:290px;height:163px;object-fit:cover;" />
           </td>
-          <td class="ph" width="290"
-              style="padding:0;line-height:0;font-size:0;vertical-align:top;">
-            <img src="https://lafermefanost.com/photos/1774748505736__MG_8645.jpg"
-                 alt="Le Petit Fanost — intérieur"
-                 width="290" style="display:block;width:100%;" />
+          <td class="grid-cell" width="290"
+              style="padding:0;line-height:0;font-size:0;vertical-align:top;width:290px;">
+            <img src="https://lafermefanost.com/photos/1774748505736__MG_8661.jpg"
+                 alt="Le Petit Fanost — Salon" width="290" height="163"
+                 style="display:block;width:290px;height:163px;object-fit:cover;" />
+          </td>
+        </tr>
+        <tr>
+          <td class="grid-cell" width="290"
+              style="padding:0;line-height:0;font-size:0;vertical-align:top;width:290px;">
+            <img src="https://lafermefanost.com/photos/1774748505735__MG_8625.jpg"
+                 alt="Le Petit Fanost — Chambre" width="290" height="163"
+                 style="display:block;width:290px;height:163px;object-fit:cover;" />
+          </td>
+          <td class="grid-cell" width="290"
+              style="padding:0;line-height:0;font-size:0;vertical-align:top;width:290px;">
+            <img src="https://lafermefanost.com/photos/1774748505737__MG_8741.jpg"
+                 alt="Le Petit Fanost — Jardin" width="290" height="163"
+                 style="display:block;width:290px;height:163px;object-fit:cover;" />
           </td>
         </tr>
       </table>
