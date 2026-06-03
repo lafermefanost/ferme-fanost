@@ -126,6 +126,29 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
   font-size:11px;color:var(--earth);font-weight:700;
   letter-spacing:.06em;text-transform:uppercase;}
 
+/* ─── RANGE SELECTION ───────────────────────────────────────── */
+.pt td.rc.sel-start{background:#D4EAD0 !important;outline:2px solid #3D5C35;outline-offset:-2px;}
+.pt td.rc.sel-range{background:#E8F4E5 !important;}
+.pt td.rc.sel-end{background:#D4EAD0 !important;outline:2px solid #5A8C54;outline-offset:-2px;}
+.pt td.rc.sel-start.sel-end{outline:2px solid #3D5C35;}
+
+#rangeBar{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+  background:var(--dark);color:var(--cream);border-radius:30px;
+  padding:10px 18px;display:none;align-items:center;gap:12px;
+  box-shadow:0 4px 20px rgba(0,0,0,.35);z-index:500;white-space:nowrap;
+  font-size:13px;}
+#rangeBar.show{display:flex;}
+@media(max-width:599px){#rangeBar{bottom:62px;font-size:12px;padding:8px 14px;gap:8px;}}
+#rangeLabel{font-weight:500;}
+#rangeLabel b{color:#9DC89A;}
+.rbtn-ok{padding:6px 16px;background:var(--green);color:#fff;border:none;
+  border-radius:20px;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;
+  cursor:pointer;}
+.rbtn-ok:hover{background:#4A7040;}
+.rbtn-cancel{width:26px;height:26px;border:none;background:rgba(255,255,255,.15);
+  color:var(--cream);border-radius:50%;cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;}
+
 /* ─── ROOM CELLS ─────────────────────────────────────────────── */
 .pt td.rc{cursor:pointer;padding:1px 1px;min-width:108px;max-width:130px;
   overflow:hidden;position:relative;}
@@ -584,6 +607,13 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
   </div>
 </div>
 
+<!-- ─── RANGE BAR ──────────────────────────────────────────────────── -->
+<div id="rangeBar">
+  <span id="rangeLabel"></span>
+  <button class="rbtn-ok" onclick="confirmRange()">Réserver →</button>
+  <button class="rbtn-cancel" onclick="clearRangeSel()" title="Annuler">✕</button>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════════════
 //  CONSTANTS
@@ -910,7 +940,7 @@ function renderGrid(){
           d2.addEventListener('click',e=>{e.stopPropagation();openEditModal(co.id);});
           cell.appendChild(d2);
         }
-        cell.addEventListener('click',()=>openAddModal(r.id,ds));
+        cell.addEventListener('click',()=>startOrExtendRange(r.id,ds));
       }
 
       cell.addEventListener('dragover',e=>{e.preventDefault();cell.classList.add('dover');});
@@ -1063,7 +1093,7 @@ document.addEventListener('mousemove',e=>{if(byId('tooltip').style.display==='bl
 // ═══════════════════════════════════════════════════════════════
 //  BOOKING MODAL
 // ═══════════════════════════════════════════════════════════════
-function openAddModal(roomId,ds){
+function openAddModal(roomId,ds,dsOut){
   editBid=null;selGid=null;newGMode=false;
   byId('mBookTitle').textContent='Nouvelle réservation';
   byId('bDelBtn').style.display='none';
@@ -1073,7 +1103,7 @@ function openAddModal(roomId,ds){
   if(roomId) byId('bRoom').value=roomId;
   const ci=ds||todayISO();
   byId('bIn').value=ci;
-  byId('bOut').value=addDays(ci,1);
+  byId('bOut').value=dsOut||addDays(ci,1);
   byId('bTime').value='';
   byId('bStatus').value='ok';
   byId('bNotes').value='';
@@ -1341,6 +1371,81 @@ function delEvent(){
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  RANGE SELECTION (sélection de plage sur la grille)
+// ═══════════════════════════════════════════════════════════════
+let rangeSel=null; // { roomId, start, end }
+const DOW_FULL=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+function startOrExtendRange(roomId,ds){
+  if(!rangeSel){
+    rangeSel={roomId,start:ds,end:ds};
+  } else if(rangeSel.roomId===roomId&&ds>=rangeSel.start){
+    rangeSel.end=ds;
+  } else if(rangeSel.roomId===roomId&&ds<rangeSel.start){
+    // Clicked before start — reset start, keep old start as end
+    rangeSel={roomId,start:ds,end:rangeSel.start};
+  } else {
+    // Different room — start fresh
+    clearHighlights();
+    rangeSel={roomId,start:ds,end:ds};
+  }
+  renderRangeHighlight();
+  showRangeBar();
+}
+
+function renderRangeHighlight(){
+  clearHighlights();
+  if(!rangeSel)return;
+  const{roomId,start,end}=rangeSel;
+  let cur=start;
+  while(cur<=end){
+    const cell=document.querySelector(`td.rc[data-room="${roomId}"][data-date="${cur}"]`);
+    if(cell){
+      if(cur===start&&cur===end) cell.classList.add('sel-start','sel-end');
+      else if(cur===start) cell.classList.add('sel-start');
+      else if(cur===end) cell.classList.add('sel-end');
+      else cell.classList.add('sel-range');
+    }
+    cur=addDays(cur,1);
+  }
+}
+
+function clearHighlights(){
+  document.querySelectorAll('.rc.sel-start,.rc.sel-range,.rc.sel-end')
+    .forEach(el=>el.classList.remove('sel-start','sel-range','sel-end'));
+}
+
+function showRangeBar(){
+  if(!rangeSel)return;
+  const{roomId,start,end}=rangeSel;
+  const rm=room(roomId);
+  const nights=Math.round((new Date(end)-new Date(start))/86400000)+1;
+  const ds=new Date(start+'T00:00:00');
+  const de=new Date(end+'T00:00:00');
+  const fmt=d=>`${DOW_FULL[d.getDay()]} ${d.getDate()} ${MON3[d.getMonth()]}`;
+  const label=nights===1
+    ?`<b>${rm?rm.name:''}</b> · ${fmt(ds)} · <b>1 nuit</b>`
+    :`<b>${rm?rm.name:''}</b> · ${fmt(ds)} → ${fmt(de)} · <b>${nights} nuits</b>`;
+  byId('rangeLabel').innerHTML=label;
+  byId('rangeBar').classList.add('show');
+}
+
+function confirmRange(){
+  if(!rangeSel)return;
+  const rid=rangeSel.roomId;
+  const start=rangeSel.start;
+  const checkOut=addDays(rangeSel.end,1);
+  clearRangeSel();
+  openAddModal(rid,start,checkOut);
+}
+
+function clearRangeSel(){
+  clearHighlights();
+  rangeSel=null;
+  byId('rangeBar').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  TABLE D'HÔTES — par nuit
 // ═══════════════════════════════════════════════════════════════
 let thCurrentDate=null;
@@ -1467,9 +1572,15 @@ function goToday(){
 //  MODAL UTILS
 // ═══════════════════════════════════════════════════════════════
 function closeM(id){byId(id).style.display='none';}
+
+function openModalClear(){clearRangeSel();}
 function ovClose(e,id){if(e.target.classList.contains('overlay'))closeM(id);}
 
 // Keyboard: Escape closes topmost modal
+document.addEventListener('click',e=>{
+  // Clear range selection if click is outside the grid
+  if(rangeSel&&!e.target.closest('#gridWrap')&&!e.target.closest('#rangeBar'))clearRangeSel();
+});
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   const ids=['modalEventEdit','modalGuestEdit','modalGuests','modalEvents','modalBooking','modalSync'];
