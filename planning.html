@@ -138,6 +138,19 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
   box-shadow:0 4px 20px rgba(0,0,0,.35);z-index:500;white-space:nowrap;
   font-size:13px;}
 #rangeBar.show{display:flex;}
+
+#swapBar{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+  background:#1A3A28;color:var(--cream);border-radius:30px;
+  padding:10px 18px;display:none;align-items:center;gap:10px;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);z-index:500;white-space:nowrap;
+  font-size:13px;}
+#swapBar.show{display:flex;}
+@media(max-width:599px){#swapBar{bottom:62px;font-size:12px;padding:8px 12px;gap:7px;}}
+.swap-arrow{font-size:16px;opacity:.7;}
+.rbtn-swap{padding:6px 16px;background:#4A8C60;color:#fff;border:none;
+  border-radius:20px;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;
+  cursor:pointer;}
+.rbtn-swap:hover{background:#3A7050;}
 @media(max-width:599px){#rangeBar{bottom:62px;font-size:12px;padding:8px 14px;gap:8px;}}
 #rangeLabel{font-weight:500;}
 #rangeLabel b{color:#9DC89A;}
@@ -605,6 +618,16 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
       <button class="btn-p" onclick="saveFirebaseConfig()">Activer la sync</button>
     </div>
   </div>
+</div>
+
+<!-- ─── SWAP BAR ──────────────────────────────────────────────────── -->
+<div id="swapBar">
+  <span style="font-size:12px;opacity:.7">Échanger ?</span>
+  <span id="swapA"></span>
+  <span class="swap-arrow">⇄</span>
+  <span id="swapB"></span>
+  <button class="rbtn-swap" onclick="confirmSwap()">⇄ Confirmer</button>
+  <button class="rbtn-cancel" onclick="cancelSwap()">✕</button>
 </div>
 
 <!-- ─── RANGE BAR ──────────────────────────────────────────────────── -->
@@ -1517,17 +1540,80 @@ function onDrop(newRid,_ds){
   const bk=S.bookings[i];
   if(bk.roomId===newRid){dragBid=null;return;}
 
-  // Conflict check
-  const conflict=S.bookings.some(b=>
+  // Find conflicting bookings in target room
+  const conflicts=S.bookings.filter(b=>
     b.id!==dragBid&&b.roomId===newRid&&b.checkIn<bk.checkOut&&b.checkOut>bk.checkIn
   );
-  if(conflict){
-    flash('⚠️ Conflit — chambre déjà occupée','#C0392B');
-    dragBid=null;return;
+
+  if(conflicts.length===0){
+    // Free room — move directly
+    S.bookings[i]={...bk,roomId:newRid};
+    persist();renderGrid();dragBid=null;
+    flash('✓ '+room(newRid)?.name,'#3D5C35');
+    return;
   }
-  S.bookings[i]={...bk,roomId:newRid};
-  persist();renderGrid();dragBid=null;
-  flash('✓ Chambre changée : '+room(newRid)?.name,'#3D5C35');
+
+  if(conflicts.length===1){
+    const cb=conflicts[0];
+    const origRid=bk.roomId;
+    // Check swap validity: no OTHER bookings blocked by the swap
+    const aBlocked=S.bookings.filter(b=>
+      b.id!==dragBid&&b.id!==cb.id&&
+      b.roomId===newRid&&b.checkIn<bk.checkOut&&b.checkOut>bk.checkIn
+    );
+    const bBlocked=S.bookings.filter(b=>
+      b.id!==dragBid&&b.id!==cb.id&&
+      b.roomId===origRid&&b.checkIn<cb.checkOut&&b.checkOut>cb.checkIn
+    );
+    if(aBlocked.length===0&&bBlocked.length===0){
+      proposeSwap(dragBid,cb.id);
+    } else {
+      flash('⚠️ Échange impossible — autres conflits en jeu','#C0392B');
+    }
+    dragBid=null;
+    return;
+  }
+
+  // Multiple conflicts
+  flash(`⚠️ ${conflicts.length} conflits — déplacez via la modale`,'#C0392B');
+  dragBid=null;
+}
+
+// ─── SWAP ───────────────────────────────────────────────────────
+let pendingSwap=null;
+
+function proposeSwap(bidA,bidB){
+  pendingSwap={bidA,bidB};
+  const bA=S.bookings.find(b=>b.id===bidA);
+  const bB=S.bookings.find(b=>b.id===bidB);
+  const gA=guest(bA.guestId);
+  const gB=guest(bB.guestId);
+  const rmA=room(bA.roomId);
+  const rmB=room(bB.roomId);
+  const dot=col=>`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:4px;vertical-align:middle"></span>`;
+  byId('swapA').innerHTML=dot(gA?.color||'#999')+(gA?.name||'?')+` <span style="font-size:10px;opacity:.65">${rmA?.name||''}</span>`;
+  byId('swapB').innerHTML=dot(gB?.color||'#999')+(gB?.name||'?')+` <span style="font-size:10px;opacity:.65">${rmB?.name||''}</span>`;
+  byId('swapBar').classList.add('show');
+}
+
+function confirmSwap(){
+  if(!pendingSwap)return;
+  const{bidA,bidB}=pendingSwap;
+  const iA=S.bookings.findIndex(b=>b.id===bidA);
+  const iB=S.bookings.findIndex(b=>b.id===bidB);
+  if(iA===-1||iB===-1)return;
+  const ridA=S.bookings[iA].roomId;
+  const ridB=S.bookings[iB].roomId;
+  S.bookings[iA]={...S.bookings[iA],roomId:ridB};
+  S.bookings[iB]={...S.bookings[iB],roomId:ridA};
+  persist();renderGrid();
+  cancelSwap();
+  flash('⇄ Chambres échangées','#3D5C35');
+}
+
+function cancelSwap(){
+  pendingSwap=null;
+  byId('swapBar').classList.remove('show');
 }
 
 function flash(msg,bg){
