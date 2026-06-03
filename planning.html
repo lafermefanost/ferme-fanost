@@ -173,6 +173,14 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
   font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis;max-width:125px;}
 
+/* ─── DINNER NIGHT CHIPS ───────────────────────────────────── */
+.dn-chip{display:flex;align-items:center;gap:5px;padding:5px 9px;border-radius:20px;
+  border:1.5px solid var(--light);cursor:pointer;font-size:11px;font-weight:500;
+  background:var(--white);color:var(--gray);transition:all .15s;user-select:none;}
+.dn-chip input[type=checkbox]{display:none;}
+.dn-chip.checked{background:#E8F3E5;border-color:#6B9E60;color:#2E5C28;}
+.dn-chip.checked::before{content:'🍽️ ';}
+
 /* ─── TOOLTIP ─────────────────────────────────────────────── */
 #tooltip{position:fixed;background:var(--dark);color:var(--cream);
   border-radius:6px;padding:8px 10px;font-size:11px;z-index:500;
@@ -382,11 +390,11 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
     <div class="frow">
       <div class="fg">
         <label class="fl">Arrivée</label>
-        <input type="date" class="fi" id="bIn" onchange="chkConflict()">
+        <input type="date" class="fi" id="bIn" onchange="chkConflict();renderDinnerList()">
       </div>
       <div class="fg">
         <label class="fl">Départ</label>
-        <input type="date" class="fi" id="bOut" onchange="chkConflict()">
+        <input type="date" class="fi" id="bOut" onchange="chkConflict();renderDinnerList()">
       </div>
     </div>
 
@@ -407,11 +415,13 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
 
     <div class="fg">
       <label class="fl">Nb personnes</label>
-      <input type="number" class="fi" id="bPersons" min="1" max="20" value="2">
+      <input type="number" class="fi" id="bPersons" min="1" max="20" value="2"
+             onchange="renderDinnerList()">
     </div>
-    <p style="font-size:11px;color:var(--gray);margin-top:-6px;margin-bottom:12px">
-      🍽️ Pour gérer les dîners nuit par nuit, cliquez sur la colonne TH de la grille.
-    </p>
+    <div class="fg" id="dinnerListFg" style="display:none">
+      <label class="fl">🍽️ Table d'hôtes — soirs du séjour</label>
+      <div id="dinnerList" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
+    </div>
 
     <div class="fg">
       <label class="fl">Notes</label>
@@ -1069,6 +1079,7 @@ function openAddModal(roomId,ds){
   byId('bNotes').value='';
 
   renderGPicker();
+  renderDinnerList();
   byId('modalBooking').style.display='flex';
 }
 
@@ -1088,6 +1099,7 @@ function openEditModal(id){
   byId('bPersons').value=b.nbPersons||2;
   byId('bNotes').value=b.notes||'';
   renderGPicker();
+  renderDinnerList();
   byId('modalBooking').style.display='flex';
 }
 
@@ -1150,9 +1162,10 @@ function saveBooking(){
 
   if(editBid){
     const i=S.bookings.findIndex(b=>b.id===editBid);
-    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,notes:nt,guestId:gid};
+    const dn=getDinnerNights();
+    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,notes:nt,guestId:gid};
   }else{
-    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,notes:nt,guestId:gid});
+    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},notes:nt,guestId:gid});
   }
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
@@ -1164,6 +1177,53 @@ function delBooking(){
   S.bookings=S.bookings.filter(b=>b.id!==editBid);
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
+}
+
+function renderDinnerList(){
+  const ci=byId('bIn').value;
+  const co=byId('bOut').value;
+  const fg=byId('dinnerListFg');
+  const container=byId('dinnerList');
+  if(!ci||!co||ci>=co){fg.style.display='none';return;}
+  fg.style.display='block';
+
+  // Get existing dinnerNights state for this booking
+  const existing=editBid?S.bookings.find(b=>b.id===editBid)?.dinnerNights||{}:{};
+
+  const days=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  let html='';
+  let cur=ci;
+  while(cur<co){
+    const d=new Date(cur+'T00:00:00');
+    const checked=existing[cur]?'checked':'';
+    const label=`${days[d.getDay()]} ${d.getDate()}`;
+    html+=`<label class="dn-chip${existing[cur]?' checked':''}" id="dnc-${cur}">
+      <input type="checkbox" id="dn-${cur}" value="${cur}" ${checked}
+             onchange="updateDinnerChip('${cur}',this.checked)">
+      ${label}
+    </label>`;
+    cur=addDays(cur,1);
+  }
+  container.innerHTML=html;
+}
+
+function updateDinnerChip(ds,checked){
+  const chip=document.getElementById('dnc-'+ds);
+  if(chip)chip.className='dn-chip'+(checked?' checked':'');
+}
+
+function getDinnerNights(){
+  const ci=byId('bIn').value;
+  const co=byId('bOut').value;
+  if(!ci||!co)return{};
+  const nights={};
+  let cur=ci;
+  while(cur<co){
+    const cb=document.getElementById('dn-'+cur);
+    if(cb&&cb.checked)nights[cur]=true;
+    cur=addDays(cur,1);
+  }
+  return nights;
 }
 
 // ═══════════════════════════════════════════════════════════════
