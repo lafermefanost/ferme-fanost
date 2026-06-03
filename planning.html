@@ -154,6 +154,14 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
 /* Half-checkout indicator */
 .co-half{height:13px;border-radius:2px;opacity:.35;margin-bottom:1px;}
 
+/* ─── TABLE D'HÔTES ─────────────────────────────────────────── */
+.pt td.c-th{min-width:42px;max-width:42px;text-align:center;cursor:default;}
+.th-val{font-size:12px;font-weight:700;color:var(--green);letter-spacing:-.02em;}
+.th-zero{font-size:10px;color:#D8D2C8;}
+.bth{font-size:9px;flex-shrink:0;opacity:.85;}
+.th-toggle{display:flex;align-items:center;gap:8px;}
+.th-toggle input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--green);}
+
 /* ─── MÉNAGE & ÉVÉNEMENT ─────────────────────────────────────── */
 .pt td.c-menage{min-width:68px;max-width:90px;font-size:10px;text-align:center;}
 .pt td.c-event{min-width:130px;font-size:10px;padding:1px 4px;}
@@ -255,6 +263,7 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
   .vtabs{display:none;}
   .pt td.c-menage,.pt td.c-event,
   .pt thead th.th-menage,.pt thead th.th-event{display:none;}
+  /* Keep TH visible on mobile — it's the key column */
 }
 
 /* Events modal */
@@ -308,6 +317,7 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
         <th>Famille</th>
         <th>Jardin</th>
         <th>Wissous</th>
+        <th class="th-th" style="min-width:42px">🍽️ TH</th>
         <th class="th-menage">Ménage</th>
         <th class="th-event">Événement</th>
       </tr>
@@ -394,9 +404,23 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
       </div>
     </div>
 
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">Nb personnes</label>
+        <input type="number" class="fi" id="bPersons" min="1" max="20" value="2">
+      </div>
+      <div class="fg">
+        <label class="fl">Table d'hôtes</label>
+        <div class="th-toggle" style="margin-top:8px">
+          <input type="checkbox" id="bTH">
+          <label for="bTH" style="font-size:13px;cursor:pointer">Présents ce soir 🍽️</label>
+        </div>
+      </div>
+    </div>
+
     <div class="fg">
       <label class="fl">Notes</label>
-      <input type="text" class="fi" id="bNotes" placeholder="2 adultes, lit bébé, accès code…">
+      <input type="text" class="fi" id="bNotes" placeholder="lit bébé, accès code, allergie…">
     </div>
 
     <div class="warn" id="conflictWarn" style="display:none">
@@ -827,12 +851,14 @@ function renderGrid(){
         div.dataset.id=bk.id;
         div.draggable=true;
 
+        const thIcon=bk.tableDhotes?`<span class="bth">🍽${bk.nbPersons||''}</span>`:'';
         if(isCin){
           div.innerHTML=`<span class="sdot" style="background:${dot}"></span>`+
             `<span class="bname">${g?g.name:'?'}</span>`+
-            (bk.arrivalTime?`<span class="btime">${bk.arrivalTime}</span>`:'');
+            (bk.arrivalTime?`<span class="btime">${bk.arrivalTime}</span>`:'')+
+            thIcon;
         } else {
-          div.innerHTML=`<span class="bcont-init">${g?g.name.charAt(0):'·'}</span>`;
+          div.innerHTML=`<span class="bcont-init">${g?g.name.charAt(0):'·'}</span>`+thIcon;
         }
 
         div.addEventListener('click',e=>{e.stopPropagation();openEditModal(bk.id);});
@@ -861,6 +887,19 @@ function renderGrid(){
       cell.addEventListener('drop',e=>{e.preventDefault();cell.classList.remove('dover');onDrop(r.id,ds);});
       tr.appendChild(cell);
     });
+
+    // Table d'hôtes — total couverts du soir
+    const thTd=document.createElement('td');
+    thTd.className='c-th';
+    const thTotal=S.bookings
+      .filter(b=>b.tableDhotes&&activeOn(b,ds))
+      .reduce((sum,b)=>sum+(b.nbPersons||0),0);
+    if(thTotal>0){
+      thTd.innerHTML=`<span class="th-val">${thTotal}</span>`;
+    } else {
+      thTd.innerHTML=`<span class="th-zero">—</span>`;
+    }
+    tr.appendChild(thTd);
 
     // Ménage
     const mTd=document.createElement('td');
@@ -917,19 +956,25 @@ function renderToday(){
     const g=guest(b.guestId);
     const col=g?g.color:'#999';
     const rm=room(b.roomId);
+    const thBadge=b.tableDhotes?`<span style="font-size:11px;color:var(--green);font-weight:600;flex-shrink:0">🍽️${b.nbPersons||''}</span>`:'';
     return`<div class="tcard" onclick="openEditModal('${b.id}')">
       <div class="tbar" style="background:${col}"></div>
       <div class="tinfo">
         <div class="tname">${g?g.name:'?'}</div>
         <div class="tdetail">${sub}${b.notes?' — '+b.notes:''}</div>
       </div>
+      ${thBadge}
       <div class="troom">${rm?rm.name:''}</div>
     </div>`;
   };
 
   const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const allTonight=[...arrs,...stays].filter(b=>b.tableDhotes);
+  const couverts=allTonight.reduce((s,b)=>s+(b.nbPersons||0),0);
   let h=`<div class="tday-head">${dayNames[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}</div>
-    <div class="tday-sub">${arrs.length} arrivée${arrs.length>1?'s':''} · ${deps.length} départ${deps.length>1?'s':''} · ${stays.length} en cours</div>`;
+    <div class="tday-sub">${arrs.length} arrivée${arrs.length>1?'s':''} · ${deps.length} départ${deps.length>1?'s':''} · ${stays.length} en cours`+
+    (couverts>0?` · <b style="color:var(--green)">🍽️ ${couverts} couvert${couverts>1?'s':''}</b>`:'')+
+    `</div>`;
 
   if(deps.length){
     h+=`<div class="tday-sec">Départs ce matin</div>`;
@@ -1012,6 +1057,8 @@ function openEditModal(id){
   byId('bOut').value=b.checkOut;
   byId('bTime').value=b.arrivalTime||'';
   byId('bStatus').value=b.status||'ok';
+  byId('bPersons').value=b.nbPersons||2;
+  byId('bTH').checked=b.tableDhotes||false;
   byId('bNotes').value=b.notes||'';
   renderGPicker();
   byId('modalBooking').style.display='flex';
@@ -1059,6 +1106,8 @@ function saveBooking(){
   const co=byId('bOut').value;
   const at=byId('bTime').value.trim();
   const st=byId('bStatus').value;
+  const np=parseInt(byId('bPersons').value)||2;
+  const th=byId('bTH').checked;
   const nt=byId('bNotes').value.trim();
 
   if(!ci||!co){alert('Remplissez les dates');return;}
@@ -1075,9 +1124,9 @@ function saveBooking(){
 
   if(editBid){
     const i=S.bookings.findIndex(b=>b.id===editBid);
-    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,notes:nt,guestId:gid};
+    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,tableDhotes:th,notes:nt,guestId:gid};
   }else{
-    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,notes:nt,guestId:gid});
+    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,tableDhotes:th,notes:nt,guestId:gid});
   }
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
