@@ -198,6 +198,10 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
 .bth{font-size:9px;flex-shrink:0;opacity:.85;}
 .th-toggle{display:flex;align-items:center;gap:8px;}
 .th-toggle input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--green);}
+.free-room-btn{padding:5px 12px;margin:3px 3px 0 0;border:1.5px solid #6B9E60;
+  background:#fff;border-radius:20px;font-family:'Jost',sans-serif;
+  font-size:12px;font-weight:500;color:#2E5C28;cursor:pointer;}
+.free-room-btn:hover{background:#E8F3E5;}
 
 /* ─── MÉNAGE & ÉVÉNEMENT ─────────────────────────────────────── */
 .pt td.c-menage{min-width:68px;max-width:90px;font-size:10px;text-align:center;}
@@ -465,8 +469,10 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
     </div>
 
     <div class="warn" id="conflictWarn" style="display:none">
-      ⚠️ Conflit — cette chambre est déjà occupée sur ces dates
+      ⚠️ Cette chambre est déjà prise sur ces dates
     </div>
+    <div id="freeRoomPicker" style="display:none;margin-top:-8px;margin-bottom:12px;
+         background:#F0F7EE;border-radius:8px;padding:10px 12px;"></div>
 
     <div class="macts">
       <button class="btn-d" id="bDelBtn" onclick="delBooking()" style="display:none">Supprimer</button>
@@ -618,16 +624,6 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
       <button class="btn-p" onclick="saveFirebaseConfig()">Activer la sync</button>
     </div>
   </div>
-</div>
-
-<!-- ─── SWAP BAR ──────────────────────────────────────────────────── -->
-<div id="swapBar">
-  <span style="font-size:12px;opacity:.7">Échanger ?</span>
-  <span id="swapA"></span>
-  <span class="swap-arrow">⇄</span>
-  <span id="swapB"></span>
-  <button class="rbtn-swap" onclick="confirmSwap()">⇄ Confirmer</button>
-  <button class="rbtn-cancel" onclick="cancelSwap()">✕</button>
 </div>
 
 <!-- ─── RANGE BAR ──────────────────────────────────────────────────── -->
@@ -1185,11 +1181,28 @@ function chkConflict(){
   const rid=byId('bRoom').value;
   const ci=byId('bIn').value;
   const co=byId('bOut').value;
-  if(!rid||!ci||!co)return;
-  const conflict=S.bookings.some(b=>
-    b.id!==editBid&&b.roomId===rid&&b.checkIn<co&&b.checkOut>ci
-  );
+  if(!rid||!ci||!co){byId('conflictWarn').style.display='none';byId('freeRoomPicker').style.display='none';return;}
+  const conflict=S.bookings.some(b=>b.id!==editBid&&b.roomId===rid&&b.checkIn<co&&b.checkOut>ci);
   byId('conflictWarn').style.display=conflict?'block':'none';
+  const fp=byId('freeRoomPicker');
+  if(conflict&&ci&&co){
+    const free=freeRooms(ci,co,editBid||'__new__');
+    if(free.length){
+      fp.innerHTML='<div style="font-size:11px;color:var(--gray);margin-bottom:5px">Chambres libres pour ces dates :</div>'+
+        free.map(r=>`<button class="free-room-btn" onclick="pickFreeRoom('${r.id}')">${r.name}</button>`).join('');
+      fp.style.display='block';
+    } else {
+      fp.innerHTML='<div style="font-size:11px;color:var(--danger)">Aucune chambre libre sur ces dates</div>';
+      fp.style.display='block';
+    }
+  } else {
+    fp.style.display='none';
+  }
+}
+
+function pickFreeRoom(rid){
+  byId('bRoom').value=rid;
+  chkConflict();
 }
 
 function saveBooking(){
@@ -1533,87 +1546,52 @@ function onDragStart(e,id){
   setTimeout(()=>{if(e.target)e.target.style.opacity='';},0);
 }
 
+function freeRooms(ci,co,excludeId){
+  return ROOMS.filter(r=>!S.bookings.some(b=>
+    b.id!==excludeId&&b.roomId===r.id&&b.checkIn<co&&b.checkOut>ci
+  ));
+}
+
 function onDrop(newRid,_ds){
   if(!dragBid)return;
   const i=S.bookings.findIndex(b=>b.id===dragBid);
   if(i===-1)return;
   const bk=S.bookings[i];
   if(bk.roomId===newRid){dragBid=null;return;}
+  const origRid=bk.roomId;
 
-  // Find conflicting bookings in target room
   const conflicts=S.bookings.filter(b=>
     b.id!==dragBid&&b.roomId===newRid&&b.checkIn<bk.checkOut&&b.checkOut>bk.checkIn
   );
 
   if(conflicts.length===0){
-    // Free room — move directly
     S.bookings[i]={...bk,roomId:newRid};
     persist();renderGrid();dragBid=null;
     flash('✓ '+room(newRid)?.name,'#3D5C35');
     return;
   }
 
-  if(conflicts.length===1){
-    const cb=conflicts[0];
-    const origRid=bk.roomId;
-    // Check swap validity: no OTHER bookings blocked by the swap
-    const aBlocked=S.bookings.filter(b=>
-      b.id!==dragBid&&b.id!==cb.id&&
-      b.roomId===newRid&&b.checkIn<bk.checkOut&&b.checkOut>bk.checkIn
-    );
-    const bBlocked=S.bookings.filter(b=>
-      b.id!==dragBid&&b.id!==cb.id&&
-      b.roomId===origRid&&b.checkIn<cb.checkOut&&b.checkOut>cb.checkIn
-    );
-    if(aBlocked.length===0&&bBlocked.length===0){
-      proposeSwap(dragBid,cb.id);
-    } else {
-      flash('⚠️ Échange impossible — autres conflits en jeu','#C0392B');
-    }
+  // Auto-swap: send all conflicts to the freed room
+  const canSwap=conflicts.every(cb=>!S.bookings.some(b=>
+    b.id!==dragBid&&b.id!==cb.id&&
+    b.roomId===origRid&&b.checkIn<cb.checkOut&&b.checkOut>cb.checkIn
+  ));
+
+  if(canSwap){
+    S.bookings[i]={...bk,roomId:newRid};
+    conflicts.forEach(cb=>{
+      const ci=S.bookings.findIndex(b=>b.id===cb.id);
+      if(ci!==-1)S.bookings[ci]={...S.bookings[ci],roomId:origRid};
+    });
+    persist();renderGrid();dragBid=null;
+    const names=conflicts.map(cb=>guest(cb.guestId)?.name||'?').join(', ');
+    flash('⇄ '+names+' → '+room(origRid)?.name,'#3D5C35');
+  } else {
+    // Freed room also has conflicts — show a quick room picker
+    const free=freeRooms(bk.checkIn,bk.checkOut,dragBid);
+    showRoomPicker(dragBid,free,'Choisissez une chambre libre pour cette période :');
     dragBid=null;
-    return;
   }
-
-  // Multiple conflicts
-  flash(`⚠️ ${conflicts.length} conflits — déplacez via la modale`,'#C0392B');
-  dragBid=null;
-}
-
-// ─── SWAP ───────────────────────────────────────────────────────
-let pendingSwap=null;
-
-function proposeSwap(bidA,bidB){
-  pendingSwap={bidA,bidB};
-  const bA=S.bookings.find(b=>b.id===bidA);
-  const bB=S.bookings.find(b=>b.id===bidB);
-  const gA=guest(bA.guestId);
-  const gB=guest(bB.guestId);
-  const rmA=room(bA.roomId);
-  const rmB=room(bB.roomId);
-  const dot=col=>`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};margin-right:4px;vertical-align:middle"></span>`;
-  byId('swapA').innerHTML=dot(gA?.color||'#999')+(gA?.name||'?')+` <span style="font-size:10px;opacity:.65">${rmA?.name||''}</span>`;
-  byId('swapB').innerHTML=dot(gB?.color||'#999')+(gB?.name||'?')+` <span style="font-size:10px;opacity:.65">${rmB?.name||''}</span>`;
-  byId('swapBar').classList.add('show');
-}
-
-function confirmSwap(){
-  if(!pendingSwap)return;
-  const{bidA,bidB}=pendingSwap;
-  const iA=S.bookings.findIndex(b=>b.id===bidA);
-  const iB=S.bookings.findIndex(b=>b.id===bidB);
-  if(iA===-1||iB===-1)return;
-  const ridA=S.bookings[iA].roomId;
-  const ridB=S.bookings[iB].roomId;
-  S.bookings[iA]={...S.bookings[iA],roomId:ridB};
-  S.bookings[iB]={...S.bookings[iB],roomId:ridA};
-  persist();renderGrid();
-  cancelSwap();
-  flash('⇄ Chambres échangées','#3D5C35');
-}
-
-function cancelSwap(){
-  pendingSwap=null;
-  byId('swapBar').classList.remove('show');
 }
 
 function flash(msg,bg){
