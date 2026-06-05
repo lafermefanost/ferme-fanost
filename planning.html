@@ -122,6 +122,8 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
 .today-circle{width:20px;height:20px;border-radius:50%;
   background:var(--green);color:var(--white);font-weight:700;
   display:flex;align-items:center;justify-content:center;margin:auto;font-size:10px;}
+.ev-circle{width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;margin:auto;font-size:10px;font-weight:600;}
 .pt td.c-wk{font-size:9px;color:#B0A898;text-align:center;
   min-width:24px;max-width:24px;background:var(--cream);}
 
@@ -1026,7 +1028,17 @@ function renderGrid(){
     // Day #
     const dayTd=document.createElement('td');
     dayTd.className='c-day';
-    dayTd.innerHTML=isToday?`<div class="today-circle">${date.getDate()}</div>`:date.getDate();
+    const dayEvs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
+    if(isToday){
+      dayTd.innerHTML=`<div class="today-circle">${date.getDate()}</div>`;
+    } else if(dayEvs.length){
+      const ec=dayEvs[0].color||'#A8C5A0';
+      const lc=light(ec);
+      const evTitles=dayEvs.map(ev=>ev.title).join(', ');
+      dayTd.innerHTML=`<div class="ev-circle" style="background:${ec};color:${lc?'#2C2C2C':'#fff'}" title="${evTitles}">${date.getDate()}</div>`;
+    } else {
+      dayTd.innerHTML=date.getDate();
+    }
     tr.appendChild(dayTd);
 
     // Week
