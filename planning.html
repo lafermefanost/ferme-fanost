@@ -218,7 +218,8 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .sdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
 
 /* Half-checkout indicator */
-.co-half{height:13px;border-radius:2px;opacity:.35;margin-bottom:1px;}
+.co-half{position:absolute;top:0;left:0;right:0;height:4px;
+  border-radius:0 0 2px 2px;opacity:.6;}
 
 /* ─── TABLE D'HÔTES ─────────────────────────────────────────── */
 .pt td.c-th{min-width:42px;max-width:42px;text-align:center;cursor:default;}
@@ -1266,7 +1267,7 @@ function renderGrid(){
         const co=S.bookings.find(b=>b.roomId===r.id&&isCO(b,ds));
         if(co){
           const g=guest(co.guestId);
-          const c=g?g.color:'#999';
+          const c=co.ghost?'#1A1A1A':co.payment==='paid'?'#A0A0A0':g?g.color:'#999';
           const d2=document.createElement('div');
           d2.className='co-half';
           d2.style.background=c;
