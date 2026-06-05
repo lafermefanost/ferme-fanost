@@ -187,6 +187,28 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   45deg,transparent,transparent 3px,rgba(255,255,255,.18) 3px,rgba(255,255,255,.18) 6px);}
 .blk.canc{opacity:.38;text-decoration:line-through;}
 
+/* Payment / Ghost states */
+.blk.paid{background:#A0A0A0!important;}
+.blk.paid .bname,.blk.paid .bcont-init{color:#555!important;}
+.blk.paid .sdot{background:#777!important;}
+.blk.ghost{background:#1A1A1A!important;}
+.blk.ghost,.blk.ghost *{color:#1A1A1A!important;}
+.blk.ghost .sdot{background:#1A1A1A!important;}
+
+/* Payment modal UI */
+.pay-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+.pay-chip{padding:6px 14px;border:1.5px solid var(--light);border-radius:20px;
+  font-family:'Jost',sans-serif;font-size:12px;font-weight:500;
+  color:var(--gray);background:#fff;cursor:pointer;transition:all .15s;}
+.pay-chip:hover{border-color:#bbb;}
+#pay-pending.on{background:#FFF3CD;color:#7A5800;border-color:#E6C96A;}
+#pay-deposit.on{background:#E8F0FE;color:#1967D2;border-color:#94B1F6;}
+#pay-paid.on{background:#E8F3E5;color:#2E5C28;border-color:#7ABF6A;}
+.ghost-chip{padding:6px 14px;border:1.5px solid var(--light);border-radius:20px;
+  font-family:'Jost',sans-serif;font-size:12px;font-weight:500;
+  color:var(--gray);background:#fff;cursor:pointer;transition:all .15s;}
+.ghost-chip.on{background:#1A1A1A;color:#fff;border-color:#1A1A1A;}
+
 .blk.lbg{color:#1A1A1A;}
 .blk.dbg{color:#FFF;}
 
@@ -607,6 +629,27 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
     <div id="freeRoomPicker" style="display:none;margin-top:-8px;margin-bottom:12px;
          background:#F0F7EE;border-radius:8px;padding:10px 12px;"></div>
 
+    <div style="border-top:1px solid var(--light);margin:10px 0 12px;padding-top:12px;">
+      <label class="fl" style="margin-bottom:8px;">Paiement</label>
+      <div class="pay-row">
+        <button class="pay-chip" id="pay-pending" onclick="setPayment('pending')">⏳ En attente</button>
+        <button class="pay-chip" id="pay-deposit" onclick="setPayment('deposit')">€ Acompte</button>
+        <button class="pay-chip" id="pay-paid" onclick="setPayment('paid')">✓ Payé</button>
+      </div>
+      <div id="depositAmtFg" style="display:none;margin-top:8px;">
+        <input type="number" class="fi" id="depositAmt" placeholder="Montant de l'acompte (€)" min="0" step="1">
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;
+         margin-bottom:14px;padding:10px 12px;background:#F5F3EE;border-radius:8px;">
+      <div>
+        <div style="font-weight:600;font-size:13px;color:var(--dark);">Mode fantôme</div>
+        <div style="font-size:11px;color:var(--gray);margin-top:2px;">Fond noir — réservation masquée</div>
+      </div>
+      <button class="ghost-chip" id="ghostBtn" onclick="toggleGhost()">Activer</button>
+    </div>
+
     <div class="macts">
       <button class="btn-d" id="bDelBtn" onclick="delBooking()" style="display:none">Supprimer</button>
       <button class="btn-s" onclick="closeM('modalBooking')">Annuler</button>
@@ -804,6 +847,28 @@ const PALETTE = [
 const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null};
 let editBid = null, editGid = null, editEvid = null;
 let selGid = null, newGMode = false;
+let bkPayment = null, bkGhost = false;
+
+function setPayment(v){
+  bkPayment=bkPayment===v?null:v;
+  ['pending','deposit','paid'].forEach(p=>byId('pay-'+p)?.classList.toggle('on',bkPayment===p));
+  byId('depositAmtFg').style.display=bkPayment==='deposit'?'block':'none';
+}
+function toggleGhost(){
+  bkGhost=!bkGhost;
+  const btn=byId('ghostBtn');
+  btn.classList.toggle('on',bkGhost);
+  btn.textContent=bkGhost?'Activé ●':'Activer';
+}
+function resetPaymentUI(pay,ghost,depositAmt){
+  bkPayment=pay||null;bkGhost=ghost||false;
+  ['pending','deposit','paid'].forEach(p=>byId('pay-'+p)?.classList.toggle('on',bkPayment===p));
+  byId('depositAmtFg').style.display=bkPayment==='deposit'?'block':'none';
+  byId('depositAmt').value=depositAmt||'';
+  const btn=byId('ghostBtn');
+  btn.classList.toggle('on',bkGhost);
+  btn.textContent=bkGhost?'Activé ●':'Activer';
+}
 let dragBid = null, paletteIdx = 0;
 
 // ═══════════════════════════════════════════════════════════════
@@ -1082,9 +1147,12 @@ function renderGrid(){
         const sc=bk.status==='opt'?' opt':bk.status==='no'?' canc':'';
         const dot=bk.status==='opt'?'#FF9800':bk.status==='no'?'#F44336':'#4CAF50';
 
+        const isPaid=bk.payment==='paid';
+        const isGhost=bk.ghost;
+        const dispCol=isGhost?'#1A1A1A':isPaid?'#A0A0A0':col;
         const div=document.createElement('div');
-        div.className=`blk${isCin?' cin':''}${isCout?' cout':''} ${lbg?'lbg':'dbg'}${sc}`;
-        div.style.background=col;
+        div.className=`blk${isCin?' cin':''}${isCout?' cout':''} ${lbg?'lbg':'dbg'}${sc}${isPaid?' paid':''}${isGhost?' ghost':''}`;
+        div.style.background=dispCol;
         div.dataset.id=bk.id;
         div.draggable=true;
 
@@ -1286,6 +1354,7 @@ function openAddModal(roomId,ds,dsOut){
   byId('bTime').value='';
   byId('bStatus').value='ok';
   byId('bNotes').value='';
+  resetPaymentUI(null,false,'');
 
   renderGPicker();
   renderDinnerList();
@@ -1309,6 +1378,7 @@ function openEditModal(id){
   byId('bStatus').value=b.status||'ok';
   byId('bPersons').value=b.nbPersons||2;
   byId('bNotes').value=b.notes||'';
+  resetPaymentUI(b.payment,b.ghost,b.depositAmount);
   renderGPicker();
   renderDinnerList();
   byId('modalBooking').style.display='flex';
@@ -1425,6 +1495,9 @@ function saveBooking(){
   const st=byId('bStatus').value;
   const np=parseInt(byId('bPersons').value)||2;
   const nt=byId('bNotes').value.trim();
+  const pay=bkPayment;
+  const depositAmt=pay==='deposit'?(parseFloat(byId('depositAmt').value)||0):0;
+  const ghost=bkGhost;
 
   if(!ci||!co){alert('Remplissez les dates');return;}
   if(ci>=co){alert('La date de départ doit être après l\'arrivée');return;}
@@ -1443,9 +1516,9 @@ function saveBooking(){
   if(editBid){
     const i=S.bookings.findIndex(b=>b.id===editBid);
     const dn=getDinnerNights();
-    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,notes:nt,guestId:gid};
+    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,ghost:ghost};
   }else{
-    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},notes:nt,guestId:gid});
+    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,ghost:ghost});
   }
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
