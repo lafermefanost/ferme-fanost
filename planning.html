@@ -261,16 +261,27 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   box-shadow:var(--shadow);}
 
 /* ─── TODAY VIEW ─────────────────────────────────────────────── */
-#todayWrap{flex:1;overflow-y:auto;display:none;padding:16px;
+#todayWrap{flex:1;overflow-y:auto;display:none;padding:12px 16px 24px;
   -webkit-overflow-scrolling:touch;}
-.tday-head{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;margin-bottom:4px;}
-.tday-sub{font-size:11px;color:var(--gray);margin-bottom:16px;}
+.today-inner{max-width:640px;margin:0 auto;}
+.today-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.today-nav-btn{background:none;border:1.5px solid var(--light);border-radius:8px;
+  width:34px;height:34px;cursor:pointer;color:var(--dark);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;}
+.today-nav-btn:hover{background:var(--light);}
+.today-nav-center{text-align:center;flex:1;}
+.tday-head{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;}
+.tday-sub{font-size:11px;color:var(--gray);margin-top:2px;}
+.today-now-btn{background:none;border:1.5px solid #7A8C65;border-radius:20px;
+  padding:5px 14px;font-size:11px;font-weight:500;color:#7A8C65;
+  cursor:pointer;display:block;margin:0 auto 8px;}
+.today-now-btn:hover{background:#7A8C65;color:#fff;}
 .tday-sec{font-size:10px;text-transform:uppercase;letter-spacing:.08em;
   color:var(--gray);font-weight:600;margin:14px 0 6px;}
-.tcard{background:var(--white);border-radius:8px;padding:10px 12px;
-  display:flex;align-items:center;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);
-  cursor:pointer;margin-bottom:6px;}
-.tcard:active{background:#F5F0E8;}
+.tcard{background:var(--white);border-radius:8px;
+  box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:8px;overflow:hidden;}
+.tcard-header{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;}
+.tcard-header:active{background:#F5F0E8;}
 .tbar{width:4px;height:40px;border-radius:2px;flex-shrink:0;}
 .tinfo{flex:1;}
 .tname{font-weight:500;font-size:14px;}
@@ -278,6 +289,38 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .troom{font-size:11px;font-weight:600;color:var(--earth);}
 .t-empty{text-align:center;padding:40px 20px;color:var(--gray);}
 .t-empty-icon{font-size:44px;margin-bottom:10px;}
+/* Extras chips */
+.tcard-extras{padding:0 12px 10px;border-top:1px solid var(--light);}
+.tcard-extras-hd{display:flex;align-items:center;justify-content:space-between;
+  padding-top:8px;margin-bottom:4px;}
+.tcard-extras-title{font-size:10px;color:var(--gray);text-transform:uppercase;
+  letter-spacing:.05em;font-weight:600;}
+.catalog-link{font-size:10px;color:var(--gray);text-decoration:underline;
+  cursor:pointer;background:none;border:none;padding:0;font-family:'Jost',sans-serif;}
+.extras-cat{font-size:10px;color:#B0A898;margin:5px 0 3px;font-style:italic;}
+.extras-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:2px;}
+.xchip{display:inline-flex;align-items:center;gap:3px;padding:5px 9px;
+  border:1.5px solid var(--light);border-radius:16px;cursor:pointer;
+  font-size:11px;font-weight:500;background:#fff;color:var(--dark);
+  transition:all .15s;user-select:none;font-family:'Jost',sans-serif;}
+.xchip:hover{border-color:#bbb;}
+.xchip.on{background:#F0F7EE;border-color:#7A8C65;color:#3D5C35;}
+.xchip-qty{background:#7A8C65;color:#fff;border-radius:10px;
+  padding:1px 6px;font-size:10px;font-weight:700;margin-left:2px;}
+.xchip-price{font-size:10px;opacity:.5;margin-left:2px;}
+.extras-total-row{display:flex;justify-content:flex-end;padding-top:6px;}
+.extras-total{font-size:12px;color:#7A8C65;font-weight:700;}
+/* Catalog modal */
+.cat-item{display:flex;align-items:center;gap:8px;padding:8px 0;
+  border-bottom:1px solid var(--light);}
+.cat-item:last-child{border-bottom:none;}
+.cat-emoji{font-size:18px;width:24px;text-align:center;flex-shrink:0;}
+.cat-name{flex:1;font-size:13px;}
+.cat-price{font-size:13px;color:var(--earth);min-width:42px;text-align:right;}
+.cat-del{background:none;border:none;color:#ccc;font-size:15px;
+  cursor:pointer;padding:0 4px;}
+.cat-del:hover{color:var(--danger);}
+.cat-add-row{display:grid;grid-template-columns:44px 1fr 72px 90px;gap:6px;}
 
 /* ─── BACKUP REMINDER ────────────────────────────────────────── */
 #backupReminder{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
@@ -658,6 +701,27 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   </div>
 </div>
 
+<!-- ─── CATALOG MODAL ─────────────────────────────────────────────── -->
+<div class="overlay" id="modalCatalog" style="display:none" onclick="ovClose(event,'modalCatalog')">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle">Catalogue extras</div>
+      <button class="mclose" onclick="closeM('modalCatalog')">✕</button>
+    </div>
+    <div id="catalogList"></div>
+    <div style="border-top:1px solid var(--light);margin-top:12px;padding-top:12px;">
+      <label class="fl" style="margin-bottom:8px;">Ajouter un article</label>
+      <div class="cat-add-row">
+        <input class="fi" id="newCatEmoji" placeholder="🍷">
+        <input class="fi" id="newCatName" placeholder="Nom">
+        <input type="number" class="fi" id="newCatPrice" placeholder="Prix €" min="0" step="0.5">
+        <input class="fi" id="newCatCat" placeholder="Catégorie">
+      </div>
+      <button class="btn-p" onclick="addCatalogItem()" style="width:100%;margin-top:10px">+ Ajouter</button>
+    </div>
+  </div>
+</div>
+
 <!-- ─── GUESTS MODAL ─────────────────────────────────────────────── -->
 <div class="overlay" id="modalGuests" style="display:none" onclick="ovClose(event,'modalGuests')">
   <div class="modal">
@@ -844,7 +908,21 @@ const PALETTE = [
 // ═══════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════
-const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null};
+const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null, todayDate:null, catalog:[]};
+
+const DEFAULT_CATALOG=[
+  {id:'eau-pet',  name:'Eau pétillante',         price:2,   cat:'Boissons',  emoji:'💧'},
+  {id:'soda-jus', name:'Soda / Jus bio',          price:3.5, cat:'Boissons',  emoji:'🥤'},
+  {id:'biere',    name:'Bière',                   price:5,   cat:'Boissons',  emoji:'🍺'},
+  {id:'cocktail', name:'Cocktail s/alcool',       price:5,   cat:'Boissons',  emoji:'🍹'},
+  {id:'vin-ver',  name:'Vin — verre',             price:4.5, cat:'Boissons',  emoji:'🍷'},
+  {id:'vin-bout', name:'Vin — bouteille',         price:18,  cat:'Boissons',  emoji:'🍾'},
+  {id:'champa',   name:'Champagne — coupe',       price:6,   cat:'Boissons',  emoji:'🥂'},
+  {id:'cafe',     name:'Café / Thé',              price:2,   cat:'Boissons',  emoji:'☕'},
+  {id:'pdj-oeufs',name:'Option salée — œufs',    price:4,   cat:'Petit-déj', emoji:'🍳'},
+  {id:'pdj-jam',  name:'Option salée — jambon',   price:4,   cat:'Petit-déj', emoji:'🥩'},
+  {id:'pdj-fro',  name:'Option salée — fromage',  price:4,   cat:'Petit-déj', emoji:'🧀'},
+];
 let editBid = null, editGid = null, editEvid = null;
 let selGid = null, newGMode = false;
 let bkPayment = null, bkGhost = false;
@@ -1256,58 +1334,81 @@ function td(tr,cls,txt){
 //  TODAY VIEW
 // ═══════════════════════════════════════════════════════════════
 function renderToday(){
+  if(!S.todayDate)S.todayDate=todayISO();
+  const ds=S.todayDate;
   const today=todayISO();
-  const tom=addDays(today,1);
-  const d=new Date(today);
-  const arrs=S.bookings.filter(b=>b.checkIn===today);
-  const deps=S.bookings.filter(b=>b.checkOut===today);
-  const stays=S.bookings.filter(b=>b.checkIn<today&&b.checkOut>today);
-  const tArrs=S.bookings.filter(b=>b.checkIn===tom);
+  const isToday=ds===today;
+  const d=new Date(ds+'T00:00:00');
+  const tom=addDays(ds,1);
+  const arrs=S.bookings.filter(b=>b.checkIn===ds);
+  const deps=S.bookings.filter(b=>b.checkOut===ds);
+  const stays=S.bookings.filter(b=>b.checkIn<ds&&b.checkOut>ds);
+  const tArrs=isToday?S.bookings.filter(b=>b.checkIn===tom):[];
+
+  const chevL=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`;
+  const chevR=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+  const DAY_NAMES=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const allTonight=[...arrs,...stays].filter(b=>b.dinnerNights&&b.dinnerNights[ds]);
+  const couverts=allTonight.reduce((s,b)=>s+(b.nbPersons||2),0);
+
+  const extrasHTML=(b)=>{
+    const dayX=b.extras&&b.extras[ds]?b.extras[ds]:{};
+    const cats=[...new Set(S.catalog.map(c=>c.cat))];
+    let xh=`<div class="tcard-extras-hd">
+      <span class="tcard-extras-title">Extras</span>
+      <button class="catalog-link" onclick="event.stopPropagation();openCatalogModal()">Modifier le catalogue</button>
+    </div>`;
+    cats.forEach(cat=>{
+      const items=S.catalog.filter(c=>c.cat===cat);
+      if(!items.length)return;
+      xh+=`<div class="extras-cat">${cat}</div><div class="extras-chips">`;
+      items.forEach(item=>{
+        const qty=dayX[item.id]||0;
+        xh+=`<button class="xchip${qty>0?' on':''}" onclick="event.stopPropagation();setExtra('${b.id}','${ds}','${item.id}',1)">
+          ${item.emoji} ${item.name}<span class="xchip-price">${item.price}€</span>${qty>0?`<span class="xchip-qty" onclick="event.stopPropagation();setExtra('${b.id}','${ds}','${item.id}',-1)">×${qty}</span>`:''}
+        </button>`;
+      });
+      xh+=`</div>`;
+    });
+    const dt=getExtrasDayTotal(b,ds);
+    if(dt>0)xh+=`<div class="extras-total-row"><span class="extras-total">Ce jour : ${dt.toLocaleString('fr-FR')} €</span></div>`;
+    return xh;
+  };
 
   const card=(b,sub)=>{
-    const g=guest(b.guestId);
-    const col=g?g.color:'#999';
-    const rm=room(b.roomId);
-    const hasDin=b.dinnerNights&&b.dinnerNights[today];
-    const thBadge=hasDin?`<span style="font-size:11px;color:var(--green);font-weight:600;flex-shrink:0">🍽️${b.nbPersons||2}</span>`:'';
-    return`<div class="tcard" onclick="openEditModal('${b.id}')">
-      <div class="tbar" style="background:${col}"></div>
-      <div class="tinfo">
-        <div class="tname">${g?g.name:'?'}</div>
-        <div class="tdetail">${sub}${b.notes?' — '+b.notes:''}</div>
+    const g=guest(b.guestId);const col=g?g.color:'#999';const rm=room(b.roomId);
+    const hasDin=b.dinnerNights&&b.dinnerNights[ds];
+    const thBadge=hasDin?`<span style="font-size:11px;color:#7A8C65;font-weight:600;flex-shrink:0">🍽️${b.nbPersons||2}</span>`:'';
+    return`<div class="tcard">
+      <div class="tcard-header" onclick="openEditModal('${b.id}')">
+        <div class="tbar" style="background:${col}"></div>
+        <div class="tinfo"><div class="tname">${g?g.name:'?'}</div>
+          <div class="tdetail">${sub}${b.notes?' — '+b.notes:''}</div></div>
+        ${thBadge}<div class="troom">${rm?rm.name:''}</div>
       </div>
-      ${thBadge}
-      <div class="troom">${rm?rm.name:''}</div>
+      <div class="tcard-extras" onclick="event.stopPropagation()">${extrasHTML(b)}</div>
     </div>`;
   };
 
-  const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-  const allTonight=[...arrs,...stays].filter(b=>b.dinnerNights&&b.dinnerNights[today]);
-  const couverts=allTonight.reduce((s,b)=>s+(b.nbPersons||2),0);
-  let h=`<div class="tday-head">${dayNames[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}</div>
-    <div class="tday-sub">${arrs.length} arrivée${arrs.length>1?'s':''} · ${deps.length} départ${deps.length>1?'s':''} · ${stays.length} en cours`+
-    (couverts>0?` · <b style="color:var(--green)">🍽️ ${couverts} couvert${couverts>1?'s':''}</b>`:'')+
-    `</div>`;
+  let h=`<div class="today-inner">
+  <div class="today-nav">
+    <button class="today-nav-btn" onclick="chDay(-1)">${chevL}</button>
+    <div class="today-nav-center">
+      <div class="tday-head">${isToday?'Aujourd\'hui — ':''}${DAY_NAMES[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}</div>
+      <div class="tday-sub">${arrs.length} arrivée${arrs.length>1?'s':''} · ${deps.length} départ${deps.length>1?'s':''} · ${stays.length} en cours${couverts>0?` · <b style="color:#7A8C65">🍽️ ${couverts}</b>`:''}</div>
+    </div>
+    <button class="today-nav-btn" onclick="chDay(1)">${chevR}</button>
+  </div>
+  ${!isToday?`<button class="today-now-btn" onclick="goTodayView()">Aujourd'hui</button>`:''}`;
 
-  if(deps.length){
-    h+=`<div class="tday-sec">Départs ce matin</div>`;
-    deps.forEach(b=>h+=card(b,'Départ'));
-  }
-  if(arrs.length){
-    h+=`<div class="tday-sec">Arrivées aujourd'hui</div>`;
-    arrs.forEach(b=>h+=card(b,b.arrivalTime?`Arrivée ${b.arrivalTime}`:'Arrivée'));
-  }
-  if(stays.length){
-    h+=`<div class="tday-sec">En cours</div>`;
-    stays.forEach(b=>h+=card(b,`Départ le ${fmtDate(b.checkOut)}`));
-  }
-  if(tArrs.length){
-    h+=`<div class="tday-sec">Arrivées demain</div>`;
-    tArrs.forEach(b=>h+=card(b,b.arrivalTime?`Demain ${b.arrivalTime}`:'Demain'));
-  }
+  if(deps.length){h+=`<div class="tday-sec">Départs</div>`;deps.forEach(b=>h+=card(b,'Départ'));}
+  if(arrs.length){h+=`<div class="tday-sec">Arrivées</div>`;arrs.forEach(b=>h+=card(b,b.arrivalTime?`Arrivée ${b.arrivalTime}`:'Arrivée'));}
+  if(stays.length){h+=`<div class="tday-sec">En cours</div>`;stays.forEach(b=>h+=card(b,`Départ le ${fmtDate(b.checkOut)}`));}
+  if(tArrs.length){h+=`<div class="tday-sec">Arrivées demain</div>`;tArrs.forEach(b=>h+=card(b,b.arrivalTime?`Demain ${b.arrivalTime}`:'Demain'));}
   if(!arrs.length&&!deps.length&&!stays.length){
-    h+=`<div class="t-empty"><div class="t-empty-icon">🌿</div>Aucune réservation aujourd'hui</div>`;
+    h+=`<div class="t-empty"><div class="t-empty-icon">🌿</div>Aucune réservation ce jour</div>`;
   }
+  h+='</div>';
   byId('todayWrap').innerHTML=h;
 }
 
@@ -1911,6 +2012,70 @@ function daysBetween(d1,d2){
   return Math.round((new Date(d2+'T00:00:00')-new Date(d1+'T00:00:00'))/86400000);
 }
 
+function loadCatalog(){
+  const raw=localStorage.getItem('ff2_catalog');
+  S.catalog=raw?JSON.parse(raw):[...DEFAULT_CATALOG];
+}
+function saveCatalog(){localStorage.setItem('ff2_catalog',JSON.stringify(S.catalog));}
+
+function openCatalogModal(){renderCatalogList();byId('modalCatalog').style.display='flex';}
+function renderCatalogList(){
+  const cats=[...new Set(S.catalog.map(c=>c.cat))];
+  let h='';
+  cats.forEach(cat=>{
+    h+=`<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin:10px 0 4px">${cat}</div>`;
+    S.catalog.filter(c=>c.cat===cat).forEach(item=>{
+      h+=`<div class="cat-item">
+        <span class="cat-emoji">${item.emoji}</span>
+        <span class="cat-name">${item.name}</span>
+        <span class="cat-price">${item.price} €</span>
+        <button class="cat-del" onclick="delCatalogItem('${item.id}')">✕</button>
+      </div>`;
+    });
+  });
+  byId('catalogList').innerHTML=h||'<div style="color:var(--gray);font-size:13px;padding:10px 0">Catalogue vide</div>';
+}
+function addCatalogItem(){
+  const name=byId('newCatName').value.trim();
+  if(!name){alert('Nom requis');return;}
+  const price=parseFloat(byId('newCatPrice').value)||0;
+  const cat=byId('newCatCat').value.trim()||'Autres';
+  const emoji=byId('newCatEmoji').value.trim()||'•';
+  S.catalog.push({id:uid(),name,price,cat,emoji});
+  saveCatalog();
+  ['newCatName','newCatPrice','newCatEmoji','newCatCat'].forEach(id=>byId(id).value='');
+  renderCatalogList();
+}
+function delCatalogItem(id){
+  if(!confirm('Supprimer cet article ?'))return;
+  S.catalog=S.catalog.filter(c=>c.id!==id);
+  saveCatalog();renderCatalogList();
+}
+
+function setExtra(bid,ds,itemId,delta){
+  const bk=S.bookings.find(b=>b.id===bid);
+  if(!bk)return;
+  if(!bk.extras)bk.extras={};
+  if(!bk.extras[ds])bk.extras[ds]={};
+  const nv=Math.max(0,(bk.extras[ds][itemId]||0)+delta);
+  if(nv===0)delete bk.extras[ds][itemId];
+  else bk.extras[ds][itemId]=nv;
+  if(!Object.keys(bk.extras[ds]).length)delete bk.extras[ds];
+  persist();renderToday();
+}
+function getExtrasDayTotal(bk,ds){
+  if(!bk.extras||!bk.extras[ds])return 0;
+  return Object.entries(bk.extras[ds]).reduce((s,[id,qty])=>{
+    const item=S.catalog.find(c=>c.id===id);return s+(item?item.price*qty:0);},0);
+}
+function getExtrasTotal(bk){
+  if(!bk.extras)return 0;
+  return Object.keys(bk.extras).reduce((s,ds)=>s+getExtrasDayTotal(bk,ds),0);
+}
+
+function chDay(n){S.todayDate=addDays(S.todayDate||todayISO(),n);renderToday();}
+function goTodayView(){S.todayDate=todayISO();renderToday();}
+
 function getMondayOf(ds){
   const d=new Date(ds+'T00:00:00');
   const day=d.getDay();
@@ -2143,7 +2308,7 @@ function setView(v){
     byId('vt-'+id)?.classList.toggle('on',id===v);
     byId('mn-'+id)?.classList.toggle('on',id===v);
   });
-  if(v==='today')renderToday();
+  if(v==='today'){if(!S.todayDate)S.todayDate=todayISO();renderToday();}
   if(v==='week')renderWeek();
   if(v==='month')renderMonth();
   if(v==='grid')setTimeout(()=>byId('row-today')?.scrollIntoView({block:'center'}),60);
@@ -2187,6 +2352,7 @@ document.addEventListener('keydown',e=>{
 // ═══════════════════════════════════════════════════════════════
 function init(){
   loadLocal();
+  loadCatalog();
   byId('yrLabel').textContent=S.year;
   // Set year to current if we have bookings for it
   const curY=new Date().getFullYear();
