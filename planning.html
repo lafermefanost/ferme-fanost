@@ -776,8 +776,8 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
     </div>
     <div class="frow">
       <div class="fg">
-        <label class="fl">Prix / nuit (€)</label>
-        <input type="number" class="fi" id="gePrice" placeholder="0" min="0" step="1">
+        <label class="fl">Prix / nuit (€) <span style="font-weight:400;color:var(--gray)">(défaut : 100€ solo · 125€ double)</span></label>
+        <input type="number" class="fi" id="gePrice" placeholder="Laisser vide = tarif standard" min="0" step="1">
       </div>
       <div class="fg">
         <label class="fl">Notes</label>
@@ -920,6 +920,20 @@ const PALETTE = [
 //  STATE
 // ═══════════════════════════════════════════════════════════════
 const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null, todayDate:null, catalog:[]};
+
+const DEFAULT_PRICES={solo:100, double:125, th:25};
+
+function getNightlyRate(bk){
+  const g=guest(bk.guestId);
+  if(g&&g.price)return g.price;
+  return(bk.nbPersons||2)===1?DEFAULT_PRICES.solo:DEFAULT_PRICES.double;
+}
+function getThRevenue(bk,fromDate,toDate){
+  if(!bk.dinnerNights)return 0;
+  return Object.keys(bk.dinnerNights)
+    .filter(ds=>ds>=fromDate&&ds<toDate&&bk.dinnerNights[ds])
+    .length*(bk.nbPersons||2)*DEFAULT_PRICES.th;
+}
 
 const DEFAULT_CATALOG=[
   {id:'eau-pet',  name:'Eau pétillante',         price:2,   cat:'Boissons',  emoji:'💧'},
@@ -2125,8 +2139,7 @@ function renderWeek(){
     const n=daysBetween(oStart,oEnd);
     if(n>0){
       totalNights+=n;
-      const g=guest(bk.guestId);
-      totalRev+=n*(g&&g.price?g.price:0);
+      totalRev+=n*getNightlyRate(bk)+getThRevenue(bk,S.wStart,wEnd);
     }
     if(bk.extras){
       for(let i=0;i<7;i++){
@@ -2244,8 +2257,7 @@ function renderMonth(){
     const n=daysBetween(oStart,oEnd);
     if(n>0){
       totalNights+=n;
-      const g=guest(bk.guestId);
-      totalRev+=n*(g&&g.price?g.price:0);
+      totalRev+=n*getNightlyRate(bk)+getThRevenue(bk,mStart,mEndExact);
     }
   });
   const occPct=totalPossible>0?Math.round(totalNights/totalPossible*100):0;
@@ -2310,7 +2322,7 @@ function renderMonth(){
       const oStart=bk.checkIn>mStart?bk.checkIn:mStart;
       const oEnd=bk.checkOut<mEndExact?bk.checkOut:mEndExact;
       const n=daysBetween(oStart,oEnd);
-      const rev=g&&g.price?n*g.price:0;
+      const rev=n*getNightlyRate(bk)+getThRevenue(bk,mStart,mEndExact);
       h+=`<div class="mbk-row" onclick="openEditModal('${bk.id}')">
         <div class="mbk-dot" style="background:${g?g.color:'#999'}"></div>
         <div class="mbk-name">${g?g.name:'?'}</div>
