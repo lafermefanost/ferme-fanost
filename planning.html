@@ -270,17 +270,29 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
 #weekWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
   -webkit-overflow-scrolling:touch;}
 .week-inner{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
-.week-summary{background:var(--green);color:#fff;border-radius:12px;
+.week-nav{display:flex;align-items:center;justify-content:space-between;padding:2px 0;}
+.week-nav-btn{background:none;border:1.5px solid var(--light);border-radius:8px;
+  width:34px;height:34px;cursor:pointer;color:var(--dark);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;}
+.week-nav-btn:hover{background:var(--light);}
+.week-nav-center{text-align:center;flex:1;padding:0 8px;}
+.week-nav-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:var(--dark);}
+.week-nav-sub{font-size:12px;color:var(--gray);margin-top:1px;}
+.week-today-btn{background:none;border:1.5px solid #7A8C65;border-radius:20px;
+  padding:6px 18px;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;
+  color:#7A8C65;cursor:pointer;display:block;margin:0 auto;}
+.week-today-btn:hover{background:#7A8C65;color:#fff;}
+.week-summary{background:#7A8C65;color:#fff;border-radius:12px;
   padding:14px 18px;display:flex;gap:20px;flex-wrap:wrap;}
 .wsm-item{display:flex;flex-direction:column;}
 .wsm-val{font-size:22px;font-weight:600;}
 .wsm-lbl{font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.06em;}
 .wday-card{background:#fff;border-radius:12px;padding:12px 14px;
   border:1.5px solid var(--light);}
-.wday-today{border-color:var(--green);background:#F7FAF5;}
+.wday-today{border-color:#7A8C65;background:#F5F8F3;}
 .wday-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
 .wday-name{font-weight:600;font-size:14px;color:var(--dark);}
-.wday-today .wday-name{color:var(--green);}
+.wday-today .wday-name{color:#7A8C65;}
 .wday-date{font-size:12px;color:var(--gray);}
 .wday-stats{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;}
 .wstat{font-size:11px;font-weight:600;padding:3px 9px;border-radius:12px;}
@@ -303,8 +315,8 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
   font-family:'Jost',sans-serif;font-size:12px;font-weight:500;
   color:var(--gray);background:#fff;cursor:pointer;transition:all .15s;}
 .cleaner-btn:hover{border-color:#aaa;color:var(--dark);}
-.cleaner-on{background:var(--green)!important;color:#fff!important;
-  border-color:var(--green)!important;}
+.cleaner-on{background:#7A8C65!important;color:#fff!important;
+  border-color:#7A8C65!important;}
 
 /* ─── MONTH VIEW ─────────────────────────────────────────────── */
 #monthWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
@@ -789,7 +801,7 @@ const PALETTE = [
 // ═══════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════
-const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth()};
+const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null};
 let editBid = null, editGid = null, editEvid = null;
 let selGid = null, newGMode = false;
 let dragBid = null, paletteIdx = 0;
@@ -1826,12 +1838,28 @@ function daysBetween(d1,d2){
   return Math.round((new Date(d2+'T00:00:00')-new Date(d1+'T00:00:00'))/86400000);
 }
 
+function getMondayOf(ds){
+  const d=new Date(ds+'T00:00:00');
+  const day=d.getDay();
+  d.setDate(d.getDate()+(day===0?-6:1-day));
+  return iso(d);
+}
+function chWeek(dir){S.wStart=addDays(S.wStart,dir*7);renderWeek();}
+function thisWeek(){S.wStart=getMondayOf(todayISO());renderWeek();}
+
 function renderWeek(){
+  if(!S.wStart) S.wStart=getMondayOf(todayISO());
   const today=todayISO();
-  const wEnd=addDays(today,7);
+  const wEnd=addDays(S.wStart,7);
+  const isCurrentWeek=S.wStart===getMondayOf(today);
+  const mondayDate=new Date(S.wStart+'T00:00:00');
+  const sundayDate=new Date(addDays(S.wStart,6)+'T00:00:00');
+  const wn=weekNum(mondayDate);
+  const fmtD=d=>d.getDate()+' '+MON[d.getMonth()];
+
   let totalNights=0,totalRev=0;
   S.bookings.forEach(bk=>{
-    const oStart=bk.checkIn>today?bk.checkIn:today;
+    const oStart=bk.checkIn>S.wStart?bk.checkIn:S.wStart;
     const oEnd=bk.checkOut<wEnd?bk.checkOut:wEnd;
     const n=daysBetween(oStart,oEnd);
     if(n>0){
@@ -1840,14 +1868,33 @@ function renderWeek(){
       totalRev+=n*(g&&g.price?g.price:0);
     }
   });
+
   const DAY_NAMES=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const chevL=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`;
+  const chevR=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+
   let h='<div class="week-inner">';
+
+  h+=`<div class="week-nav">
+    <button class="week-nav-btn" onclick="chWeek(-1)">${chevL}</button>
+    <div class="week-nav-center">
+      <div class="week-nav-title">Semaine ${wn}</div>
+      <div class="week-nav-sub">${fmtD(mondayDate)} – ${fmtD(sundayDate)}</div>
+    </div>
+    <button class="week-nav-btn" onclick="chWeek(1)">${chevR}</button>
+  </div>`;
+
+  if(!isCurrentWeek){
+    h+=`<button class="week-today-btn" onclick="thisWeek()">Cette semaine</button>`;
+  }
+
   h+=`<div class="week-summary">
     <div class="wsm-item"><div class="wsm-val">${totalNights}</div><div class="wsm-lbl">nuitées</div></div>
     ${totalRev>0?`<div class="wsm-item"><div class="wsm-val">${totalRev.toLocaleString('fr-FR')} €</div><div class="wsm-lbl">revenus estimés</div></div>`:''}
   </div>`;
+
   for(let i=0;i<7;i++){
-    const ds=addDays(today,i);
+    const ds=addDays(S.wStart,i);
     const d=new Date(ds+'T00:00:00');
     const arrs=S.bookings.filter(b=>b.checkIn===ds);
     const deps=S.bookings.filter(b=>b.checkOut===ds);
