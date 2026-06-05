@@ -290,8 +290,14 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .t-empty{text-align:center;padding:40px 20px;color:var(--gray);}
 .t-empty-icon{font-size:44px;margin-bottom:10px;}
 /* Extras chips */
-.tcard-extras{padding:0 12px 10px;border-top:1px solid var(--light);}
-.tcard-extras-hd{display:flex;align-items:center;justify-content:space-between;
+.tcard-extbtn{display:flex;align-items:center;gap:8px;padding:7px 12px;
+  cursor:pointer;border-top:1px solid var(--light);background:#FAFAF8;transition:background .15s;}
+.tcard-extbtn:hover{background:var(--light);}
+.extbtn-label{font-size:11px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.extbtn-total{font-size:12px;color:#7A8C65;font-weight:700;margin-left:auto;}
+.extbtn-add{font-size:16px;color:#ccc;margin-left:auto;line-height:1;}
+.tcard-extras{padding:0 12px 10px;border-top:1px solid var(--light);display:none;}
+.tcard-extras-hd{display:flex;align-items:center;justify-content:flex-end;
   padding-top:8px;margin-bottom:4px;}
 .tcard-extras-title{font-size:10px;color:var(--gray);text-transform:uppercase;
   letter-spacing:.05em;font-weight:600;}
@@ -664,6 +670,10 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
     <div class="fg">
       <label class="fl">Notes</label>
       <input type="text" class="fi" id="bNotes" placeholder="lit bébé, accès code, allergie…">
+    </div>
+    <div id="bExtrasTotal" style="display:none;font-size:12px;color:#7A8C65;font-weight:600;
+         padding:6px 0 2px;">
+      Extras enregistrés : <span id="bExtrasTotalVal"></span>
     </div>
 
     <div class="warn" id="conflictWarn" style="display:none">
@@ -1355,7 +1365,6 @@ function renderToday(){
     const dayX=b.extras&&b.extras[ds]?b.extras[ds]:{};
     const cats=[...new Set(S.catalog.map(c=>c.cat))];
     let xh=`<div class="tcard-extras-hd">
-      <span class="tcard-extras-title">Extras</span>
       <button class="catalog-link" onclick="event.stopPropagation();openCatalogModal()">Modifier le catalogue</button>
     </div>`;
     cats.forEach(cat=>{
@@ -1379,6 +1388,9 @@ function renderToday(){
     const g=guest(b.guestId);const col=g?g.color:'#999';const rm=room(b.roomId);
     const hasDin=b.dinnerNights&&b.dinnerNights[ds];
     const thBadge=hasDin?`<span style="font-size:11px;color:#7A8C65;font-weight:600;flex-shrink:0">🍽️${b.nbPersons||2}</span>`:'';
+    const xt=getExtrasTotal(b);
+    const xd=getExtrasDayTotal(b,ds);
+    const extLabel=xd>0?`<span class="extbtn-total">${xd.toLocaleString('fr-FR')} €</span>`:`<span class="extbtn-add">+</span>`;
     return`<div class="tcard">
       <div class="tcard-header" onclick="openEditModal('${b.id}')">
         <div class="tbar" style="background:${col}"></div>
@@ -1386,7 +1398,10 @@ function renderToday(){
           <div class="tdetail">${sub}${b.notes?' — '+b.notes:''}</div></div>
         ${thBadge}<div class="troom">${rm?rm.name:''}</div>
       </div>
-      <div class="tcard-extras" onclick="event.stopPropagation()">${extrasHTML(b)}</div>
+      <div class="tcard-extbtn" onclick="event.stopPropagation();var x=document.getElementById('xe-${b.id}');x.style.display=x.style.display==='none'?'block':'none'">
+        <span class="extbtn-label">Extras</span>${extLabel}
+      </div>
+      <div class="tcard-extras" id="xe-${b.id}" onclick="event.stopPropagation()">${extrasHTML(b)}</div>
     </div>`;
   };
 
@@ -1456,6 +1471,7 @@ function openAddModal(roomId,ds,dsOut){
   byId('bStatus').value='ok';
   byId('bNotes').value='';
   resetPaymentUI(null,false,'');
+  byId('bExtrasTotal').style.display='none';
 
   renderGPicker();
   renderDinnerList();
@@ -1480,6 +1496,9 @@ function openEditModal(id){
   byId('bPersons').value=b.nbPersons||2;
   byId('bNotes').value=b.notes||'';
   resetPaymentUI(b.payment,b.ghost,b.depositAmount);
+  const xt=getExtrasTotal(b);
+  if(xt>0){byId('bExtrasTotal').style.display='block';byId('bExtrasTotalVal').textContent=xt.toLocaleString('fr-FR')+' €';}
+  else byId('bExtrasTotal').style.display='none';
   renderGPicker();
   renderDinnerList();
   byId('modalBooking').style.display='flex';
@@ -2095,7 +2114,7 @@ function renderWeek(){
   const wn=weekNum(mondayDate);
   const fmtD=d=>d.getDate()+' '+MON[d.getMonth()];
 
-  let totalNights=0,totalRev=0;
+  let totalNights=0,totalRev=0,totalExtras=0;
   S.bookings.forEach(bk=>{
     const oStart=bk.checkIn>S.wStart?bk.checkIn:S.wStart;
     const oEnd=bk.checkOut<wEnd?bk.checkOut:wEnd;
@@ -2104,6 +2123,12 @@ function renderWeek(){
       totalNights+=n;
       const g=guest(bk.guestId);
       totalRev+=n*(g&&g.price?g.price:0);
+    }
+    if(bk.extras){
+      for(let i=0;i<7;i++){
+        const ds=addDays(S.wStart,i);
+        totalExtras+=getExtrasDayTotal(bk,ds);
+      }
     }
   });
 
@@ -2129,6 +2154,7 @@ function renderWeek(){
   h+=`<div class="week-summary">
     <div class="wsm-item"><div class="wsm-val">${totalNights}</div><div class="wsm-lbl">nuitées</div></div>
     ${totalRev>0?`<div class="wsm-item"><div class="wsm-val">${totalRev.toLocaleString('fr-FR')} €</div><div class="wsm-lbl">revenus estimés</div></div>`:''}
+    ${totalExtras>0?`<div class="wsm-item"><div class="wsm-val">${totalExtras.toLocaleString('fr-FR')} €</div><div class="wsm-lbl">extras</div></div>`:''}
   </div>`;
 
   for(let i=0;i<7;i++){
