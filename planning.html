@@ -2389,11 +2389,20 @@ document.addEventListener('keydown',e=>{
   for(const id of ids){const el=byId(id);if(el&&el.style.display==='flex'){closeM(id);break;}}
 });
 
+// Anciennement : import automatique, une seule fois par navigateur, de données
+// historiques réelles (clients et réservations) codées en dur ici. Retiré : un
+// modèle destiné à être revendu ne doit contenir aucune donnée client réelle.
+// Un compte déjà utilisé n'est pas affecté (voir la note dans applyRemoteData /
+// DEFAULT_SETTINGS) : cet import ne tournait de toute façon qu'une seule fois,
+// il y a longtemps, sur chaque navigateur — les données qu'il avait déjà écrites
+// restent intactes en local/Firebase, complètement indépendantes de ce fichier.
+
 // ═══════════════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════════════
 function init(){
   loadLocal();
+  importLegacy();
   loadCatalog();
   byId('yrLabel').textContent=S.year;
   // Set year to current if we have bookings for it
