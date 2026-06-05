@@ -2081,6 +2081,8 @@ function setExtra(bid,ds,itemId,delta){
   else bk.extras[ds][itemId]=nv;
   if(!Object.keys(bk.extras[ds]).length)delete bk.extras[ds];
   persist();renderToday();
+  const panel=document.getElementById('xe-'+bid);
+  if(panel)panel.style.display='block';
 }
 function getExtrasDayTotal(bk,ds){
   if(!bk.extras||!bk.extras[ds])return 0;
