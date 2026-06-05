@@ -106,10 +106,6 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
 .pt tr.r-msep:hover > td{background:var(--green) !important;}
 .msep-name{font-family:'Cormorant Garamond',serif;font-size:12px;font-weight:600;
   letter-spacing:.18em;text-transform:uppercase;color:#C8DFC4;padding-left:8px;}
-.pt tr.r-msep td.c-dow.msep-dow{overflow:visible;z-index:90!important;}
-.msep-label-sticky{position:absolute;left:4px;top:50%;transform:translateY(-50%);
-  white-space:nowrap;font-family:'Cormorant Garamond',serif;font-size:12px;font-weight:600;
-  letter-spacing:.18em;text-transform:uppercase;color:#C8DFC4;pointer-events:none;}
 
 /* Date cells */
 .pt td{border-right:1px solid #EDECE8;border-bottom:1px solid #EDECE8;
@@ -1004,13 +1000,13 @@ function renderGrid(){
       const sep=document.createElement('tr');
       sep.className='r-msep';
       const monthLabel=MON[m].toUpperCase()+' '+S.year;
-      const s1=document.createElement('td');s1.className='c-dow msep-dow';
-      s1.innerHTML=`<span class="msep-label-sticky">${monthLabel}</span>`;
-      sep.appendChild(s1);
+      const s1=document.createElement('td');s1.className='c-dow';sep.appendChild(s1);
       const s2=document.createElement('td');s2.className='c-day';sep.appendChild(s2);
       const s3=document.createElement('td');s3.className='c-wk';sep.appendChild(s3);
       const sn=document.createElement('td');
+      sn.className='msep-name';
       sn.colSpan=ROOMS.length+2;
+      sn.textContent=monthLabel;
       sep.appendChild(sn);
       frag.appendChild(sep);
     }
