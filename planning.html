@@ -936,6 +936,7 @@ const DEFAULT_CATALOG=[
 let editBid = null, editGid = null, editEvid = null;
 let selGid = null, newGMode = false;
 let bkPayment = null, bkGhost = false;
+let openExtrasId = null;
 
 function setPayment(v){
   bkPayment=bkPayment===v?null:v;
@@ -1398,7 +1399,7 @@ function renderToday(){
           <div class="tdetail">${sub}${b.notes?' — '+b.notes:''}</div></div>
         ${thBadge}<div class="troom">${rm?rm.name:''}</div>
       </div>
-      <div class="tcard-extbtn" onclick="event.stopPropagation();var x=document.getElementById('xe-${b.id}');x.style.display=x.style.display==='none'?'block':'none'">
+      <div class="tcard-extbtn" onclick="event.stopPropagation();var x=document.getElementById('xe-${b.id}');var show=x.style.display!=='block';x.style.display=show?'block':'none';openExtrasId=show?'${b.id}':null;">
         <span class="extbtn-label">Extras</span>${extLabel}
       </div>
       <div class="tcard-extras" id="xe-${b.id}" onclick="event.stopPropagation()">${extrasHTML(b)}</div>
@@ -1425,6 +1426,7 @@ function renderToday(){
   }
   h+='</div>';
   byId('todayWrap').innerHTML=h;
+  if(openExtrasId){const p=document.getElementById('xe-'+openExtrasId);if(p)p.style.display='block';}
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2080,9 +2082,8 @@ function setExtra(bid,ds,itemId,delta){
   if(nv===0)delete bk.extras[ds][itemId];
   else bk.extras[ds][itemId]=nv;
   if(!Object.keys(bk.extras[ds]).length)delete bk.extras[ds];
+  openExtrasId=bid;
   persist();renderToday();
-  const panel=document.getElementById('xe-'+bid);
-  if(panel)panel.style.display='block';
 }
 function getExtrasDayTotal(bk,ds){
   if(!bk.extras||!bk.extras[ds])return 0;
