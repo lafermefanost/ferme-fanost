@@ -249,7 +249,16 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
 .t-empty{text-align:center;padding:40px 20px;color:var(--gray);}
 .t-empty-icon{font-size:44px;margin-bottom:10px;}
 
-/* ─── WEEK VIEW ─────────────────────────────────────────────── */
+/* ─── BACKUP REMINDER ────────────────────────────────────────── */
+#backupReminder{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
+  background:#7A5800;color:#fff;border-radius:30px;padding:9px 16px;
+  display:none;align-items:center;gap:10px;z-index:800;
+  font-size:12px;font-weight:500;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+#backupReminder.show{display:flex;}
+.bkp-btn{padding:4px 12px;background:#fff;color:#7A5800;border:none;border-radius:20px;
+  font-family:'Jost',sans-serif;font-size:11px;font-weight:600;cursor:pointer;}
+.bkp-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:16px;
+  cursor:pointer;padding:0;line-height:1;}
 #weekWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
   -webkit-overflow-scrolling:touch;}
 .week-inner{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
@@ -487,6 +496,13 @@ header{height:var(--hdr);background:var(--dark);color:var(--cream);
 
 <!-- ─── TOOLTIP ─────────────────────────────────────────────── -->
 <div id="tooltip"></div>
+
+<!-- ─── BACKUP REMINDER ───────────────────────────────────────── -->
+<div id="backupReminder">
+  <span id="backupMsg">💾 Pas de sauvegarde depuis 7 jours</span>
+  <button class="bkp-btn" onclick="doExport();byId('backupReminder').classList.remove('show')">Exporter</button>
+  <button class="bkp-close" onclick="localStorage.setItem('ff2_lastExport',todayISO());byId('backupReminder').classList.remove('show')">✕</button>
+</div>
 
 <!-- ─── BOOKING MODAL ─────────────────────────────────────────────── -->
 <div class="overlay" id="modalBooking" style="display:none" onclick="ovClose(event,'modalBooking')">
@@ -935,6 +951,7 @@ function doExport(){
   const d=JSON.stringify({bookings:S.bookings,guests:S.guests,events:S.events,exported:new Date().toISOString()},null,2);
   const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([d],{type:'application/json'})),download:`planning-fanost-${todayISO()}.json`});
   a.click();URL.revokeObjectURL(a.href);
+  localStorage.setItem('ff2_lastExport',todayISO());
 }
 
 function doImport(inp){
@@ -2041,6 +2058,21 @@ function init(){
   }else{
     setSyncPip('ok','Local uniquement — cliquez ⬇ pour configurer la sync');
   }
+
+  // Backup reminder: show if no export in 7 days
+  setTimeout(()=>{
+    const last=localStorage.getItem('ff2_lastExport');
+    if(!last){
+      byId('backupMsg').textContent='💾 Aucune sauvegarde locale effectuée';
+      byId('backupReminder').classList.add('show');
+      return;
+    }
+    const days=daysBetween(last,todayISO());
+    if(days>=7){
+      byId('backupMsg').textContent=`💾 Dernière sauvegarde il y a ${days} jour${days>1?'s':''}`;
+      byId('backupReminder').classList.add('show');
+    }
+  },3000);
 }
 
 init();
