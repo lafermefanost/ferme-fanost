@@ -2362,21 +2362,28 @@ function renderMonth(){
   });
   h+=`</div>`;
 
-  // Booking list
+  // Booking list — grouped by client, sorted by revenue desc
   if(bks.length){
-    const sorted=[...bks].sort((a,b)=>a.checkIn.localeCompare(b.checkIn));
-    h+=`<div class="month-bklist"><div class="mbk-title">${bks.length} réservation${bks.length>1?'s':''}</div>`;
-    sorted.forEach(bk=>{
-      const g=guest(bk.guestId);const rm=room(bk.roomId);
+    const byGuest={};
+    bks.forEach(bk=>{
+      const gid=bk.guestId||'?';
+      if(!byGuest[gid]) byGuest[gid]={gid,bkCount:0,nights:0,rev:0};
       const oStart=bk.checkIn>mStart?bk.checkIn:mStart;
       const oEnd=bk.checkOut<mEndExact?bk.checkOut:mEndExact;
       const n=daysBetween(oStart,oEnd);
-      const rev=n*getNightlyRate(bk)+getThRevenue(bk,mStart,mEndExact);
-      h+=`<div class="mbk-row" onclick="openEditModal('${bk.id}')">
+      byGuest[gid].bkCount++;
+      byGuest[gid].nights+=n;
+      byGuest[gid].rev+=n*getNightlyRate(bk)+getThRevenue(bk,mStart,mEndExact);
+    });
+    const clientRows=Object.values(byGuest).sort((a,b)=>b.rev-a.rev);
+    h+=`<div class="month-bklist"><div class="mbk-title">${bks.length} réservation${bks.length>1?'s':''}</div>`;
+    clientRows.forEach(row=>{
+      const g=guest(row.gid);
+      h+=`<div class="mbk-row" onclick="openGuestEdit('${row.gid}')">
         <div class="mbk-dot" style="background:${g?g.color:'#999'}"></div>
         <div class="mbk-name">${g?g.name:'?'}</div>
-        <div class="mbk-meta">${rm?rm.short:''} · ${n}n</div>
-        ${rev>0?`<div class="mbk-rev">${rev.toLocaleString('fr-FR')} €</div>`:''}
+        <div class="mbk-meta">${row.bkCount > 1 ? row.bkCount+' rés · ' : ''}${row.nights}n</div>
+        ${row.rev>0?`<div class="mbk-rev">${row.rev.toLocaleString('fr-FR')} €</div>`:''}
       </div>`;
     });
     h+=`</div>`;
