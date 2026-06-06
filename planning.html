@@ -379,7 +379,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .wstat-num-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;opacity:.75;}
 .wstat-num.dep{background:#FFF3CD;color:#7A5800;}
 .wstat-num.arr{background:#E8F3E5;color:#2E5C28;}
-.wstat-empty{font-size:11px;color:#bbb;padding:4px 0;}
+.wstat-num.wstat-zero{background:var(--light);color:#ccc;}
 .wday-sec{font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase;
   letter-spacing:.05em;margin:7px 0 3px;}
 .wday-guest{display:flex;align-items:center;gap:7px;padding:3px 0;
@@ -2239,11 +2239,10 @@ function renderWeek(){
       <div class="wday-name">${isToday?'Aujourd\'hui — ':''}${DAY_NAMES[d.getDay()]}</div>
       <div class="wday-date">${d.getDate()} ${MON[d.getMonth()]}</div>
     </div>`;
-    h+=`<div class="wday-stats">`;
-    if(deps.length) h+=`<div class="wstat-num dep"><div class="wstat-num-val">↑ ${deps.length}</div><div class="wstat-num-lbl">départ${deps.length>1?'s':''}</div></div>`;
-    if(arrs.length) h+=`<div class="wstat-num arr"><div class="wstat-num-val">↓ ${arrs.length}</div><div class="wstat-num-lbl">arrivée${arrs.length>1?'s':''}</div></div>`;
-    if(!arrs.length&&!deps.length) h+=`<span class="wstat-empty">Aucun mouvement</span>`;
-    h+=`</div>`;
+    h+=`<div class="wday-stats">
+      <div class="wstat-num arr${arrs.length===0?' wstat-zero':''}"><div class="wstat-num-val">↓ ${arrs.length}</div><div class="wstat-num-lbl">arrivée${arrs.length>1?'s':''}</div></div>
+      <div class="wstat-num dep${deps.length===0?' wstat-zero':''}"><div class="wstat-num-val">↑ ${deps.length}</div><div class="wstat-num-lbl">départ${deps.length>1?'s':''}</div></div>
+    </div>`;
     if(deps.length){
       h+=`<div class="wday-sec">Départs</div>`;
       deps.forEach(b=>{
