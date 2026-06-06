@@ -373,11 +373,13 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .wday-name{font-weight:600;font-size:14px;color:var(--dark);}
 .wday-today .wday-name{color:#7A8C65;}
 .wday-date{font-size:12px;color:var(--gray);}
-.wday-stats{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;}
-.wstat{font-size:11px;font-weight:600;padding:3px 9px;border-radius:12px;}
-.wstat-dep{background:#FFF3CD;color:#7A5800;}
-.wstat-arr{background:#E8F3E5;color:#2E5C28;}
-.wstat-empty{font-size:11px;color:#bbb;}
+.wday-stats{display:flex;gap:7px;margin-bottom:10px;}
+.wstat-num{flex:1;border-radius:8px;padding:8px 10px;display:flex;align-items:baseline;gap:6px;}
+.wstat-num-val{font-size:28px;font-weight:700;line-height:1;}
+.wstat-num-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;opacity:.75;}
+.wstat-num.dep{background:#FFF3CD;color:#7A5800;}
+.wstat-num.arr{background:#E8F3E5;color:#2E5C28;}
+.wstat-empty{font-size:11px;color:#bbb;padding:4px 0;}
 .wday-sec{font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase;
   letter-spacing:.05em;margin:7px 0 3px;}
 .wday-guest{display:flex;align-items:center;gap:7px;padding:3px 0;
@@ -2238,8 +2240,8 @@ function renderWeek(){
       <div class="wday-date">${d.getDate()} ${MON[d.getMonth()]}</div>
     </div>`;
     h+=`<div class="wday-stats">`;
-    if(deps.length) h+=`<span class="wstat wstat-dep">↑ ${deps.length} départ${deps.length>1?'s':''}</span>`;
-    if(arrs.length) h+=`<span class="wstat wstat-arr">↓ ${arrs.length} arrivée${arrs.length>1?'s':''}</span>`;
+    if(deps.length) h+=`<div class="wstat-num dep"><div class="wstat-num-val">↑ ${deps.length}</div><div class="wstat-num-lbl">départ${deps.length>1?'s':''}</div></div>`;
+    if(arrs.length) h+=`<div class="wstat-num arr"><div class="wstat-num-val">↓ ${arrs.length}</div><div class="wstat-num-lbl">arrivée${arrs.length>1?'s':''}</div></div>`;
     if(!arrs.length&&!deps.length) h+=`<span class="wstat-empty">Aucun mouvement</span>`;
     h+=`</div>`;
     if(deps.length){
