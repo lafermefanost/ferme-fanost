@@ -373,8 +373,9 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .wday-name{font-weight:600;font-size:14px;color:var(--dark);}
 .wday-today .wday-name{color:#7A8C65;}
 .wday-date{font-size:12px;color:var(--gray);}
-.wday-stats{display:flex;gap:7px;margin-bottom:10px;}
-.wstat-num{flex:1;border-radius:8px;padding:8px 10px;display:flex;align-items:baseline;gap:6px;}
+.wday-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.wday-col{display:flex;flex-direction:column;gap:3px;}
+.wstat-num{border-radius:8px;padding:8px 10px;display:flex;align-items:baseline;gap:6px;}
 .wstat-num-val{font-size:28px;font-weight:700;line-height:1;}
 .wstat-num-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;opacity:.75;}
 .wstat-num.dep{background:#FFF3CD;color:#7A5800;}
@@ -2239,30 +2240,26 @@ function renderWeek(){
       <div class="wday-name">${isToday?'Aujourd\'hui — ':''}${DAY_NAMES[d.getDay()]}</div>
       <div class="wday-date">${d.getDate()} ${MON[d.getMonth()]}</div>
     </div>`;
-    h+=`<div class="wday-stats">
-      <div class="wstat-num arr${arrs.length===0?' wstat-zero':''}"><div class="wstat-num-val">↓ ${arrs.length}</div><div class="wstat-num-lbl">arrivée${arrs.length>1?'s':''}</div></div>
-      <div class="wstat-num dep${deps.length===0?' wstat-zero':''}"><div class="wstat-num-val">↑ ${deps.length}</div><div class="wstat-num-lbl">départ${deps.length>1?'s':''}</div></div>
+    const arrGuests=arrs.map(b=>{const g=guest(b.guestId);const rm=room(b.roomId);
+      return`<div class="wday-guest" onclick="openEditModal('${b.id}')">
+        <div class="wday-dot" style="background:${g?g.color:'#999'}"></div>
+        <div>${g?g.name:'?'}<span class="wday-rm">${rm?rm.short:''}</span>${b.arrivalTime?'<br><span style="font-size:10px;color:#888">'+b.arrivalTime+'</span>':''}</div>
+      </div>`;}).join('');
+    const depGuests=deps.map(b=>{const g=guest(b.guestId);const rm=room(b.roomId);
+      return`<div class="wday-guest" onclick="openEditModal('${b.id}')">
+        <div class="wday-dot" style="background:${g?g.color:'#999'}"></div>
+        <div>${g?g.name:'?'}<span class="wday-rm">${rm?rm.short:''}</span></div>
+      </div>`;}).join('');
+    h+=`<div class="wday-cols">
+      <div class="wday-col">
+        <div class="wstat-num arr${arrs.length===0?' wstat-zero':''}"><div class="wstat-num-val">↓ ${arrs.length}</div><div class="wstat-num-lbl">arrivée${arrs.length>1?'s':''}</div></div>
+        ${arrGuests}
+      </div>
+      <div class="wday-col">
+        <div class="wstat-num dep${deps.length===0?' wstat-zero':''}"><div class="wstat-num-val">↑ ${deps.length}</div><div class="wstat-num-lbl">départ${deps.length>1?'s':''}</div></div>
+        ${depGuests}
+      </div>
     </div>`;
-    if(deps.length){
-      h+=`<div class="wday-sec">Départs</div>`;
-      deps.forEach(b=>{
-        const g=guest(b.guestId);const rm=room(b.roomId);
-        h+=`<div class="wday-guest" onclick="openEditModal('${b.id}')">
-          <div class="wday-dot" style="background:${g?g.color:'#999'}"></div>
-          <div>${g?g.name:'?'}<span class="wday-rm">${rm?rm.short:''}</span></div>
-        </div>`;
-      });
-    }
-    if(arrs.length){
-      h+=`<div class="wday-sec">Arrivées</div>`;
-      arrs.forEach(b=>{
-        const g=guest(b.guestId);const rm=room(b.roomId);
-        h+=`<div class="wday-guest" onclick="openEditModal('${b.id}')">
-          <div class="wday-dot" style="background:${g?g.color:'#999'}"></div>
-          <div>${g?g.name:'?'}<span class="wday-rm">${rm?rm.short:''}</span>${b.arrivalTime?' · '+b.arrivalTime:''}</div>
-        </div>`;
-      });
-    }
     h+=`<div class="wday-cleaners">
       <span class="wday-cleaner-lbl">Ménage :</span>`;
     CLEANERS.forEach(name=>{
