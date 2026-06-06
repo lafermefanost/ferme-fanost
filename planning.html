@@ -2230,9 +2230,9 @@ function renderWeek(){
 
   h+=`<div class="week-summary">
     <div class="wsm-item"><div class="wsm-val">${totalNights}</div><div class="wsm-lbl">nuitées</div></div>
-    <div class="wsm-item"><div class="wsm-val">${totalRev>0?totalRev.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">revenus estimés</div></div>
     <div class="wsm-item"><div class="wsm-val">🍽 ${totalRepas}</div><div class="wsm-lbl">repas</div></div>
     ${totalExtras>0?`<div class="wsm-item"><div class="wsm-val">${totalExtras.toLocaleString('fr-FR')} €</div><div class="wsm-lbl">extras</div></div>`:''}
+    <div class="wsm-item" style="margin-left:auto"><div class="wsm-val">${totalRev>0?totalRev.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">revenus estimés</div></div>
   </div>`;
 
   for(let i=0;i<7;i++){
