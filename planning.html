@@ -449,12 +449,18 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .fi:focus,.fsel:focus{border-color:var(--earth);}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
-.gpicker{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px;}
+.gsearch{margin-top:6px;}
+.gpicker{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;
+  max-height:150px;overflow-y:auto;}
 .gchip{display:flex;align-items:center;gap:4px;padding:4px 9px;
   border-radius:20px;border:2px solid transparent;cursor:pointer;
   font-size:11px;font-weight:500;transition:all .15s;background:var(--light);}
-.gchip.on{border-color:var(--dark);}
-.cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.gchip.on{border-color:var(--dark);background:var(--dark);color:var(--white);}
+.gchip.on .cdot{border-color:rgba(255,255,255,.3);}
+.gnew-btn{margin-top:8px;font-size:12px;color:var(--earth);cursor:pointer;
+  display:inline-block;padding:2px 0;}
+.gnew-btn:hover{text-decoration:underline;}
+.cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.1);}
 
 .macts{display:flex;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--light);}
 .btn-p{flex:1;padding:11px;background:var(--green);color:var(--white);border:none;
@@ -612,7 +618,10 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 
     <div class="fg">
       <label class="fl">Client</label>
+      <input class="fi gsearch" id="gSearch" placeholder="Rechercher un client…"
+        autocomplete="off" oninput="filterGuests(this.value)">
       <div class="gpicker" id="gPicker"></div>
+      <div class="gnew-btn" onclick="pickNew()">+ Nouveau client</div>
     </div>
     <div class="fg" id="newGNameFg" style="display:none">
       <input class="fi" id="newGName" placeholder="Nom du nouveau client">
@@ -1472,13 +1481,14 @@ document.addEventListener('mousemove',e=>{if(byId('tooltip').style.display==='bl
 //  BOOKING MODAL
 // ═══════════════════════════════════════════════════════════════
 function openAddModal(roomId,ds,dsOut){
-  editBid=null;selGid=null;newGMode=false;
+  editBid=null;selGid=null;newGMode=false;gSearchTerm='';
   byId('mBookTitle').textContent='Nouvelle réservation';
   byId('bDelBtn').style.display='none';
   byId('conflictWarn').style.display='none';
   byId('freeRoomPicker').style.display='none';
   byId('bSaveBtn').disabled=false;
   byId('newGNameFg').style.display='none';
+  byId('gSearch').value='';
 
   if(roomId) byId('bRoom').value=roomId;
   const ci=ds||todayISO();
@@ -1498,7 +1508,8 @@ function openAddModal(roomId,ds,dsOut){
 function openEditModal(id){
   const b=S.bookings.find(x=>x.id===id);
   if(!b)return;
-  editBid=id;selGid=b.guestId;newGMode=false;
+  editBid=id;selGid=b.guestId;newGMode=false;gSearchTerm='';
+  byId('gSearch').value='';
   byId('mBookTitle').textContent='Modifier la réservation';
   byId('bDelBtn').style.display='block';
   byId('conflictWarn').style.display='none';
@@ -1521,26 +1532,39 @@ function openEditModal(id){
   byId('modalBooking').style.display='flex';
 }
 
+let gSearchTerm='';
+
+function filterGuests(val){
+  gSearchTerm=val.trim().toLowerCase();
+  renderGPicker();
+}
+
 function renderGPicker(){
-  let h='';
-  // Sort guests alphabetically
   const sorted=[...S.guests].sort((a,b)=>a.name.localeCompare(b.name));
-  sorted.forEach(g=>{
-    h+=`<div class="gchip${g.id===selGid?' on':''}" onclick="pickGuest('${g.id}')">
-      <span class="cdot" style="background:${g.color}"></span>${g.name}</div>`;
-  });
-  h+=`<div class="gchip${newGMode?' on':''}" onclick="pickNew()" style="border-style:dashed">+ Nouveau</div>`;
-  byId('gPicker').innerHTML=h;
+  let visible;
+  if(gSearchTerm){
+    visible=sorted.filter(g=>g.name.toLowerCase().includes(gSearchTerm));
+  } else {
+    visible=selGid ? sorted.filter(g=>g.id===selGid) : [];
+  }
+  byId('gPicker').innerHTML=visible.map(g=>
+    `<div class="gchip${g.id===selGid?' on':''}" onclick="pickGuest('${g.id}')">
+      <span class="cdot" style="background:${g.color}"></span>${g.name}</div>`
+  ).join('');
 }
 
 function pickGuest(id){
   selGid=id;newGMode=false;
+  gSearchTerm='';
+  byId('gSearch').value='';
   byId('newGNameFg').style.display='none';
   renderGPicker();chkConflict();
 }
 
 function pickNew(){
   selGid=null;newGMode=true;
+  gSearchTerm='';
+  byId('gSearch').value='';
   byId('newGNameFg').style.display='block';
   byId('newGName').focus();
   renderGPicker();
