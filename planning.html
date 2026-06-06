@@ -2186,7 +2186,7 @@ function renderWeek(){
   const wn=weekNum(mondayDate);
   const fmtD=d=>d.getDate()+' '+MON[d.getMonth()];
 
-  let totalNights=0,totalRev=0,totalExtras=0;
+  let totalNights=0,totalRev=0,totalExtras=0,totalRepas=0;
   S.bookings.forEach(bk=>{
     const oStart=bk.checkIn>S.wStart?bk.checkIn:S.wStart;
     const oEnd=bk.checkOut<wEnd?bk.checkOut:wEnd;
@@ -2199,6 +2199,12 @@ function renderWeek(){
       for(let i=0;i<7;i++){
         const ds=addDays(S.wStart,i);
         totalExtras+=getExtrasDayTotal(bk,ds);
+      }
+    }
+    if(bk.dinnerNights){
+      for(let i=0;i<7;i++){
+        const ds=addDays(S.wStart,i);
+        if(bk.dinnerNights[ds]) totalRepas+=(bk.nbPersons||2);
       }
     }
   });
@@ -2225,6 +2231,7 @@ function renderWeek(){
   h+=`<div class="week-summary">
     <div class="wsm-item"><div class="wsm-val">${totalNights}</div><div class="wsm-lbl">nuitées</div></div>
     <div class="wsm-item"><div class="wsm-val">${totalRev>0?totalRev.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">revenus estimés</div></div>
+    <div class="wsm-item"><div class="wsm-val">🍽 ${totalRepas}</div><div class="wsm-lbl">repas</div></div>
     ${totalExtras>0?`<div class="wsm-item"><div class="wsm-val">${totalExtras.toLocaleString('fr-FR')} €</div><div class="wsm-lbl">extras</div></div>`:''}
   </div>`;
 
