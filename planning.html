@@ -359,6 +359,13 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .wsm-item{display:flex;flex-direction:column;}
 .wsm-val{font-size:22px;font-weight:600;}
 .wsm-lbl{font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.06em;}
+.today-summary{background:#7A8C65;color:#fff;border-radius:12px;
+  padding:14px 18px;display:flex;gap:0;margin-bottom:14px;}
+.tsm-item{flex:1;display:flex;flex-direction:column;align-items:center;
+  border-right:1px solid rgba(255,255,255,.25);}
+.tsm-item:last-child{border-right:none;}
+.tsm-val{font-size:22px;font-weight:600;line-height:1;}
+.tsm-lbl{font-size:9px;opacity:.8;text-transform:uppercase;letter-spacing:.06em;margin-top:3px;text-align:center;}
 .wday-card{background:#fff;border-radius:12px;padding:12px 14px;
   border:1.5px solid var(--light);}
 .wday-today{border-color:#7A8C65;background:#F5F8F3;}
@@ -1435,16 +1442,23 @@ function renderToday(){
     </div>`;
   };
 
+  const nuits=arrs.length+stays.length;
+
   let h=`<div class="today-inner">
   <div class="today-nav">
     <button class="today-nav-btn" onclick="chDay(-1)">${chevL}</button>
     <div class="today-nav-center">
       <div class="tday-head">${isToday?'Aujourd\'hui — ':''}${DAY_NAMES[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}</div>
-      <div class="tday-sub">${arrs.length} arrivée${arrs.length>1?'s':''} · ${deps.length} départ${deps.length>1?'s':''} · ${stays.length} en cours${couverts>0?` · <b style="color:#7A8C65">🍽️ ${couverts}</b>`:''}</div>
     </div>
     <button class="today-nav-btn" onclick="chDay(1)">${chevR}</button>
   </div>
-  ${!isToday?`<button class="today-now-btn" onclick="goTodayView()">Aujourd'hui</button>`:''}`;
+  ${!isToday?`<button class="today-now-btn" onclick="goTodayView()">Aujourd'hui</button>`:''}
+  <div class="today-summary">
+    <div class="tsm-item"><div class="tsm-val">${arrs.length}</div><div class="tsm-lbl">Arrivées</div></div>
+    <div class="tsm-item"><div class="tsm-val">${deps.length}</div><div class="tsm-lbl">Départs</div></div>
+    <div class="tsm-item"><div class="tsm-val">${nuits}</div><div class="tsm-lbl">En séjour</div></div>
+    <div class="tsm-item"><div class="tsm-val">${couverts||'—'}</div><div class="tsm-lbl">Repas</div></div>
+  </div>`;
 
   if(deps.length){h+=`<div class="tday-sec">Départs</div>`;deps.forEach(b=>h+=card(b,'Départ'));}
   if(arrs.length){h+=`<div class="tday-sec">Arrivées</div>`;arrs.forEach(b=>h+=card(b,b.arrivalTime?`Arrivée ${b.arrivalTime}`:'Arrivée'));}
