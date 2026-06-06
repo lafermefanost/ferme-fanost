@@ -460,6 +460,11 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .gnew-btn{margin-top:8px;font-size:12px;color:var(--earth);cursor:pointer;
   display:inline-block;padding:2px 0;}
 .gnew-btn:hover{text-decoration:underline;}
+.pax-picker{display:flex;gap:7px;margin-top:4px;}
+.pax-btn{width:44px;height:38px;border:1.5px solid var(--light);border-radius:8px;
+  background:var(--white);font-family:'Jost',sans-serif;font-size:15px;font-weight:500;
+  color:var(--gray);cursor:pointer;transition:all .15s;}
+.pax-btn.on{border-color:var(--green);background:var(--green);color:var(--white);}
 .cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.1);}
 
 .macts{display:flex;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--light);}
@@ -669,8 +674,8 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 
     <div class="fg">
       <label class="fl">Nb personnes</label>
-      <input type="number" class="fi" id="bPersons" min="1" max="20" value="1"
-             onchange="renderDinnerList()">
+      <div class="pax-picker" id="paxPicker"></div>
+      <input type="hidden" id="bPersons" value="1">
     </div>
     <div class="fg" id="dinnerListFg" style="display:none">
       <label class="fl">🍽️ Table d'hôtes — soirs du séjour</label>
@@ -1496,6 +1501,7 @@ function openAddModal(roomId,ds,dsOut){
   byId('bOut').value=dsOut||addDays(ci,1);
   byId('bTime').value='';
   byId('bStatus').value='ok';
+  setPax(1);
   byId('bNotes').value='';
   resetPaymentUI(null,false,'');
   byId('bExtrasTotal').style.display='none';
@@ -1521,7 +1527,7 @@ function openEditModal(id){
   byId('bOut').value=b.checkOut;
   byId('bTime').value=b.arrivalTime||'';
   byId('bStatus').value=b.status||'ok';
-  byId('bPersons').value=b.nbPersons||2;
+  setPax(b.nbPersons||2);
   byId('bNotes').value=b.notes||'';
   resetPaymentUI(b.payment,b.ghost,b.depositAmount);
   const xt=getExtrasTotal(b);
@@ -1533,6 +1539,13 @@ function openEditModal(id){
 }
 
 let gSearchTerm='';
+
+function setPax(n){
+  byId('bPersons').value=n;
+  byId('paxPicker').innerHTML=[1,2,3,4,5].map(i=>
+    `<button type="button" class="pax-btn${i===n?' on':''}" onclick="setPax(${i});renderDinnerList()">${i}</button>`
+  ).join('');
+}
 
 function filterGuests(val){
   gSearchTerm=val.trim().toLowerCase();
