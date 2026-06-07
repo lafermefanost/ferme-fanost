@@ -334,6 +334,15 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   cursor:pointer;padding:0 4px;}
 .cat-del:hover{color:var(--danger);}
 .cat-add-row{display:grid;grid-template-columns:44px 1fr 72px 90px;gap:6px;}
+.cat-emoji-in{font-size:18px;width:30px;border:none;background:transparent;
+  outline:none;text-align:center;cursor:text;border-radius:4px;font-family:inherit;}
+.cat-emoji-in:focus{background:#F5F0E8;}
+.cat-name-in{flex:1;border:none;background:transparent;font-family:'Jost',sans-serif;
+  font-size:13px;color:var(--dark);outline:none;padding:2px 4px;border-radius:4px;min-width:0;}
+.cat-name-in:focus{background:#F5F0E8;}
+.cat-price-in{width:50px;border:none;background:transparent;font-family:'Jost',sans-serif;
+  font-size:13px;color:var(--earth);text-align:right;outline:none;padding:2px 4px;border-radius:4px;}
+.cat-price-in:focus{background:#F5F0E8;}
 
 /* ─── BACKUP REMINDER ────────────────────────────────────────── */
 #backupReminder{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
@@ -2135,14 +2144,24 @@ function renderCatalogList(){
     h+=`<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin:10px 0 4px">${cat}</div>`;
     S.catalog.filter(c=>c.cat===cat).forEach(item=>{
       h+=`<div class="cat-item">
-        <span class="cat-emoji">${item.emoji}</span>
-        <span class="cat-name">${item.name}</span>
-        <span class="cat-price">${item.price} €</span>
+        <input class="cat-emoji-in" value="${item.emoji}" maxlength="2"
+          onchange="updateCatalogItem('${item.id}','emoji',this.value)">
+        <input class="cat-name-in" value="${item.name.replace(/"/g,'&quot;')}"
+          onchange="updateCatalogItem('${item.id}','name',this.value)">
+        <input type="number" class="cat-price-in" value="${item.price}" step="0.5" min="0"
+          onchange="updateCatalogItem('${item.id}','price',parseFloat(this.value)||0)">
+        <span style="font-size:13px;color:var(--earth);margin-right:2px">€</span>
         <button class="cat-del" onclick="delCatalogItem('${item.id}')">✕</button>
       </div>`;
     });
   });
   byId('catalogList').innerHTML=h||'<div style="color:var(--gray);font-size:13px;padding:10px 0">Catalogue vide</div>';
+}
+function updateCatalogItem(id,field,value){
+  const i=S.catalog.findIndex(c=>c.id===id);
+  if(i===-1)return;
+  S.catalog[i][field]=value;
+  saveCatalog();
 }
 function addCatalogItem(){
   const name=byId('newCatName').value.trim();
