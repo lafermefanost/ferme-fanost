@@ -204,10 +204,16 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 #pay-pending.on{background:#FFF3CD;color:#7A5800;border-color:#E6C96A;}
 #pay-deposit.on{background:#E8F0FE;color:#1967D2;border-color:#94B1F6;}
 #pay-paid.on{background:#E8F3E5;color:#2E5C28;border-color:#7ABF6A;}
-.ghost-chip{padding:6px 14px;border:1.5px solid var(--light);border-radius:20px;
+.src-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+.src-chip{padding:5px 12px;border:1.5px solid var(--light);border-radius:20px;
   font-family:'Jost',sans-serif;font-size:12px;font-weight:500;
   color:var(--gray);background:#fff;cursor:pointer;transition:all .15s;}
-.ghost-chip.on{background:#1A1A1A;color:#fff;border-color:#1A1A1A;}
+.src-chip:hover{border-color:#bbb;}
+#src-direct.on{background:#E8F3E5;color:#2E5C28;border-color:#7ABF6A;}
+#src-airbnb.on{background:#FFE8E0;color:#C0392B;border-color:#F1948A;}
+#src-booking.on{background:#E8EAF6;color:#1A237E;border-color:#9FA8DA;}
+#src-homexchange.on{background:#FFF9E0;color:#7A5800;border-color:#E6C96A;}
+#src-ghost.on{background:#1A1A1A;color:#fff;border-color:#1A1A1A;}
 
 .blk.lbg{color:#1A1A1A;}
 .blk.dbg{color:#FFF;}
@@ -719,13 +725,15 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
       </div>
     </div>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;
-         margin-bottom:14px;padding:10px 12px;background:#F5F3EE;border-radius:8px;">
-      <div>
-        <div style="font-weight:600;font-size:13px;color:var(--dark);">Mode fantôme</div>
-        <div style="font-size:11px;color:var(--gray);margin-top:2px;">Fond noir — réservation masquée</div>
+    <div style="margin-bottom:14px;">
+      <label class="fl">Source</label>
+      <div class="src-row">
+        <button class="src-chip" id="src-direct"       onclick="setSource('direct')">Direct</button>
+        <button class="src-chip" id="src-airbnb"       onclick="setSource('airbnb')">Airbnb</button>
+        <button class="src-chip" id="src-booking"      onclick="setSource('booking')">Booking</button>
+        <button class="src-chip" id="src-homexchange"  onclick="setSource('homexchange')">Homexchange</button>
+        <button class="src-chip" id="src-ghost"        onclick="setSource('ghost')">Ghost</button>
       </div>
-      <button class="ghost-chip" id="ghostBtn" onclick="toggleGhost()">Activer</button>
     </div>
 
     <div class="macts">
@@ -948,11 +956,13 @@ const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, view:'grid
 const DEFAULT_PRICES={solo:100, double:125, th:25};
 
 function getNightlyRate(bk){
+  if(bk.source==='homexchange') return 0;
   const g=guest(bk.guestId);
   if(g&&g.price)return g.price;
   return(bk.nbPersons||2)===1?DEFAULT_PRICES.solo:DEFAULT_PRICES.double;
 }
 function getThRevenue(bk,fromDate,toDate){
+  if(bk.source==='homexchange') return 0;
   if(!bk.dinnerNights)return 0;
   return Object.keys(bk.dinnerNights)
     .filter(ds=>ds>=fromDate&&ds<toDate&&bk.dinnerNights[ds])
@@ -974,7 +984,7 @@ const DEFAULT_CATALOG=[
 ];
 let editBid = null, editGid = null, editEvid = null;
 let selGid = null, newGMode = false;
-let bkPayment = null, bkGhost = false;
+let bkPayment = null, bkSource = 'direct';
 let openExtrasId = null;
 
 function setPayment(v){
@@ -982,20 +992,19 @@ function setPayment(v){
   ['pending','deposit','paid'].forEach(p=>byId('pay-'+p)?.classList.toggle('on',bkPayment===p));
   byId('depositAmtFg').style.display=bkPayment==='deposit'?'block':'none';
 }
-function toggleGhost(){
-  bkGhost=!bkGhost;
-  const btn=byId('ghostBtn');
-  btn.classList.toggle('on',bkGhost);
-  btn.textContent=bkGhost?'Activé ●':'Activer';
+function setSource(v){
+  bkSource=v;
+  ['direct','airbnb','booking','homexchange','ghost'].forEach(s=>
+    byId('src-'+s)?.classList.toggle('on',s===v)
+  );
 }
-function resetPaymentUI(pay,ghost,depositAmt){
-  bkPayment=pay||null;bkGhost=ghost||false;
+function resetPaymentUI(pay,ghost,depositAmt,source){
+  bkPayment=pay||null;
+  bkSource=source||(ghost?'ghost':'direct');
   ['pending','deposit','paid'].forEach(p=>byId('pay-'+p)?.classList.toggle('on',bkPayment===p));
   byId('depositAmtFg').style.display=bkPayment==='deposit'?'block':'none';
   byId('depositAmt').value=depositAmt||'';
-  const btn=byId('ghostBtn');
-  btn.classList.toggle('on',bkGhost);
-  btn.textContent=bkGhost?'Activé ●':'Activer';
+  setSource(bkSource);
 }
 let dragBid = null, paletteIdx = 0;
 
@@ -1276,7 +1285,7 @@ function renderGrid(){
         const dot=bk.status==='opt'?'#FF9800':bk.status==='no'?'#F44336':'#4CAF50';
 
         const isPaid=bk.payment==='paid';
-        const isGhost=bk.ghost;
+        const isGhost=bk.source==='ghost'||bk.ghost;
         const dispCol=isGhost?'#1A1A1A':isPaid?'#A0A0A0':col;
         const div=document.createElement('div');
         div.className=`blk${isCin?' cin':''}${isCout?' cout':''} ${lbg?'lbg':'dbg'}${sc}${isPaid?' paid':''}${isGhost?' ghost':''}`;
@@ -1305,7 +1314,7 @@ function renderGrid(){
         const co=S.bookings.find(b=>b.roomId===r.id&&isCO(b,ds));
         if(co){
           const g=guest(co.guestId);
-          const c=co.ghost?'#1A1A1A':co.payment==='paid'?'#A0A0A0':g?g.color:'#999';
+          const c=(co.source==='ghost'||co.ghost)?'#1A1A1A':co.payment==='paid'?'#A0A0A0':g?g.color:'#999';
           const d2=document.createElement('div');
           d2.className='co-half';
           d2.style.background=c;
@@ -1546,7 +1555,7 @@ function openEditModal(id){
   byId('bStatus').value=b.status||'ok';
   setPax(b.nbPersons||2);
   byId('bNotes').value=b.notes||'';
-  resetPaymentUI(b.payment,b.ghost,b.depositAmount);
+  resetPaymentUI(b.payment,b.ghost,b.depositAmount,b.source);
   const xt=getExtrasTotal(b);
   if(xt>0){byId('bExtrasTotal').style.display='block';byId('bExtrasTotalVal').textContent=xt.toLocaleString('fr-FR')+' €';}
   else byId('bExtrasTotal').style.display='none';
@@ -1688,7 +1697,8 @@ function saveBooking(){
   const nt=byId('bNotes').value.trim();
   const pay=bkPayment;
   const depositAmt=pay==='deposit'?(parseFloat(byId('depositAmt').value)||0):0;
-  const ghost=bkGhost;
+  const source=bkSource;
+  const ghost=source==='ghost';
 
   if(!ci||!co){alert('Remplissez les dates');return;}
   if(ci>=co){alert('La date de départ doit être après l\'arrivée');return;}
@@ -1707,9 +1717,9 @@ function saveBooking(){
   if(editBid){
     const i=S.bookings.findIndex(b=>b.id===editBid);
     const dn=getDinnerNights();
-    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,ghost:ghost};
+    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost};
   }else{
-    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,ghost:ghost});
+    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost});
   }
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
