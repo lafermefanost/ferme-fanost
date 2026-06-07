@@ -441,6 +441,15 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .mbk-name{flex:1;font-size:13px;font-weight:500;}
 .mbk-meta{font-size:11px;color:var(--gray);}
 .mbk-rev{font-size:12px;color:var(--green);font-weight:600;flex-shrink:0;}
+.src-breakdown{margin:8px 0 12px;display:flex;flex-direction:column;gap:5px;
+  padding-bottom:12px;border-bottom:1px solid var(--light);}
+.src-bk-row{display:flex;align-items:center;gap:8px;font-size:12px;}
+.src-bk-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.src-bk-name{width:88px;font-weight:500;color:var(--dark);}
+.src-bk-pct{width:32px;font-size:11px;color:var(--gray);}
+.src-bk-bar-bg{flex:1;height:4px;background:var(--light);border-radius:2px;overflow:hidden;}
+.src-bk-bar-fill{height:100%;border-radius:2px;}
+.src-bk-rev{font-weight:600;color:var(--green);font-size:12px;min-width:60px;text-align:right;}
 
 /* ─── MODALS ─────────────────────────────────────────────── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;
@@ -2393,7 +2402,43 @@ function renderMonth(){
       byGuest[gid].rev+=n*getNightlyRate(bk)+getThRevenue(bk,mStart,mEndExact);
     });
     const clientRows=Object.values(byGuest).sort((a,b)=>b.rev-a.rev);
-    h+=`<div class="month-bklist"><div class="mbk-title">${bks.length} réservation${bks.length>1?'s':''}</div>`;
+
+    // Source breakdown
+    const srcDef=[
+      {key:'direct',      label:'Direct',      color:'#7ABF6A'},
+      {key:'plateformes', label:'Plateformes',  color:'#F1948A'},
+      {key:'homexchange', label:'Homexchange',  color:'#E6C96A'},
+      {key:'ghost',       label:'Ghost',        color:'#888'},
+    ];
+    const srcMap={direct:{n:0,rev:0},plateformes:{n:0,rev:0},homexchange:{n:0,rev:0},ghost:{n:0,rev:0}};
+    bks.forEach(bk=>{
+      const src=bk.source||'direct';
+      const grp=src==='airbnb'||src==='booking'?'plateformes':
+                src==='homexchange'?'homexchange':src==='ghost'?'ghost':'direct';
+      const oStart=bk.checkIn>mStart?bk.checkIn:mStart;
+      const oEnd=bk.checkOut<mEndExact?bk.checkOut:mEndExact;
+      const n=daysBetween(oStart,oEnd);
+      srcMap[grp].n++;
+      srcMap[grp].rev+=n*getNightlyRate(bk)+getThRevenue(bk,mStart,mEndExact);
+    });
+    const srcActive=srcDef.filter(s=>srcMap[s.key].n>0);
+    const maxN=Math.max(...srcActive.map(s=>srcMap[s.key].n));
+
+    h+=`<div class="month-bklist"><div class="mbk-title">${bks.length} réservation${bks.length>1?'s':''}</div>
+    <div class="src-breakdown">`;
+    srcActive.forEach(s=>{
+      const d=srcMap[s.key];
+      const pct=Math.round(d.n/bks.length*100);
+      const barW=Math.round(d.n/maxN*100);
+      h+=`<div class="src-bk-row">
+        <div class="src-bk-dot" style="background:${s.color}"></div>
+        <div class="src-bk-name">${s.label}</div>
+        <div class="src-bk-pct">${pct}%</div>
+        <div class="src-bk-bar-bg"><div class="src-bk-bar-fill" style="width:${barW}%;background:${s.color}"></div></div>
+        <div class="src-bk-rev">${d.rev>0?d.rev.toLocaleString('fr-FR')+' €':'—'}</div>
+      </div>`;
+    });
+    h+=`</div>`;
     clientRows.forEach(row=>{
       const g=guest(row.gid);
       h+=`<div class="mbk-row" onclick="openGuestEdit('${row.gid}')">
