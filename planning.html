@@ -551,7 +551,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 
 /* ─── MODAL SECTIONS ─────────────────────────────────────────── */
 .msec{display:flex;flex-direction:column;gap:10px;background:#F8F6F2;border-radius:10px;
-  padding:12px 14px;border:1px solid var(--light);margin-bottom:8px;overflow:hidden;}
+  padding:12px 14px;border:1px solid var(--light);margin-bottom:8px;}
 .msec-title{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:600;
   text-transform:uppercase;letter-spacing:.07em;color:var(--earth);}
 .msec-title svg{flex-shrink:0;opacity:.75;}
@@ -737,15 +737,13 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
           <option value="wis">Wissous (gîte)</option>
         </select>
       </div>
-      <div class="frow">
-        <div class="fg">
-          <label class="fl">Arrivée</label>
-          <input type="date" class="fi" id="bIn" onchange="chkConflict();renderDinnerList()">
-        </div>
-        <div class="fg">
-          <label class="fl">Départ</label>
-          <input type="date" class="fi" id="bOut" onchange="chkConflict();renderDinnerList()">
-        </div>
+      <div class="fg">
+        <label class="fl">Arrivée</label>
+        <input type="date" class="fi" id="bIn" onchange="chkConflict();renderDinnerList()">
+      </div>
+      <div class="fg">
+        <label class="fl">Départ</label>
+        <input type="date" class="fi" id="bOut" onchange="chkConflict();renderDinnerList()">
       </div>
       <div class="frow">
         <div class="fg">
