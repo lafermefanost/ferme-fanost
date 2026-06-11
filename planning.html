@@ -818,7 +818,10 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
       </div>
       <div class="fg">
         <label class="fl">Prix personnalisé <span id="prixNetHint" style="color:var(--gray);font-weight:400;font-size:11px;"></span></label>
-        <input type="number" class="fi" id="prixNet" placeholder="Vide = calcul automatique" min="0" step="1">
+        <div style="position:relative;">
+          <input type="number" class="fi" id="prixNet" placeholder="Vide = calcul automatique" min="0" step="1" style="padding-right:26px;">
+          <span style="position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--gray);pointer-events:none;">€</span>
+        </div>
       </div>
       <div id="bExtrasTotal" style="display:none;font-size:12px;color:#7A8C65;font-weight:600;">
         Extras enregistrés : <span id="bExtrasTotalVal"></span>
