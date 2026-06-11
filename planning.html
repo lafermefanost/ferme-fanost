@@ -1698,13 +1698,16 @@ function renderGPicker(){
   ).join('');
   const g=selGid?S.guests.find(x=>x.id===selGid):null;
   const btns=[];
+  const icoWa=`<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.109.549 4.09 1.508 5.808L.057 24l6.304-1.654A11.93 11.93 0 0012 23.943C18.627 23.943 24 18.57 24 11.943S18.627 0 12 0zm0 21.87a9.882 9.882 0 01-5.032-1.373l-.361-.214-3.741.981.998-3.648-.235-.374A9.86 9.86 0 012.12 12c0-5.455 4.436-9.891 9.891-9.891S21.902 6.545 21.902 12c0 5.454-4.436 9.89-9.901 9.877z"/></svg>`;
+  const icoSms=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+  const icoMail=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`;
   if(g&&g.phone){
     const p=fmtIntlPhone(g.phone);
-    btns.push(`<a class="gcontact-btn wa" href="https://wa.me/${p}" target="_blank">💬 WhatsApp</a>`);
-    btns.push(`<a class="gcontact-btn sms" href="sms:+${p}">📱 SMS</a>`);
+    btns.push(`<a class="gcontact-btn wa" href="https://wa.me/${p}" target="_blank">${icoWa} WA</a>`);
+    btns.push(`<a class="gcontact-btn sms" href="sms:+${p}">${icoSms} SMS</a>`);
   }
   if(g&&g.email){
-    btns.push(`<a class="gcontact-btn mail" href="mailto:${g.email}">@ Email</a>`);
+    btns.push(`<a class="gcontact-btn mail" href="mailto:${g.email}">${icoMail} Mail</a>`);
   }
   byId('gContact').innerHTML=btns.join('');
 }
