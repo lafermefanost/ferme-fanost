@@ -283,17 +283,30 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   padding:5px 14px;font-size:11px;font-weight:500;color:#7A8C65;
   cursor:pointer;display:block;margin:0 auto 8px;}
 .today-now-btn:hover{background:#7A8C65;color:#fff;}
-.tday-sec{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;
-  font-weight:700;margin:20px 0 8px;padding:0;}
-.tday-sec::before{content:'';display:inline-block;width:3px;height:18px;border-radius:2px;flex-shrink:0;}
-.tday-sec.dep{color:#B06B30;}.tday-sec.dep::before{background:#B06B30;}
-.tday-sec.arr{color:#4A8540;}.tday-sec.arr::before{background:#4A8540;}
-.tday-sec.stay{color:#4A7A9B;}.tday-sec.stay::before{background:#4A7A9B;}
-.tday-sec.tom{color:#888;}.tday-sec.tom::before{background:#aaa;}
+.tsec-panel{border-radius:10px;overflow:hidden;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.tsec-hd{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;font-weight:700;font-size:13px;user-select:none;letter-spacing:.01em;}
+.tsec-hd:active{filter:brightness(.96);}
+.tsec-panel.dep>.tsec-hd{background:#FDF0E6;color:#B06B30;}
+.tsec-panel.arr>.tsec-hd{background:#EDF5EC;color:#3E7A34;}
+.tsec-panel.stay>.tsec-hd{background:#E8F0F7;color:#3A6E8E;}
+.tsec-panel.tom>.tsec-hd{background:#F2F2F2;color:#666;}
+.tsec-count{margin-left:auto;background:currentColor;color:#fff!important;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:700;}
+.tsec-count span{color:#fff;}
+.tsec-chev{font-size:11px;opacity:.6;transition:transform .2s;margin-left:4px;}
+.tsec-panel.collapsed>.tsec-hd .tsec-chev{transform:rotate(-90deg);}
+.tsec-body{background:var(--white);padding:8px 8px 4px;}
+.tsec-panel.collapsed>.tsec-body{display:none;}
+.tsec-empty{font-size:12px;color:var(--gray);padding:8px 6px 4px;text-align:center;}
 .tcard-total{display:flex;align-items:center;justify-content:space-between;
-  padding:9px 12px;background:#F8F4EC;border-top:1px solid #EAE0D0;font-size:13px;}
+  padding:9px 12px;background:#F8F4EC;border-top:1px solid #EAE0D0;font-size:13px;cursor:pointer;}
+.tcard-total:active{background:#F0E8D8;}
 .tcard-total-lbl{color:var(--gray);}
+.tcard-total-right{display:flex;align-items:center;gap:6px;}
 .tcard-total-val{font-weight:700;color:#7A5C30;font-size:15px;}
+.tcard-total-chev{font-size:11px;color:#999;transition:transform .2s;}
+.tcard-total-detail{background:#F8F4EC;border-top:1px solid #EAE0D0;padding:4px 14px 10px;}
+.ttd-line{display:flex;justify-content:space-between;font-size:12px;color:var(--gray);padding:3px 0;}
+.ttd-sep{border-top:1px solid #DDD6C8;margin-top:5px;padding-top:7px!important;color:#7A5C30!important;font-weight:700;font-size:13px!important;}
 .tcard{background:var(--white);border-radius:8px;
   box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:8px;overflow:hidden;}
 .tcard-header{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;}
@@ -1469,11 +1482,25 @@ function renderToday(){
     let totalHtml='';
     if(showTotal&&b.source!=='homexchange'&&b.source!=='ghost'){
       const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
-      const total=nights*getNightlyRate(b)+getThRevenue(b,b.checkIn,b.checkOut)+getExtrasTotal(b);
-      if(total>0) totalHtml=`<div class="tcard-total">
-        <span class="tcard-total-lbl">Total séjour (${nights} nuit${nights>1?'s':''})</span>
-        <span class="tcard-total-val">${total.toLocaleString('fr-FR')} €</span>
-      </div>`;
+      const rate=getNightlyRate(b);
+      const nightlyTotal=nights*rate;
+      const dinCount=b.dinnerNights?Object.keys(b.dinnerNights).filter(d=>b.dinnerNights[d]&&d>=b.checkIn&&d<b.checkOut).length:0;
+      const pax=b.nbPersons||2;
+      const thTotal=dinCount*pax*DEFAULT_PRICES.th;
+      const extTotal=getExtrasTotal(b);
+      const total=nightlyTotal+thTotal+extTotal;
+      if(total>0){
+        const tid='tt-'+b.id;
+        let rows=`<div class="ttd-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${nightlyTotal.toLocaleString('fr-FR')} €</span></div>`;
+        if(dinCount>0) rows+=`<div class="ttd-line"><span>${dinCount} repas × ${pax} pers × ${DEFAULT_PRICES.th} €</span><span>${thTotal.toLocaleString('fr-FR')} €</span></div>`;
+        if(extTotal>0) rows+=`<div class="ttd-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
+        rows+=`<div class="ttd-line ttd-sep"><span>Total séjour</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
+        totalHtml=`<div class="tcard-total" onclick="event.stopPropagation();(function(el){var d=document.getElementById('${tid}');var show=d.style.display!=='block';d.style.display=show?'block':'none';var c=el.querySelector('.tcard-total-chev');if(c)c.style.transform=show?'rotate(180deg)':''})(this)">
+          <span class="tcard-total-lbl">Total séjour — ${nights} nuit${nights>1?'s':''}</span>
+          <span class="tcard-total-right"><span class="tcard-total-val">${total.toLocaleString('fr-FR')} €</span><span class="tcard-total-chev">▾</span></span>
+        </div>
+        <div class="tcard-total-detail" id="${tid}" style="display:none">${rows}</div>`;
+      }
     }
     return`<div class="tcard">
       <div class="tcard-header" onclick="openEditModal('${b.id}')">
@@ -1508,13 +1535,20 @@ function renderToday(){
     <div class="tsm-item"><div class="tsm-val">${couverts||'—'}</div><div class="tsm-lbl">Repas</div></div>
   </div>`;
 
-  if(deps.length){h+=`<div class="tday-sec dep">↑ Départs</div>`;deps.forEach(b=>h+=card(b,'Départ',true));}
-  if(arrs.length){h+=`<div class="tday-sec arr">↓ Arrivées</div>`;arrs.forEach(b=>h+=card(b,b.arrivalTime?`Arrivée ${b.arrivalTime}`:'Arrivée'));}
-  if(stays.length){h+=`<div class="tday-sec stay">● En cours</div>`;stays.forEach(b=>h+=card(b,`Départ le ${fmtDate(b.checkOut)}`));}
-  if(tArrs.length){h+=`<div class="tday-sec tom">⏰ Demain</div>`;tArrs.forEach(b=>h+=card(b,b.arrivalTime?`Demain ${b.arrivalTime}`:'Demain'));}
-  if(!arrs.length&&!deps.length&&!stays.length){
-    h+=`<div class="t-empty"><div class="t-empty-icon">🌿</div>Aucune réservation ce jour</div>`;
-  }
+  const panel=(cls,icon,title,items,cardFn)=>{
+    const cnt=items.length;
+    let body=cnt?items.map(cardFn).join(''):`<div class="tsec-empty">Aucun</div>`;
+    return`<div class="tsec-panel ${cls}${cnt===0?' collapsed':''}">
+      <div class="tsec-hd" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
+        ${icon} ${title}<span class="tsec-count"><span>${cnt}</span></span><span class="tsec-chev">▾</span>
+      </div>
+      <div class="tsec-body">${body}</div>
+    </div>`;
+  };
+  h+=panel('dep','↑','Départs',deps,b=>card(b,'Départ',true));
+  h+=panel('arr','↓','Arrivées',arrs,b=>card(b,b.arrivalTime?`Arrivée ${b.arrivalTime}`:'Arrivée'));
+  h+=panel('stay','●','En cours',stays,b=>card(b,`Départ le ${fmtDate(b.checkOut)}`));
+  if(tArrs.length) h+=panel('tom','⏰','Demain',tArrs,b=>card(b,b.arrivalTime?`Demain ${b.arrivalTime}`:'Demain'));
   h+='</div>';
   byId('todayWrap').innerHTML=h;
   if(openExtrasId){const p=document.getElementById('xe-'+openExtrasId);if(p)p.style.display='block';}
