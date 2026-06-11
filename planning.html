@@ -283,8 +283,17 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   padding:5px 14px;font-size:11px;font-weight:500;color:#7A8C65;
   cursor:pointer;display:block;margin:0 auto 8px;}
 .today-now-btn:hover{background:#7A8C65;color:#fff;}
-.tday-sec{font-size:10px;text-transform:uppercase;letter-spacing:.08em;
-  color:var(--gray);font-weight:600;margin:14px 0 6px;}
+.tday-sec{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+  font-weight:700;margin:20px 0 8px;padding:0;}
+.tday-sec::before{content:'';display:inline-block;width:3px;height:18px;border-radius:2px;flex-shrink:0;}
+.tday-sec.dep{color:#B06B30;}.tday-sec.dep::before{background:#B06B30;}
+.tday-sec.arr{color:#4A8540;}.tday-sec.arr::before{background:#4A8540;}
+.tday-sec.stay{color:#4A7A9B;}.tday-sec.stay::before{background:#4A7A9B;}
+.tday-sec.tom{color:#888;}.tday-sec.tom::before{background:#aaa;}
+.tcard-total{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;background:#F8F4EC;border-top:1px solid #EAE0D0;font-size:13px;}
+.tcard-total-lbl{color:var(--gray);}
+.tcard-total-val{font-weight:700;color:#7A5C30;font-size:15px;}
 .tcard{background:var(--white);border-radius:8px;
   box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:8px;overflow:hidden;}
 .tcard-header{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;}
@@ -1451,13 +1460,21 @@ function renderToday(){
     return xh;
   };
 
-  const card=(b,sub)=>{
+  const card=(b,sub,showTotal=false)=>{
     const g=guest(b.guestId);const col=g?g.color:'#999';const rm=room(b.roomId);
     const hasDin=b.dinnerNights&&b.dinnerNights[ds];
     const thBadge=hasDin?`<span style="font-size:11px;color:#7A8C65;font-weight:600;flex-shrink:0">🍽️${b.nbPersons||2}</span>`:'';
-    const xt=getExtrasTotal(b);
     const xd=getExtrasDayTotal(b,ds);
     const extLabel=xd>0?`<span class="extbtn-total">${xd.toLocaleString('fr-FR')} €</span>`:`<span class="extbtn-add">+</span>`;
+    let totalHtml='';
+    if(showTotal&&b.source!=='homexchange'&&b.source!=='ghost'){
+      const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
+      const total=nights*getNightlyRate(b)+getThRevenue(b,b.checkIn,b.checkOut)+getExtrasTotal(b);
+      if(total>0) totalHtml=`<div class="tcard-total">
+        <span class="tcard-total-lbl">Total séjour (${nights} nuit${nights>1?'s':''})</span>
+        <span class="tcard-total-val">${total.toLocaleString('fr-FR')} €</span>
+      </div>`;
+    }
     return`<div class="tcard">
       <div class="tcard-header" onclick="openEditModal('${b.id}')">
         <div class="tbar" style="background:${col}"></div>
@@ -1469,6 +1486,7 @@ function renderToday(){
         <span class="extbtn-label">Extras</span>${extLabel}
       </div>
       <div class="tcard-extras" id="xe-${b.id}" onclick="event.stopPropagation()">${extrasHTML(b)}</div>
+      ${totalHtml}
     </div>`;
   };
 
@@ -1490,10 +1508,10 @@ function renderToday(){
     <div class="tsm-item"><div class="tsm-val">${couverts||'—'}</div><div class="tsm-lbl">Repas</div></div>
   </div>`;
 
-  if(deps.length){h+=`<div class="tday-sec">Départs</div>`;deps.forEach(b=>h+=card(b,'Départ'));}
-  if(arrs.length){h+=`<div class="tday-sec">Arrivées</div>`;arrs.forEach(b=>h+=card(b,b.arrivalTime?`Arrivée ${b.arrivalTime}`:'Arrivée'));}
-  if(stays.length){h+=`<div class="tday-sec">En cours</div>`;stays.forEach(b=>h+=card(b,`Départ le ${fmtDate(b.checkOut)}`));}
-  if(tArrs.length){h+=`<div class="tday-sec">Arrivées demain</div>`;tArrs.forEach(b=>h+=card(b,b.arrivalTime?`Demain ${b.arrivalTime}`:'Demain'));}
+  if(deps.length){h+=`<div class="tday-sec dep">↑ Départs</div>`;deps.forEach(b=>h+=card(b,'Départ',true));}
+  if(arrs.length){h+=`<div class="tday-sec arr">↓ Arrivées</div>`;arrs.forEach(b=>h+=card(b,b.arrivalTime?`Arrivée ${b.arrivalTime}`:'Arrivée'));}
+  if(stays.length){h+=`<div class="tday-sec stay">● En cours</div>`;stays.forEach(b=>h+=card(b,`Départ le ${fmtDate(b.checkOut)}`));}
+  if(tArrs.length){h+=`<div class="tday-sec tom">⏰ Demain</div>`;tArrs.forEach(b=>h+=card(b,b.arrivalTime?`Demain ${b.arrivalTime}`:'Demain'));}
   if(!arrs.length&&!deps.length&&!stays.length){
     h+=`<div class="t-empty"><div class="t-empty-icon">🌿</div>Aucune réservation ce jour</div>`;
   }
