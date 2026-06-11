@@ -502,6 +502,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .fi,.fsel{width:100%;min-width:0;padding:9px 11px;border:1px solid var(--light);border-radius:6px;
   font-family:'Jost',sans-serif;font-size:13px;color:var(--dark);background:var(--white);
   outline:none;transition:border-color .15s;}
+input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .fi:focus,.fsel:focus{border-color:var(--earth);}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .frow>.fg{min-width:0;}
@@ -737,15 +738,13 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
           <option value="wis">Wissous (gîte)</option>
         </select>
       </div>
-      <div class="frow">
-        <div class="fg">
-          <label class="fl">Arrivée</label>
-          <input type="date" class="fi" id="bIn" onchange="chkConflict();renderDinnerList()">
-        </div>
-        <div class="fg">
-          <label class="fl">Départ</label>
-          <input type="date" class="fi" id="bOut" onchange="chkConflict();renderDinnerList()">
-        </div>
+      <div class="fg">
+        <label class="fl">Arrivée</label>
+        <input type="date" class="fi" id="bIn" onchange="chkConflict();renderDinnerList()">
+      </div>
+      <div class="fg">
+        <label class="fl">Départ</label>
+        <input type="date" class="fi" id="bOut" onchange="chkConflict();renderDinnerList()">
       </div>
       <div class="frow">
         <div class="fg">
