@@ -516,6 +516,13 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .gnew-btn{margin-top:8px;font-size:12px;color:var(--earth);cursor:pointer;
   display:inline-block;padding:2px 0;}
 .gnew-btn:hover{text-decoration:underline;}
+.gcontact{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.gcontact-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;
+  border-radius:16px;font-size:11px;font-weight:600;text-decoration:none;
+  border:1.5px solid var(--light);background:#fff;transition:all .15s;font-family:'Jost',sans-serif;}
+.gcontact-btn.wa{border-color:#25D366;color:#25D366;}.gcontact-btn.wa:hover{background:#F0FDF4;}
+.gcontact-btn.sms{border-color:#5B8AF0;color:#5B8AF0;}.gcontact-btn.sms:hover{background:#EEF2FF;}
+.gcontact-btn.mail{border-color:#E8963A;color:#E8963A;}.gcontact-btn.mail:hover{background:#FFF7ED;}
 .pax-picker{display:flex;gap:7px;margin-top:4px;}
 .pax-btn{width:44px;height:38px;border:1.5px solid var(--light);border-radius:8px;
   background:var(--white);font-family:'Jost',sans-serif;font-size:15px;font-weight:500;
@@ -682,6 +689,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
       <input class="fi gsearch" id="gSearch" placeholder="Rechercher un client…"
         autocomplete="off" oninput="filterGuests(this.value)">
       <div class="gpicker" id="gPicker"></div>
+      <div class="gcontact" id="gContact"></div>
       <div class="gnew-btn" onclick="pickNew()">+ Nouveau client</div>
     </div>
     <div class="fg" id="newGNameFg" style="display:none">
@@ -1670,6 +1678,12 @@ function filterGuests(val){
   renderGPicker();
 }
 
+function fmtIntlPhone(p){
+  const d=p.replace(/\D/g,'');
+  if(d.startsWith('0')) return '33'+d.slice(1);
+  if(d.startsWith('33')) return d;
+  return d;
+}
 function renderGPicker(){
   const sorted=[...S.guests].sort((a,b)=>a.name.localeCompare(b.name));
   let visible;
@@ -1682,6 +1696,17 @@ function renderGPicker(){
     `<div class="gchip${g.id===selGid?' on':''}" onclick="pickGuest('${g.id}')">
       <span class="cdot" style="background:${g.color}"></span>${g.name}</div>`
   ).join('');
+  const g=selGid?S.guests.find(x=>x.id===selGid):null;
+  const btns=[];
+  if(g&&g.phone){
+    const p=fmtIntlPhone(g.phone);
+    btns.push(`<a class="gcontact-btn wa" href="https://wa.me/${p}" target="_blank">💬 WhatsApp</a>`);
+    btns.push(`<a class="gcontact-btn sms" href="sms:+${p}">📱 SMS</a>`);
+  }
+  if(g&&g.email){
+    btns.push(`<a class="gcontact-btn mail" href="mailto:${g.email}">@ Email</a>`);
+  }
+  byId('gContact').innerHTML=btns.join('');
 }
 
 function pickGuest(id){
