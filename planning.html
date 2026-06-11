@@ -504,6 +504,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   outline:none;transition:border-color .15s;}
 .fi:focus,.fsel:focus{border-color:var(--earth);}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.frow>.fg{min-width:0;}
 
 .gsearch{margin-top:6px;}
 .gpicker{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;
@@ -523,10 +524,16 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .gcontact-btn.wa{border-color:#25D366;color:#25D366;}.gcontact-btn.wa:hover{background:#F0FDF4;}
 .gcontact-btn.sms{border-color:#5B8AF0;color:#5B8AF0;}.gcontact-btn.sms:hover{background:#EEF2FF;}
 .gcontact-btn.mail{border-color:#E8963A;color:#E8963A;}.gcontact-btn.mail:hover{background:#FFF7ED;}
+.gsel-card{display:flex;align-items:stretch;background:#fff;border-radius:8px;
+  border:1.5px solid var(--light);overflow:hidden;margin-top:6px;}
+.gsel-bar{width:5px;flex-shrink:0;}
+.gsel-info{padding:9px 12px;flex:1;}
+.gsel-name-label{font-weight:700;font-size:15px;color:var(--dark);line-height:1.2;}
+.gsel-hint{font-size:10px;color:var(--gray);margin-top:2px;}
 .pax-picker{display:flex;gap:7px;margin-top:4px;}
-.pax-btn{width:44px;height:38px;border:1.5px solid var(--light);border-radius:8px;
+.pax-btn{width:38px;height:38px;border:1.5px solid var(--light);border-radius:50%;
   background:var(--white);font-family:'Jost',sans-serif;font-size:15px;font-weight:500;
-  color:var(--gray);cursor:pointer;transition:all .15s;}
+  color:var(--gray);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
 .pax-btn.on{border-color:var(--green);background:var(--green);color:var(--white);}
 .cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.1);}
 
@@ -544,7 +551,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 
 /* ─── MODAL SECTIONS ─────────────────────────────────────────── */
 .msec{display:flex;flex-direction:column;gap:10px;background:#F8F6F2;border-radius:10px;
-  padding:12px 14px;border:1px solid var(--light);margin-bottom:8px;}
+  padding:12px 14px;border:1px solid var(--light);margin-bottom:8px;overflow:hidden;}
 .msec-title{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:600;
   text-transform:uppercase;letter-spacing:.07em;color:var(--earth);}
 .msec-title svg{flex-shrink:0;opacity:.75;}
@@ -701,6 +708,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
       <div class="fg">
         <input class="fi gsearch" id="gSearch" placeholder="Rechercher un client…"
           autocomplete="off" oninput="filterGuests(this.value)">
+        <div id="gSelectedName" style="display:none"></div>
         <div class="gpicker" id="gPicker"></div>
         <div class="gcontact" id="gContact"></div>
         <div class="gnew-btn" onclick="pickNew()">+ Nouveau client</div>
@@ -762,8 +770,8 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
     <!-- ── Personnes ── -->
     <div class="msec">
       <div class="msec-title">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Personnes
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Services
       </div>
       <div class="fg">
         <label class="fl">Nb personnes</label>
@@ -1731,6 +1739,15 @@ function renderGPicker(){
       <span class="cdot" style="background:${g.color}"></span>${g.name}</div>`
   ).join('');
   const g=selGid?S.guests.find(x=>x.id===selGid):null;
+  const gSelEl=byId('gSelectedName');
+  if(g&&!gSearchTerm){
+    gSelEl.innerHTML=`<div class="gsel-card"><div class="gsel-bar" style="background:${g.color}"></div><div class="gsel-info"><div class="gsel-name-label">${g.name}</div><div class="gsel-hint">Taper pour changer</div></div></div>`;
+    gSelEl.style.display='block';
+    byId('gPicker').style.display='none';
+  }else{
+    gSelEl.style.display='none';
+    byId('gPicker').style.display='flex';
+  }
   const btns=[];
   const icoWa=`<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.109.549 4.09 1.508 5.808L.057 24l6.304-1.654A11.93 11.93 0 0012 23.943C18.627 23.943 24 18.57 24 11.943S18.627 0 12 0zm0 21.87a9.882 9.882 0 01-5.032-1.373l-.361-.214-3.741.981.998-3.648-.235-.374A9.86 9.86 0 012.12 12c0-5.455 4.436-9.891 9.891-9.891S21.902 6.545 21.902 12c0 5.454-4.436 9.89-9.901 9.877z"/></svg>`;
   const icoSms=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
