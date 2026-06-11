@@ -518,7 +518,12 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .gnew-btn{margin-top:8px;font-size:12px;color:var(--earth);cursor:pointer;
   display:inline-block;padding:2px 0;}
 .gnew-btn:hover{text-decoration:underline;}
-.gcontact{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.gcontact{display:flex;gap:6px;flex-wrap:wrap;}
+.gsel-change{background:none;border:none;font-family:'Jost',sans-serif;font-size:11px;
+  color:var(--gray);cursor:pointer;padding:0 12px;white-space:nowrap;
+  text-decoration:underline;text-underline-offset:2px;align-self:center;}
+.gsel-change:hover{color:var(--dark);}
+#gSearchWrap{display:flex;flex-direction:column;}
 .gcontact-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;
   border-radius:16px;font-size:11px;font-weight:600;text-decoration:none;
   border:1.5px solid var(--light);background:#fff;transition:all .15s;font-family:'Jost',sans-serif;}
@@ -706,15 +711,15 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         Client
       </div>
-      <div class="fg">
+      <div id="gSelectedName" style="display:none"></div>
+      <div class="gcontact" id="gContact" style="display:none"></div>
+      <div id="gSearchWrap">
         <input class="fi gsearch" id="gSearch" placeholder="Rechercher un client…"
           autocomplete="off" oninput="filterGuests(this.value)">
-        <div id="gSelectedName" style="display:none"></div>
         <div class="gpicker" id="gPicker"></div>
-        <div class="gcontact" id="gContact"></div>
-        <div class="gnew-btn" onclick="pickNew()">+ Nouveau client</div>
+        <div class="gnew-btn" id="gNewBtn" onclick="pickNew()">+ Nouveau client</div>
       </div>
-      <div class="fg" id="newGNameFg" style="display:none">
+      <div id="newGNameFg" style="display:none">
         <input class="fi" id="newGName" placeholder="Nom du nouveau client">
       </div>
     </div>
@@ -1647,7 +1652,7 @@ document.addEventListener('mousemove',e=>{if(byId('tooltip').style.display==='bl
 //  BOOKING MODAL
 // ═══════════════════════════════════════════════════════════════
 function openAddModal(roomId,ds,dsOut){
-  editBid=null;selGid=null;newGMode=false;gSearchTerm='';
+  editBid=null;selGid=null;newGMode=false;gSearchTerm='';gChanging=false;
   byId('mBookTitle').textContent='Nouvelle réservation';
   byId('bDelBtn').style.display='none';
   byId('conflictWarn').style.display='none';
@@ -1677,7 +1682,7 @@ function openAddModal(roomId,ds,dsOut){
 function openEditModal(id){
   const b=S.bookings.find(x=>x.id===id);
   if(!b)return;
-  editBid=id;selGid=b.guestId;newGMode=false;gSearchTerm='';
+  editBid=id;selGid=b.guestId;newGMode=false;gSearchTerm='';gChanging=false;
   byId('gSearch').value='';
   byId('mBookTitle').textContent='Modifier la réservation';
   byId('bDelBtn').style.display='block';
@@ -1706,6 +1711,7 @@ function openEditModal(id){
 }
 
 let gSearchTerm='';
+let gChanging=false;
 
 function setPax(n){
   byId('bPersons').value=n;
@@ -1716,6 +1722,7 @@ function setPax(n){
 
 function filterGuests(val){
   gSearchTerm=val.trim().toLowerCase();
+  if(!gSearchTerm&&gChanging&&selGid)gChanging=false;
   renderGPicker();
 }
 
@@ -1727,26 +1734,31 @@ function fmtIntlPhone(p){
 }
 function renderGPicker(){
   const sorted=[...S.guests].sort((a,b)=>a.name.localeCompare(b.name));
-  let visible;
-  if(gSearchTerm){
-    visible=sorted.filter(g=>g.name.toLowerCase().includes(gSearchTerm));
-  } else {
-    visible=selGid ? sorted.filter(g=>g.id===selGid) : [];
-  }
+  const searching=!!gSearchTerm;
+  const showName=selGid&&!gChanging&&!searching;
+  const visible=searching
+    ? sorted.filter(g=>g.name.toLowerCase().includes(gSearchTerm))
+    : showName ? sorted.filter(g=>g.id===selGid) : [];
   byId('gPicker').innerHTML=visible.map(g=>
     `<div class="gchip${g.id===selGid?' on':''}" onclick="pickGuest('${g.id}')">
       <span class="cdot" style="background:${g.color}"></span>${g.name}</div>`
   ).join('');
+  byId('gPicker').style.display=visible.length?'flex':'none';
+
   const g=selGid?S.guests.find(x=>x.id===selGid):null;
   const gSelEl=byId('gSelectedName');
-  if(g&&!gSearchTerm){
-    gSelEl.innerHTML=`<div class="gsel-card"><div class="gsel-bar" style="background:${g.color}"></div><div class="gsel-info"><div class="gsel-name-label">${g.name}</div><div class="gsel-hint">Taper pour changer</div></div></div>`;
+  if(showName&&g){
+    const changeBtn=editBid
+      ?`<button class="gsel-change" onclick="gChanging=true;renderGPicker();byId('gSearch').focus()">Changer</button>`
+      :'';
+    gSelEl.innerHTML=`<div class="gsel-card"><div class="gsel-bar" style="background:${g.color}"></div><div class="gsel-info"><div class="gsel-name-label">${g.name}</div></div>${changeBtn}</div>`;
     gSelEl.style.display='block';
-    byId('gPicker').style.display='none';
+    byId('gSearchWrap').style.display=editBid?'none':'flex';
   }else{
     gSelEl.style.display='none';
-    byId('gPicker').style.display='flex';
+    byId('gSearchWrap').style.display='flex';
   }
+  byId('gNewBtn').style.display=editBid?'none':'block';
   const btns=[];
   const icoWa=`<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.109.549 4.09 1.508 5.808L.057 24l6.304-1.654A11.93 11.93 0 0012 23.943C18.627 23.943 24 18.57 24 11.943S18.627 0 12 0zm0 21.87a9.882 9.882 0 01-5.032-1.373l-.361-.214-3.741.981.998-3.648-.235-.374A9.86 9.86 0 012.12 12c0-5.455 4.436-9.891 9.891-9.891S21.902 6.545 21.902 12c0 5.454-4.436 9.89-9.901 9.877z"/></svg>`;
   const icoSms=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
@@ -1760,10 +1772,11 @@ function renderGPicker(){
     btns.push(`<a class="gcontact-btn mail" href="mailto:${g.email}">${icoMail} Mail</a>`);
   }
   byId('gContact').innerHTML=btns.join('');
+  byId('gContact').style.display=btns.length?'flex':'none';
 }
 
 function pickGuest(id){
-  selGid=id;newGMode=false;
+  selGid=id;newGMode=false;gChanging=false;
   gSearchTerm='';
   byId('gSearch').value='';
   byId('newGNameFg').style.display='none';
