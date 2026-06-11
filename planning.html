@@ -524,12 +524,13 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
   text-decoration:underline;text-underline-offset:2px;align-self:center;}
 .gsel-change:hover{color:var(--dark);}
 #gSearchWrap{display:flex;flex-direction:column;}
-.gcontact-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;
-  border-radius:16px;font-size:11px;font-weight:600;text-decoration:none;
-  border:1.5px solid var(--light);background:#fff;transition:all .15s;font-family:'Jost',sans-serif;}
-.gcontact-btn.wa{border-color:#25D366;color:#25D366;}.gcontact-btn.wa:hover{background:#F0FDF4;}
-.gcontact-btn.sms{border-color:#5B8AF0;color:#5B8AF0;}.gcontact-btn.sms:hover{background:#EEF2FF;}
-.gcontact-btn.mail{border-color:#E8963A;color:#E8963A;}.gcontact-btn.mail:hover{background:#FFF7ED;}
+.gcontact-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;
+  border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;
+  border:none;color:#fff;transition:filter .15s;font-family:'Jost',sans-serif;}
+.gcontact-btn:hover{filter:brightness(.88);}
+.gcontact-btn.wa{background:#25D366;}
+.gcontact-btn.sms{background:#5B8AF0;}
+.gcontact-btn.mail{background:#E8963A;}
 .gsel-card{display:flex;align-items:stretch;background:#fff;border-radius:8px;
   border:1.5px solid var(--light);overflow:hidden;margin-top:6px;}
 .gsel-bar{width:5px;flex-shrink:0;}
@@ -819,6 +820,9 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
         <label class="fl">Prix personnalisé <span id="prixNetHint" style="color:var(--gray);font-weight:400;font-size:11px;"></span></label>
         <input type="number" class="fi" id="prixNet" placeholder="Vide = calcul automatique" min="0" step="1">
       </div>
+      <div id="bExtrasTotal" style="display:none;font-size:12px;color:#7A8C65;font-weight:600;">
+        Extras enregistrés : <span id="bExtrasTotalVal"></span>
+      </div>
     </div>
 
     <!-- ── Notes ── -->
@@ -829,9 +833,6 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
       </div>
       <div class="fg">
         <input type="text" class="fi" id="bNotes" placeholder="lit bébé, accès code, allergie…">
-      </div>
-      <div id="bExtrasTotal" style="display:none;font-size:12px;color:#7A8C65;font-weight:600;">
-        Extras enregistrés : <span id="bExtrasTotalVal"></span>
       </div>
     </div>
 
