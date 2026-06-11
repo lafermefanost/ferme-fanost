@@ -773,6 +773,11 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
       </div>
     </div>
 
+    <div class="fg" style="margin-bottom:14px;">
+      <label class="fl">Prix personnalisé <span id="prixNetHint" style="color:var(--gray);font-weight:400;font-size:11px;"></span></label>
+      <input type="number" class="fi" id="prixNet" placeholder="Vide = calcul automatique" min="0" step="1">
+    </div>
+
     <div class="macts">
       <button class="btn-d" id="bDelBtn" onclick="delBooking()" style="display:none">Supprimer</button>
       <button class="btn-s" onclick="closeM('modalBooking')">Annuler</button>
@@ -1480,20 +1485,27 @@ function renderToday(){
     if(showTotal&&b.source!=='homexchange'&&b.source!=='ghost'){
       const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
       const rate=getNightlyRate(b);
-      const nightlyTotal=nights*rate;
       const dinCount=b.dinnerNights?Object.keys(b.dinnerNights).filter(d=>b.dinnerNights[d]&&d>=b.checkIn&&d<b.checkOut).length:0;
       const pax=b.nbPersons||2;
-      const thTotal=dinCount*pax*DEFAULT_PRICES.th;
       const extTotal=getExtrasTotal(b);
-      const total=nightlyTotal+thTotal+extTotal;
+      const isCustom=b.prixNet!=null&&b.prixNet>0;
+      const total=getStayTotal(b);
       if(total>0){
         const tid='tt-'+b.id;
-        let rows=`<div class="ttd-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${nightlyTotal.toLocaleString('fr-FR')} €</span></div>`;
-        if(dinCount>0) rows+=`<div class="ttd-line"><span>${dinCount} repas × ${pax} pers × ${DEFAULT_PRICES.th} €</span><span>${thTotal.toLocaleString('fr-FR')} €</span></div>`;
-        if(extTotal>0) rows+=`<div class="ttd-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
-        rows+=`<div class="ttd-line ttd-sep"><span>Total séjour</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
+        let rows='';
+        if(isCustom){
+          const autoTotal=nights*rate+dinCount*pax*DEFAULT_PRICES.th+extTotal;
+          rows+=`<div class="ttd-line"><span>Prix personnalisé</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
+          if(autoTotal>0) rows+=`<div class="ttd-line" style="opacity:.5;font-style:italic"><span>Calcul auto : ${autoTotal.toLocaleString('fr-FR')} €</span><span></span></div>`;
+        } else {
+          rows+=`<div class="ttd-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
+          if(dinCount>0) rows+=`<div class="ttd-line"><span>${dinCount} repas × ${pax} pers × ${DEFAULT_PRICES.th} €</span><span>${(dinCount*pax*DEFAULT_PRICES.th).toLocaleString('fr-FR')} €</span></div>`;
+          if(extTotal>0) rows+=`<div class="ttd-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
+          rows+=`<div class="ttd-line ttd-sep"><span>Total séjour</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
+        }
+        const lbl=isCustom?'Prix personnalisé':'Total séjour';
         totalHtml=`<div class="tcard-total" onclick="event.stopPropagation();(function(el){var d=document.getElementById('${tid}');var show=d.style.display!=='block';d.style.display=show?'block':'none';var c=el.querySelector('.tcard-total-chev');if(c)c.style.transform=show?'rotate(180deg)':''})(this)">
-          <span class="tcard-total-lbl">Total séjour — ${nights} nuit${nights>1?'s':''}</span>
+          <span class="tcard-total-lbl">${lbl} — ${nights} nuit${nights>1?'s':''}</span>
           <span class="tcard-total-right"><span class="tcard-total-val">${total.toLocaleString('fr-FR')} €</span><span class="tcard-total-chev">▾</span></span>
         </div>
         <div class="tcard-total-detail" id="${tid}" style="display:none">${rows}</div>`;
@@ -1596,6 +1608,8 @@ function openAddModal(roomId,ds,dsOut){
   byId('bStatus').value='ok';
   setPax(1);
   byId('bNotes').value='';
+  byId('prixNet').value='';
+  byId('prixNetHint').textContent='';
   resetPaymentUI(null,false,'');
   byId('bExtrasTotal').style.display='none';
 
@@ -1623,6 +1637,10 @@ function openEditModal(id){
   setPax(b.nbPersons||2);
   byId('bNotes').value=b.notes||'';
   resetPaymentUI(b.payment,b.ghost,b.depositAmount,b.source);
+  byId('prixNet').value=b.prixNet||'';
+  const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
+  const autoP=nights*getNightlyRate(b)+getThRevenue(b,b.checkIn,b.checkOut)+getExtrasTotal(b);
+  byId('prixNetHint').textContent=autoP>0?`(auto : ${autoP.toLocaleString('fr-FR')} €)`:'';
   const xt=getExtrasTotal(b);
   if(xt>0){byId('bExtrasTotal').style.display='block';byId('bExtrasTotalVal').textContent=xt.toLocaleString('fr-FR')+' €';}
   else byId('bExtrasTotal').style.display='none';
@@ -1766,6 +1784,7 @@ function saveBooking(){
   const depositAmt=pay==='deposit'?(parseFloat(byId('depositAmt').value)||0):0;
   const source=bkSource;
   const ghost=source==='ghost';
+  const prixNet=parseFloat(byId('prixNet').value)||null;
 
   if(!ci||!co){alert('Remplissez les dates');return;}
   if(ci>=co){alert('La date de départ doit être après l\'arrivée');return;}
@@ -1784,9 +1803,9 @@ function saveBooking(){
   if(editBid){
     const i=S.bookings.findIndex(b=>b.id===editBid);
     const dn=getDinnerNights();
-    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost};
+    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet};
   }else{
-    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost});
+    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet});
   }
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
@@ -2250,6 +2269,22 @@ function getExtrasTotal(bk){
   if(!bk.extras)return 0;
   return Object.keys(bk.extras).reduce((s,ds)=>s+getExtrasDayTotal(bk,ds),0);
 }
+function getStayTotal(bk){
+  if(bk.prixNet!=null&&bk.prixNet>0) return bk.prixNet;
+  const nights=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
+  return nights*getNightlyRate(bk)+getThRevenue(bk,bk.checkIn,bk.checkOut)+getExtrasTotal(bk);
+}
+function getBookingRevForPeriod(bk,pStart,pEnd){
+  const oStart=bk.checkIn>pStart?bk.checkIn:pStart;
+  const oEnd=bk.checkOut<pEnd?bk.checkOut:pEnd;
+  const n=daysBetween(oStart,oEnd);
+  if(n<=0) return 0;
+  if(bk.prixNet!=null&&bk.prixNet>0){
+    const total=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
+    return total>0?Math.round(bk.prixNet*n/total):0;
+  }
+  return n*getNightlyRate(bk)+getThRevenue(bk,pStart,pEnd);
+}
 
 function chDay(n){S.todayDate=addDays(S.todayDate||todayISO(),n);renderToday();}
 function goTodayView(){S.todayDate=todayISO();renderToday();}
@@ -2280,7 +2315,7 @@ function renderWeek(){
     const n=daysBetween(oStart,oEnd);
     if(n>0){
       totalNights+=n;
-      totalRev+=n*getNightlyRate(bk)+getThRevenue(bk,S.wStart,wEnd);
+      totalRev+=getBookingRevForPeriod(bk,S.wStart,wEnd);
     }
     if(bk.extras){
       for(let i=0;i<7;i++){
@@ -2400,7 +2435,7 @@ function renderMonth(){
     const n=daysBetween(oStart,oEnd);
     if(n>0){
       totalNights+=n;
-      totalRev+=n*getNightlyRate(bk)+getThRevenue(bk,mStart,mEndExact);
+      totalRev+=getBookingRevForPeriod(bk,mStart,mEndExact);
     }
   });
   const occPct=totalPossible>0?Math.round(totalNights/totalPossible*100):0;
@@ -2467,7 +2502,7 @@ function renderMonth(){
       const n=daysBetween(oStart,oEnd);
       byGuest[gid].bkCount++;
       byGuest[gid].nights+=n;
-      byGuest[gid].rev+=n*getNightlyRate(bk)+getThRevenue(bk,mStart,mEndExact);
+      byGuest[gid].rev+=getBookingRevForPeriod(bk,mStart,mEndExact);
     });
     const clientRows=Object.values(byGuest).sort((a,b)=>b.rev-a.rev);
 
@@ -2487,7 +2522,7 @@ function renderMonth(){
       const oEnd=bk.checkOut<mEndExact?bk.checkOut:mEndExact;
       const n=daysBetween(oStart,oEnd);
       srcMap[grp].n++;
-      srcMap[grp].rev+=n*getNightlyRate(bk)+getThRevenue(bk,mStart,mEndExact);
+      srcMap[grp].rev+=getBookingRevForPeriod(bk,mStart,mEndExact);
     });
     const srcActive=srcDef.filter(s=>srcMap[s.key].n>0);
     const maxN=Math.max(...srcActive.map(s=>srcMap[s.key].n));
