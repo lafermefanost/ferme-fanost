@@ -291,7 +291,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .tsec-count span{color:#fff;}
 .tsec-chev{font-size:11px;opacity:.6;transition:transform .2s;margin-left:4px;}
 .tsec-panel.collapsed>.tsec-hd .tsec-chev{transform:rotate(-90deg);}
-.tsec-body{background:var(--white);padding:8px 8px 4px;}
+.tsec-body{background:var(--cream);padding:10px 10px 6px;}
 .tsec-panel.collapsed>.tsec-body{display:none;}
 .tsec-empty{font-size:12px;color:var(--gray);padding:8px 6px 4px;text-align:center;}
 .tcard-total{display:flex;align-items:center;justify-content:space-between;
@@ -304,15 +304,17 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .tcard-total-detail{background:#F8F4EC;border-top:1px solid #EAE0D0;padding:4px 14px 10px;}
 .ttd-line{display:flex;justify-content:space-between;font-size:12px;color:var(--gray);padding:3px 0;}
 .ttd-sep{border-top:1px solid #DDD6C8;margin-top:5px;padding-top:7px!important;color:#7A5C30!important;font-weight:700;font-size:13px!important;}
-.tcard{background:var(--white);border-radius:8px;
-  box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:8px;overflow:hidden;}
-.tcard-header{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;}
+.tcard{background:var(--white);border-radius:10px;
+  box-shadow:0 2px 10px rgba(0,0,0,.10);margin-bottom:14px;overflow:hidden;}
+.tcard-header{display:flex;align-items:stretch;gap:0;padding:0;cursor:pointer;}
 .tcard-header:active{background:#F5F0E8;}
-.tbar{width:4px;height:40px;border-radius:2px;flex-shrink:0;}
+.tbar{width:5px;flex-shrink:0;align-self:stretch;border-radius:0;}
+.tcard-header-inner{flex:1;display:flex;align-items:center;gap:10px;padding:13px 14px;}
 .tinfo{flex:1;}
-.tname{font-weight:500;font-size:14px;}
-.tdetail{font-size:11px;color:var(--gray);margin-top:1px;}
-.troom{font-size:11px;font-weight:600;color:var(--earth);}
+.tname{font-weight:700;font-size:15px;color:var(--dark);}
+.tdetail{font-size:12px;color:var(--gray);margin-top:3px;}
+.troom{font-size:11px;font-weight:700;background:var(--light);color:var(--earth);
+  padding:3px 9px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
 .t-empty{text-align:center;padding:40px 20px;color:var(--gray);}
 .t-empty-icon{font-size:44px;margin-bottom:10px;}
 /* Extras chips */
@@ -1514,9 +1516,11 @@ function renderToday(){
     return`<div class="tcard">
       <div class="tcard-header" onclick="openEditModal('${b.id}')">
         <div class="tbar" style="background:${col}"></div>
-        <div class="tinfo"><div class="tname">${g?g.name:'?'}</div>
-          <div class="tdetail">${sub}${b.notes?' — '+b.notes:''}</div></div>
-        ${thBadge}<div class="troom">${rm?rm.name:''}</div>
+        <div class="tcard-header-inner">
+          <div class="tinfo"><div class="tname">${g?g.name:'?'}</div>
+            <div class="tdetail">${sub}${b.notes?' — '+b.notes:''}</div></div>
+          ${thBadge}<div class="troom">${rm?rm.name:''}</div>
+        </div>
       </div>
       <div class="tcard-extbtn" onclick="event.stopPropagation();var x=document.getElementById('xe-${b.id}');var show=x.style.display!=='block';x.style.display=show?'block':'none';openExtrasId=show?'${b.id}':null;">
         <span class="extbtn-label">Extras</span>${extLabel}
