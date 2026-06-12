@@ -628,7 +628,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
   flex-direction:column;align-items:center;justify-content:center;gap:2px;
   font-family:'Jost',sans-serif;font-size:9px;color:var(--gray);cursor:pointer;
   letter-spacing:.03em;text-transform:uppercase;}
-.mbnav-btn.on{color:var(--green);}
+.mbnav-btn.on{color:var(--green);background:#EEF2EB;border-radius:10px;}
 .mbnav-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;}
 
 @media(max-width:599px){
@@ -1017,6 +1017,16 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
       <div class="fg">
         <label class="fl">Fin</label>
         <input type="date" class="fi" id="evEnd">
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">Heure début <span style="font-weight:400;color:var(--gray)">(optionnel)</span></label>
+        <input type="time" class="fi" id="evStartTime">
+      </div>
+      <div class="fg">
+        <label class="fl">Heure fin <span style="font-weight:400;color:var(--gray)">(optionnel)</span></label>
+        <input type="time" class="fi" id="evEndTime">
       </div>
     </div>
     <div class="fg">
@@ -1424,6 +1434,8 @@ function renderGrid(){
     // Day #
     const dayTd=document.createElement('td');
     dayTd.className='c-day';
+    dayTd.style.cursor='pointer';
+    dayTd.addEventListener('click',e=>{e.stopPropagation();goToDay(ds);});
     const dayEvs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
     if(isToday){
       dayTd.innerHTML=`<div class="today-circle">${date.getDate()}</div>`;
@@ -1431,7 +1443,7 @@ function renderGrid(){
       const ec=dayEvs[0].color||'#A8C5A0';
       const lc=light(ec);
       const evTitles=dayEvs.map(ev=>ev.title).join(', ');
-      dayTd.innerHTML=`<div class="ev-circle" style="background:${ec};color:${lc?'#2C2C2C':'#fff'};cursor:pointer" title="${evTitles}" onclick="event.stopPropagation();goToDay('${ds}')">${date.getDate()}</div>`;
+      dayTd.innerHTML=`<div class="ev-circle" style="background:${ec};color:${lc?'#2C2C2C':'#fff'}" title="${evTitles}">${date.getDate()}</div>`;
     } else {
       dayTd.innerHTML=date.getDate();
     }
@@ -1699,9 +1711,10 @@ function renderToday(){
     dayEvs.forEach(ev=>{
       const isSingle=ev.startDate===ev.endDate;
       const dateRange=isSingle?fmtDate(ev.startDate):`${fmtDate(ev.startDate)} → ${fmtDate(ev.endDate)}`;
+      const timeStr=ev.startTime?(ev.endTime?` · ${ev.startTime} – ${ev.endTime}`:(` · ${ev.startTime}`)):'';
       h+=`<div class="tev-card" onclick="openEventEdit('${ev.id}')" style="border-left-color:${ev.color||'#A8C5A0'}">
         <div class="tev-title">${ev.title}</div>
-        <div class="tev-dates">${dateRange}</div>
+        <div class="tev-dates">${dateRange}${timeStr}</div>
       </div>`;
     });
     h+=`</div>`;
@@ -2154,6 +2167,8 @@ function openEventEdit(id){
   byId('evTitle').value=ev?ev.title:'';
   byId('evStart').value=ev?ev.startDate:todayISO();
   byId('evEnd').value=ev?ev.endDate:todayISO();
+  byId('evStartTime').value=ev?ev.startTime||'':'';
+  byId('evEndTime').value=ev?ev.endTime||'':'';
   byId('evColor').value=ev?ev.color:'#A8C5A0';
   byId('evDelBtn').style.display=ev?'block':'none';
   closeM('modalEvents');byId('modalEventEdit').style.display='flex';
@@ -2162,7 +2177,9 @@ function openEventEdit(id){
 function saveEvent(){
   const t=byId('evTitle').value.trim();
   if(!t){alert('Titre requis');return;}
-  const data={title:t,startDate:byId('evStart').value,endDate:byId('evEnd').value,color:byId('evColor').value};
+  const st=byId('evStartTime').value||null;
+  const et=byId('evEndTime').value||null;
+  const data={title:t,startDate:byId('evStart').value,endDate:byId('evEnd').value,startTime:st,endTime:et,color:byId('evColor').value};
   if(editEvid){
     const i=S.events.findIndex(e=>e.id===editEvid);
     if(i!==-1)S.events[i]={...S.events[i],...data};
@@ -2887,11 +2904,9 @@ function renderMonth(){
 // ═══════════════════════════════════════════════════════════════
 function setView(v){
   S.view=v;
-  byId('gridWrap').style.display=v==='grid'?'block':'none';
-  byId('todayWrap').style.display=v==='today'?'block':'none';
-  byId('weekWrap').style.display=v==='week'?'block':'none';
-  byId('monthWrap').style.display=v==='month'?'block':'none';
   ['grid','today','week','month'].forEach(id=>{
+    const w=byId(id+'Wrap');
+    if(w){w.style.display=id===v?(id==='grid'?'block':'block'):'none';w.style.background=id===v?'#F5F8F3':'';}
     byId('vt-'+id)?.classList.toggle('on',id===v);
     byId('mn-'+id)?.classList.toggle('on',id===v);
   });
