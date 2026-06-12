@@ -1310,6 +1310,7 @@ function connectFirebase(cfg){
         S.guests=d.guests||[];
         S.events=d.events||[];
         S.cleaning=d.cleaning||{};
+        if(d.catalog&&d.catalog.length){S.catalog=d.catalog;saveCatalog();}
         renderGrid();
         if(S.view==='today') renderToday();
         if(S.view==='week') renderWeek();
@@ -1328,6 +1329,7 @@ function pushToFirebase(){
   setSyncPip('busy','Envoi…');
   db.collection('planning').doc('data').set({
     bookings:S.bookings, guests:S.guests, events:S.events, cleaning:S.cleaning,
+    catalog:S.catalog,
     updated:new Date().toISOString()
   }).then(()=>setSyncPip('ok','Synchronisé ✓'))
     .catch(()=>setSyncPip('err','Erreur envoi'));
@@ -2515,6 +2517,7 @@ function updateCatalogItem(id,field,value){
   if(i===-1)return;
   S.catalog[i][field]=value;
   saveCatalog();
+  if(db)pushToFirebase();
 }
 function addCatalogItem(){
   const name=byId('newCatName').value.trim();
@@ -2524,13 +2527,16 @@ function addCatalogItem(){
   const emoji=byId('newCatEmoji').value.trim()||'•';
   S.catalog.push({id:uid(),name,price,cat,emoji});
   saveCatalog();
+  if(db)pushToFirebase();
   ['newCatName','newCatPrice','newCatEmoji','newCatCat'].forEach(id=>byId(id).value='');
   renderCatalogList();
 }
 function delCatalogItem(id){
   if(!confirm('Supprimer cet article ?'))return;
   S.catalog=S.catalog.filter(c=>c.id!==id);
-  saveCatalog();renderCatalogList();
+  saveCatalog();
+  if(db)pushToFirebase();
+  renderCatalogList();
 }
 
 function setExtra(bid,ds,itemId,delta){
