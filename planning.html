@@ -645,9 +645,19 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 }
 
 /* Events modal */
-.evline{display:flex;align-items:center;gap:10px;padding:8px 0;
-  border-bottom:1px solid var(--light);cursor:pointer;}
-.evcolor{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+.evcard{display:flex;align-items:center;gap:12px;padding:10px 0;
+  border-bottom:1px solid var(--light);cursor:pointer;transition:opacity .15s;}
+.evcard:last-child{border-bottom:none;}
+.evcard:hover{opacity:.75;}
+.evdate-badge{width:40px;border-radius:8px;padding:7px 4px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;flex-shrink:0;}
+.evdate-day{font-size:20px;font-weight:700;line-height:1;}
+.evdate-mon{font-size:8px;text-transform:uppercase;letter-spacing:.07em;margin-top:3px;opacity:.85;}
+.evdate-range{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.evdate-arrow{font-size:12px;color:var(--gray);}
+.evcard-info{flex:1;min-width:0;}
+.evcard-title{font-weight:600;font-size:14px;color:var(--dark);}
+.evcard-time{font-size:11px;color:var(--gray);margin-top:2px;}
 </style>
 </head>
 <body>
@@ -2161,14 +2171,29 @@ function renderEvList(){
     byId('evList').innerHTML='<p style="text-align:center;color:var(--gray);padding:20px">Aucun événement</p>';return;
   }
   const sorted=[...S.events].sort((a,b)=>a.startDate.localeCompare(b.startDate));
-  byId('evList').innerHTML=sorted.map(ev=>`
-    <div class="evline" onclick="openEventEdit('${ev.id}')">
-      <div class="evcolor" style="background:${ev.color||'#ccc'}"></div>
-      <div style="flex:1">
-        <div style="font-weight:500;font-size:13px">${ev.title}</div>
-        <div style="font-size:11px;color:var(--gray)">${fmtDate(ev.startDate)} → ${fmtDate(ev.endDate)}</div>
+  const badge=(ds,col)=>{
+    const d=new Date(ds+'T00:00:00');
+    const lc=light(col);
+    return`<div class="evdate-badge" style="background:${col};color:${lc?'#2C2C2C':'#fff'}">
+      <div class="evdate-day">${d.getDate()}</div>
+      <div class="evdate-mon">${MON3[d.getMonth()]}</div>
+    </div>`;
+  };
+  byId('evList').innerHTML=sorted.map(ev=>{
+    const col=ev.color||'#A8C5A0';
+    const isSingle=ev.startDate===ev.endDate;
+    const dateHtml=isSingle
+      ? badge(ev.startDate,col)
+      : `<div class="evdate-range">${badge(ev.startDate,col)}<span class="evdate-arrow">→</span>${badge(ev.endDate,col)}</div>`;
+    const timeStr=ev.startTime?(ev.endTime?`${ev.startTime} – ${ev.endTime}`:ev.startTime):'';
+    return`<div class="evcard" onclick="openEventEdit('${ev.id}')">
+      ${dateHtml}
+      <div class="evcard-info">
+        <div class="evcard-title">${ev.title}</div>
+        ${timeStr?`<div class="evcard-time">${timeStr}</div>`:''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function openEventEdit(id,prefillDate){
