@@ -455,8 +455,12 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .month-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .mstat-card{background:#fff;border-radius:12px;padding:14px 14px 12px;
   border:1.5px solid var(--light);text-align:center;}
+.mstat-card.mstat-rev{background:#7A8C65;border-color:#7A8C65;}
 .mstat-val{font-size:26px;font-weight:600;color:var(--green);line-height:1.1;}
+.mstat-card.mstat-rev .mstat-val{color:#fff;}
 .mstat-sub{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
+.mstat-card.mstat-rev .mstat-sub{color:rgba(255,255,255,.75);}
+.mstat-card.mstat-rev .mstat-detail{color:rgba(255,255,255,.5);}
 .mstat-detail{font-size:11px;color:#bbb;margin-top:2px;}
 .month-occ{background:#fff;border-radius:12px;padding:14px;border:1.5px solid var(--light);}
 .mocc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
@@ -2661,7 +2665,7 @@ function renderMonth(){
       <div class="mstat-sub">remplissage</div>
       <div class="mstat-detail">${ROOMS.length} chambres</div>
     </div>
-    <div class="mstat-card">
+    <div class="mstat-card mstat-rev">
       <div class="mstat-val">${totalRev>0?totalRev.toLocaleString('fr-FR')+' €':'—'}</div>
       <div class="mstat-sub">revenus estimés</div>
       <div class="mstat-detail">${totalRev>0?'prix / nuit renseignés':'prix non renseignés'}</div>
