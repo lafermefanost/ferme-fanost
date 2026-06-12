@@ -487,6 +487,33 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .src-bk-bar-fill{height:100%;border-radius:2px;}
 .src-bk-rev{font-weight:600;color:var(--green);font-size:12px;min-width:60px;text-align:right;}
 
+/* ─── MONTH CHARGES ─────────────────────────────────────────── */
+.month-charges{background:#fff;border-radius:12px;padding:14px;border:1.5px solid var(--light);}
+.mch-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.mch-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--earth);}
+.mch-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--light);}
+.mch-row:last-child{border-bottom:none;}
+.mch-label{flex:1;border:none;background:transparent;font-family:'Jost',sans-serif;font-size:13px;color:var(--dark);outline:none;min-width:0;}
+.mch-amount{width:80px;border:none;background:transparent;font-family:'Jost',sans-serif;font-size:13px;color:var(--dark);text-align:right;outline:none;}
+.mch-period{padding:3px 9px;border-radius:10px;border:1.5px solid var(--light);font-family:'Jost',sans-serif;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.mch-period.annual{background:#F5F0E8;color:var(--earth);border-color:var(--earth);}
+.mch-period.monthly{background:#F0F5EE;color:var(--green);border-color:var(--green);}
+.mch-del{width:26px;height:26px;border:none;background:none;cursor:pointer;color:#ccc;font-size:15px;display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0;}
+.mch-del:hover{color:#e44;background:#FFF0F0;}
+.mch-add{background:none;border:1.5px dashed var(--light);border-radius:8px;font-family:'Jost',sans-serif;font-size:12px;color:var(--gray);cursor:pointer;padding:7px 12px;width:100%;margin-top:8px;transition:all .15s;}
+.mch-add:hover{border-color:var(--green);color:var(--green);}
+.mch-total-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--light);font-size:12px;color:var(--gray);}
+.mch-total-val{font-weight:600;color:var(--earth);}
+/* Financial cards row */
+.month-fin{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mfin-card{background:#fff;border-radius:12px;padding:14px 14px 12px;border:1.5px solid var(--light);}
+.mfin-val{font-size:26px;font-weight:600;line-height:1.1;}
+.mfin-val.charges{color:var(--earth);}
+.mfin-val.pos{color:var(--green);}
+.mfin-val.neg{color:#E8963A;}
+.mfin-sub{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;}
+.mfin-detail{font-size:11px;color:#bbb;margin-top:2px;}
+
 /* ─── MODALS ─────────────────────────────────────────────── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;
   display:flex;align-items:flex-end;justify-content:center;}
@@ -1060,7 +1087,7 @@ const PALETTE = [
 // ═══════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════
-const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null, todayDate:null, catalog:[]};
+const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null, todayDate:null, catalog:[], charges:[]};
 
 const DEFAULT_PRICES={solo:100, double:125, th:25};
 
@@ -2327,6 +2354,45 @@ function loadCatalog(){
 }
 function saveCatalog(){localStorage.setItem('ff2_catalog',JSON.stringify(S.catalog));}
 
+// ═══════════════════════════════════════════════════════════════
+//  CHARGES COURANTES
+// ═══════════════════════════════════════════════════════════════
+function loadCharges(){
+  const raw=localStorage.getItem('ff2_charges');
+  S.charges=raw?JSON.parse(raw):[];
+}
+function saveCharges(){localStorage.setItem('ff2_charges',JSON.stringify(S.charges));}
+function monthlyAmt(c){return c.period==='annual'?c.amount/12:c.amount;}
+function totalMonthlyCharges(){return S.charges.reduce((s,c)=>s+monthlyAmt(c),0);}
+
+function addCharge(){
+  S.charges.push({id:uid(),label:'',amount:0,period:'monthly'});
+  saveCharges();renderMonth();
+  // focus new label input
+  setTimeout(()=>{
+    const inputs=document.querySelectorAll('.mch-label');
+    if(inputs.length)inputs[inputs.length-1].focus();
+  },50);
+}
+function removeCharge(id){
+  S.charges=S.charges.filter(c=>c.id!==id);
+  saveCharges();renderMonth();
+}
+function updateCharge(id,field,val){
+  const c=S.charges.find(x=>x.id===id);
+  if(!c)return;
+  if(field==='amount')c.amount=parseFloat(val)||0;
+  else c[field]=val;
+  saveCharges();
+  if(field==='amount')renderMonth();
+}
+function toggleChargePeriod(id){
+  const c=S.charges.find(x=>x.id===id);
+  if(!c)return;
+  c.period=c.period==='annual'?'monthly':'annual';
+  saveCharges();renderMonth();
+}
+
 function openCatalogModal(){renderCatalogList();byId('modalCatalog').style.display='flex';}
 function renderCatalogList(){
   const cats=[...new Set(S.catalog.map(c=>c.cat))];
@@ -2602,6 +2668,25 @@ function renderMonth(){
     </div>
   </div>`;
 
+  // Financial summary (charges + marge) — only if charges configured
+  const totalCh=totalMonthlyCharges();
+  if(totalCh>0){
+    const marge=totalRev-totalCh;
+    const margeClass=marge>=0?'pos':'neg';
+    h+=`<div class="month-fin">
+      <div class="mfin-card">
+        <div class="mfin-val charges">${Math.round(totalCh).toLocaleString('fr-FR')} €</div>
+        <div class="mfin-sub">charges / mois</div>
+        <div class="mfin-detail">${S.charges.length} poste${S.charges.length>1?'s':''}</div>
+      </div>
+      <div class="mfin-card">
+        <div class="mfin-val ${margeClass}">${totalRev>0?marge.toLocaleString('fr-FR')+' €':'—'}</div>
+        <div class="mfin-sub">marge nette</div>
+        <div class="mfin-detail">${totalRev>0?(marge>=0?'bénéfice estimé':'déficit estimé'):'revenus non renseignés'}</div>
+      </div>
+    </div>`;
+  }
+
   // Per-room occupancy bars
   h+=`<div class="month-occ"><div class="mocc-title">Taux par chambre</div>`;
   roomOcc.forEach(({r,nights,pct})=>{
@@ -2675,6 +2760,36 @@ function renderMonth(){
     });
     h+=`</div>`;
   }
+
+  // Charges courantes panel
+  h+=`<div class="month-charges">
+    <div class="mch-header">
+      <div class="mch-title">Charges courantes</div>
+    </div>`;
+  if(S.charges.length){
+    S.charges.forEach(c=>{
+      const periodLabel=c.period==='annual'?'Annuel':'Mensuel';
+      h+=`<div class="mch-row">
+        <input class="mch-label" value="${c.label.replace(/"/g,'&quot;')}" placeholder="Libellé"
+          onblur="updateCharge('${c.id}','label',this.value)"
+          onkeydown="if(event.key==='Enter')this.blur()">
+        <input class="mch-amount" type="number" min="0" value="${c.amount||''}" placeholder="0"
+          onblur="updateCharge('${c.id}','amount',this.value)"
+          onkeydown="if(event.key==='Enter')this.blur()"> €
+        <button class="mch-period ${c.period}" onclick="toggleChargePeriod('${c.id}')">${periodLabel}</button>
+        <button class="mch-del" onclick="removeCharge('${c.id}')">×</button>
+      </div>`;
+    });
+    const totalCh2=totalMonthlyCharges();
+    h+=`<div class="mch-total-row">
+      <span>Total mensuel</span>
+      <span class="mch-total-val">${Math.round(totalCh2).toLocaleString('fr-FR')} € / mois</span>
+    </div>`;
+  }else{
+    h+=`<div style="font-size:13px;color:#bbb;padding:4px 0 8px">Aucune charge renseignée.</div>`;
+  }
+  h+=`<button class="mch-add" onclick="addCharge()">+ Ajouter une charge</button>
+  </div>`;
 
   h+='</div>';
   byId('monthWrap').innerHTML=h;
@@ -3121,6 +3236,7 @@ function init(){
   loadLocal();
   importLegacy();
   loadCatalog();
+  loadCharges();
   byId('yrLabel').textContent=S.year;
   // Set year to current if we have bookings for it
   const curY=new Date().getFullYear();
