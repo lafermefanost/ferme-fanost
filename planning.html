@@ -392,10 +392,12 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   color:#7A8C65;cursor:pointer;display:block;margin:0 auto;}
 .week-today-btn:hover{background:#7A8C65;color:#fff;}
 .week-summary{background:#7A8C65;color:#fff;border-radius:12px;
-  padding:14px 18px;display:flex;gap:20px;flex-wrap:wrap;}
-.wsm-item{display:flex;flex-direction:column;}
-.wsm-val{font-size:22px;font-weight:600;}
-.wsm-lbl{font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.06em;}
+  padding:14px 18px;display:flex;gap:0;}
+.wsm-item{flex:1;display:flex;flex-direction:column;align-items:center;
+  border-right:1px solid rgba(255,255,255,.25);}
+.wsm-item:last-child{border-right:none;}
+.wsm-val{font-size:22px;font-weight:600;line-height:1;}
+.wsm-lbl{font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.06em;margin-top:3px;text-align:center;}
 .today-summary{background:#7A8C65;color:#fff;border-radius:12px;
   padding:14px 18px;display:flex;gap:0;margin-bottom:14px;}
 .tsm-item{flex:1;display:flex;flex-direction:column;align-items:center;
@@ -2472,7 +2474,7 @@ function renderWeek(){
     <div class="wsm-item"><div class="wsm-val">${totalNights}</div><div class="wsm-lbl">nuitées</div></div>
     <div class="wsm-item"><div class="wsm-val">${totalRepas}</div><div class="wsm-lbl">repas</div></div>
     ${totalExtras>0?`<div class="wsm-item"><div class="wsm-val">${totalExtras.toLocaleString('fr-FR')} €</div><div class="wsm-lbl">extras</div></div>`:''}
-    <div class="wsm-item" style="margin-left:auto"><div class="wsm-val">${totalRev>0?totalRev.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">revenus estimés</div></div>
+    <div class="wsm-item"><div class="wsm-val">${totalRev>0?totalRev.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">revenus estimés</div></div>
   </div>`;
 
   for(let i=0;i<7;i++){
