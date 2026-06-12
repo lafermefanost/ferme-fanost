@@ -997,6 +997,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
       <div class="mtitle">Synchronisation</div>
       <button class="mclose" onclick="closeM('modalSync')">✕</button>
     </div>
+    <p id="syncStatus" style="font-size:12px;margin-bottom:10px;"></p>
     <p style="font-size:13px;line-height:1.6;color:var(--gray);margin-bottom:14px">
       Pour synchroniser le planning entre deux appareils en temps réel,
       créez un projet Firebase gratuit et collez votre configuration ci-dessous.
@@ -1265,6 +1266,21 @@ function saveFirebaseConfig(){
   }catch(e){alert('JSON invalide — vérifiez la configuration');}
 }
 
+function openSyncModal(){
+  const saved=localStorage.getItem('ff2_fbcfg');
+  const statusEl=byId('syncStatus');
+  if(saved){
+    byId('fbConfigInput').value=saved;
+    if(statusEl) statusEl.innerHTML=db
+      ?'<span style="color:#4CAF50;font-weight:600">● Connecté</span>'
+      :'<span style="color:#FF9800;font-weight:600">● Config sauvegardée — reconnexion en cours</span>';
+  }else{
+    byId('fbConfigInput').value='';
+    if(statusEl) statusEl.innerHTML='<span style="color:var(--gray)">● Non configuré</span>';
+  }
+  byId('modalSync').style.display='flex';
+}
+
 // Export / Import
 byId('exportBtn').onclick=()=>{
   const menu=document.createElement('div');
@@ -1272,7 +1288,7 @@ byId('exportBtn').onclick=()=>{
   menu.innerHTML=`
     <div onclick="doExport();this.parentNode.remove()" style="padding:10px 16px;cursor:pointer;font-size:13px;hover:background:#f5f0e8">⬇ Exporter JSON</div>
     <div onclick="byId('importFile').click();this.parentNode.remove()" style="padding:10px 16px;cursor:pointer;font-size:13px;border-top:1px solid var(--light)">⬆ Importer JSON</div>
-    <div onclick="byId('modalSync').style.display='flex';this.parentNode.remove()" style="padding:10px 16px;cursor:pointer;font-size:13px;border-top:1px solid var(--light)">⚡ Configurer la sync</div>
+    <div onclick="openSyncModal();this.parentNode.remove()" style="padding:10px 16px;cursor:pointer;font-size:13px;border-top:1px solid var(--light)">⚡ Configurer la sync</div>
   `;
   document.body.appendChild(menu);
   setTimeout(()=>document.addEventListener('click',function h(){menu.remove();document.removeEventListener('click',h);}),50);
