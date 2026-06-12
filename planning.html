@@ -209,11 +209,6 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   font-family:'Jost',sans-serif;font-size:12px;font-weight:500;
   color:var(--gray);background:#fff;cursor:pointer;transition:all .15s;}
 .src-chip:hover{border-color:#bbb;}
-#src-direct.on{background:#E8F3E5;color:#2E5C28;border-color:#7ABF6A;}
-#src-airbnb.on{background:#FFE8E0;color:#C0392B;border-color:#F1948A;}
-#src-booking.on{background:#E8EAF6;color:#1A237E;border-color:#9FA8DA;}
-#src-homexchange.on{background:#FFF9E0;color:#7A5800;border-color:#E6C96A;}
-#src-ghost.on{background:#1A1A1A;color:#fff;border-color:#1A1A1A;}
 
 .blk.lbg{color:#1A1A1A;}
 .blk.dbg{color:#FFF;}
@@ -829,15 +824,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
       </div>
       <div class="fg">
         <label class="fl">Chambre / Logement</label>
-        <select class="fsel" id="bRoom" onchange="chkConflict()">
-          <option value="ch1">Chambre 1</option>
-          <option value="ch2">Chambre 2</option>
-          <option value="ch3">Chambre 3</option>
-          <option value="ch4">Chambre 4</option>
-          <option value="vip">Chambre VIP</option>
-          <option value="fam">Chambre Famille</option>
-          <option value="jdn">Chambre Jardin</option>
-          <option value="wis">Wissous (gîte)</option>
+        <select class="fsel" id="bRoom" onchange="chkConflict();updateBabyCribUI();updateModalTotal()">
         </select>
       </div>
       <div class="fg">
@@ -904,13 +891,14 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
       </div>
       <div class="fg">
         <label class="fl">Source</label>
-        <div class="src-row">
-          <button class="src-chip" id="src-direct"      onclick="setSource('direct')">Direct</button>
-          <button class="src-chip" id="src-airbnb"      onclick="setSource('airbnb')">Airbnb</button>
-          <button class="src-chip" id="src-booking"     onclick="setSource('booking')">Booking</button>
-          <button class="src-chip" id="src-homexchange" onclick="setSource('homexchange')">Homexchange</button>
-          <button class="src-chip" id="src-ghost"       onclick="setSource('ghost')">Ghost</button>
-        </div>
+        <div class="src-row" id="srcBtns"></div>
+      </div>
+      <div id="babyCribRow" class="fg" style="display:none">
+        <label class="fl">Options</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px 0">
+          <input type="checkbox" id="babyCribToggle" onchange="updateModalTotal()">
+          <span id="babyCribLabel">Lit bébé (+15 €/nuit)</span>
+        </label>
       </div>
       <div class="fg">
         <label class="fl">Prix personnalisé <span id="prixNetHint" style="color:var(--gray);font-weight:400;font-size:11px;"></span></label>
@@ -1188,18 +1176,25 @@ const DEFAULT_PRICES={solo:100, double:125, th:25};
 const DEFAULT_SETTINGS={
   name:'Fanost — Planning',
   rooms:[
-    {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65'},
-    {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5'},
-    {id:'ch3',name:'Chambre 3',short:'Ch.3',color:'#B57A8C'},
-    {id:'ch4',name:'Chambre 4',short:'Ch.4',color:'#8CB57A'},
-    {id:'vip',name:'VIP',short:'VIP',color:'#B5A07A'},
-    {id:'fam',name:'Famille',short:'FAM',color:'#7AB5A0'},
-    {id:'jdn',name:'Jardin',short:'JDN',color:'#A07AB5'},
-    {id:'wis',name:'Wissous',short:'WIS',color:'#B57A7A'},
+    {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65',maxPersons:2,babyCrib:false,babyCribPrice:15},
+    {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5',maxPersons:2,babyCrib:false,babyCribPrice:15},
+    {id:'ch3',name:'Chambre 3',short:'Ch.3',color:'#B57A8C',maxPersons:2,babyCrib:false,babyCribPrice:15},
+    {id:'ch4',name:'Chambre 4',short:'Ch.4',color:'#8CB57A',maxPersons:2,babyCrib:false,babyCribPrice:15},
+    {id:'vip',name:'VIP',short:'VIP',color:'#B5A07A',maxPersons:2,babyCrib:false,babyCribPrice:15},
+    {id:'fam',name:'Famille',short:'FAM',color:'#7AB5A0',maxPersons:4,babyCrib:true,babyCribPrice:15},
+    {id:'jdn',name:'Jardin',short:'JDN',color:'#A07AB5',maxPersons:2,babyCrib:false,babyCribPrice:15},
+    {id:'wis',name:'Wissous',short:'WIS',color:'#B57A7A',maxPersons:4,babyCrib:false,babyCribPrice:15},
   ],
   cleaners:['Rosa','Svetlana','Tatiana'],
   tariffHistory:[{id:'t0',from:'2000-01-01',solo:100,double:125,th:25}],
-  charges:[]
+  charges:[],
+  sources:[
+    {id:'direct',      label:'Direct',      color:'#7ABF6A',noRevenue:false},
+    {id:'airbnb',      label:'Airbnb',      color:'#F1948A',noRevenue:false},
+    {id:'booking',     label:'Booking',     color:'#9FA8DA',noRevenue:false},
+    {id:'homexchange', label:'HomeExchange',color:'#E6C96A',noRevenue:true},
+    {id:'ghost',       label:'Ghost',       color:'#888888',noRevenue:true},
+  ]
 };
 
 function getTariffForDate(ds){
@@ -1209,15 +1204,29 @@ function getTariffForDate(ds){
   for(const h of sorted){if(h.from<=ds)t=h;}
   return t;
 }
+function getSource(id){
+  const sources=S.settings?.sources||DEFAULT_SETTINGS.sources;
+  return sources.find(s=>s.id===id)||{id,label:id,color:'#888',noRevenue:false};
+}
+function isSourceNoRevenue(src){
+  return getSource(src).noRevenue;
+}
+function getBabyCribRevenue(bk){
+  if(!bk.babyCrib)return 0;
+  const room=ROOMS.find(r=>r.id===bk.roomId);
+  if(!room||!room.babyCrib)return 0;
+  const nights=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
+  return nights*(room.babyCribPrice||15);
+}
 function getNightlyRate(bk){
-  if(bk.source==='homexchange') return 0;
+  if(isSourceNoRevenue(bk.source)) return 0;
   const g=guest(bk.guestId);
   if(g&&g.price)return g.price;
   const t=getTariffForDate(bk.checkIn||todayISO());
   return(bk.nbPersons||2)===1?t.solo:t.double;
 }
 function getThRevenue(bk,fromDate,toDate){
-  if(bk.source==='homexchange') return 0;
+  if(isSourceNoRevenue(bk.source)) return 0;
   if(!bk.dinnerNights)return 0;
   const t=getTariffForDate(bk.checkIn||fromDate);
   return Object.keys(bk.dinnerNights)
@@ -1248,11 +1257,42 @@ function setPayment(v){
   ['pending','deposit','paid'].forEach(p=>byId('pay-'+p)?.classList.toggle('on',bkPayment===p));
   byId('depositAmtFg').style.display=bkPayment==='deposit'?'block':'none';
 }
+function renderSourceBtns(){
+  const el=byId('srcBtns');
+  if(!el)return;
+  const sources=S.settings?.sources||DEFAULT_SETTINGS.sources;
+  el.innerHTML=sources.map(s=>
+    `<button class="src-chip" data-src="${s.id}" data-color="${s.color}" data-norev="${!!s.noRevenue}" onclick="setSource('${s.id}')">${s.label}</button>`
+  ).join('');
+  setSource(bkSource);
+}
+function updateBabyCribUI(){
+  const rid=byId('bRoom')?.value;
+  const row=byId('babyCribRow');
+  if(!row)return;
+  const room=ROOMS.find(r=>r.id===rid);
+  if(room&&room.babyCrib){
+    byId('babyCribLabel').textContent=`Lit bébé (+${room.babyCribPrice||15} €/nuit)`;
+    row.style.display='block';
+  } else {
+    row.style.display='none';
+    if(byId('babyCribToggle'))byId('babyCribToggle').checked=false;
+  }
+}
 function setSource(v){
   bkSource=v;
-  ['direct','airbnb','booking','homexchange','ghost'].forEach(s=>
-    byId('src-'+s)?.classList.toggle('on',s===v)
-  );
+  document.querySelectorAll('#srcBtns .src-chip').forEach(btn=>{
+    const active=btn.dataset.src===v;
+    btn.classList.toggle('on',active);
+    const color=btn.dataset.color||'#888';
+    const noRev=btn.dataset.norev==='true';
+    if(active){
+      if(noRev){btn.style.background='#222';btn.style.borderColor='#222';btn.style.color='#fff';}
+      else{btn.style.background=color+'2a';btn.style.borderColor=color;btn.style.color=color;}
+    } else {
+      btn.style.background='';btn.style.borderColor='';btn.style.color='';
+    }
+  });
   updateModalTotal();
 }
 function resetPaymentUI(pay,ghost,depositAmt,source){
@@ -1261,7 +1301,7 @@ function resetPaymentUI(pay,ghost,depositAmt,source){
   ['pending','deposit','paid'].forEach(p=>byId('pay-'+p)?.classList.toggle('on',bkPayment===p));
   byId('depositAmtFg').style.display=bkPayment==='deposit'?'block':'none';
   byId('depositAmt').value=depositAmt||'';
-  setSource(bkSource);
+  renderSourceBtns();
 }
 let dragBid = null, paletteIdx = 0;
 
@@ -1722,12 +1762,13 @@ function renderToday(){
     const xd=getExtrasDayTotal(b,ds);
     const extLabel=xd>0?`<span class="extbtn-total">${xd.toLocaleString('fr-FR')} €</span>`:`<span class="extbtn-add">+</span>`;
     let totalHtml='';
-    if(showTotal&&b.source!=='homexchange'&&b.source!=='ghost'){
+    if(showTotal&&!isSourceNoRevenue(b.source)){
       const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
       const rate=getNightlyRate(b);
       const dinCount=b.dinnerNights?Object.keys(b.dinnerNights).filter(d=>b.dinnerNights[d]&&d>=b.checkIn&&d<b.checkOut).length:0;
       const pax=b.nbPersons||2;
       const extTotal=getExtrasTotal(b);
+      const cribRev=getBabyCribRevenue(b);
       const isCustom=b.prixNet!=null&&b.prixNet>0;
       const total=getStayTotal(b);
       if(total>0){
@@ -1735,12 +1776,13 @@ function renderToday(){
         const tariff=getTariffForDate(b.checkIn||ds);
         let rows='';
         if(isCustom){
-          const autoTotal=nights*rate+dinCount*pax*tariff.th+extTotal;
+          const autoTotal=nights*rate+dinCount*pax*tariff.th+extTotal+cribRev;
           rows+=`<div class="ttd-line"><span>Prix personnalisé</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
           if(autoTotal>0) rows+=`<div class="ttd-line" style="opacity:.5;font-style:italic"><span>Calcul auto : ${autoTotal.toLocaleString('fr-FR')} €</span><span></span></div>`;
         } else {
           rows+=`<div class="ttd-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
           if(dinCount>0) rows+=`<div class="ttd-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${(dinCount*pax*tariff.th).toLocaleString('fr-FR')} €</span></div>`;
+          if(cribRev>0) rows+=`<div class="ttd-line"><span>Lit bébé × ${nights} nuit${nights>1?'s':''}</span><span>${cribRev.toLocaleString('fr-FR')} €</span></div>`;
           if(extTotal>0) rows+=`<div class="ttd-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
           rows+=`<div class="ttd-line ttd-sep"><span>Total séjour</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
         }
@@ -1878,6 +1920,8 @@ function openAddModal(roomId,ds,dsOut){
   resetPaymentUI(null,false,'');
   byId('bExtrasTotal').style.display='none';
   byId('bTotalSejour').style.display='none';
+  updateBabyCribUI();
+  if(byId('babyCribToggle'))byId('babyCribToggle').checked=false;
 
   renderGPicker();
   renderDinnerList();
@@ -1905,6 +1949,8 @@ function openEditModal(id){
   byId('bNotes').value=b.notes||'';
   resetPaymentUI(b.payment,b.ghost,b.depositAmount,b.source);
   byId('prixNet').value=b.prixNet||'';
+  updateBabyCribUI();
+  if(byId('babyCribToggle'))byId('babyCribToggle').checked=!!b.babyCrib;
   const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
   const autoP=nights*getNightlyRate(b)+getThRevenue(b,b.checkIn,b.checkOut)+getExtrasTotal(b);
   byId('prixNetHint').textContent=autoP>0?`(auto : ${autoP.toLocaleString('fr-FR')} €)`:'';
@@ -2090,6 +2136,7 @@ function saveBooking(){
   const source=bkSource;
   const ghost=source==='ghost';
   const prixNet=parseFloat(byId('prixNet').value)||null;
+  const babyCrib=byId('babyCribToggle')?.checked||false;
 
   if(!ci||!co){alert('Remplissez les dates');return;}
   if(ci>=co){alert('La date de départ doit être après l\'arrivée');return;}
@@ -2108,9 +2155,9 @@ function saveBooking(){
   if(editBid){
     const i=S.bookings.findIndex(b=>b.id===editBid);
     const dn=getDinnerNights();
-    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet};
+    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,babyCrib};
   }else{
-    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet});
+    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,babyCrib});
   }
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
@@ -2548,9 +2595,15 @@ function saveSettings(){
 function applySettings(){
   ROOMS=S.settings.rooms||ROOMS;
   CLEANERS=S.settings.cleaners||CLEANERS;
-  // Update logo name
   const logoEl=byId('appName');
   if(logoEl)logoEl.textContent=S.settings.name||'Fanost — Planning';
+  // Update room select in booking modal
+  const bRoomEl=byId('bRoom');
+  if(bRoomEl){
+    const cur=bRoomEl.value;
+    bRoomEl.innerHTML=ROOMS.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+    if(cur)bRoomEl.value=cur;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2644,14 +2697,35 @@ function renderSettings(){
   h+=`<div class="set-sec">
     <div class="set-sec-title">Chambres</div>`;
   (st.rooms||[]).forEach(r=>{
-    h+=`<div class="set-row">
+    h+=`<div class="set-row" style="flex-wrap:wrap;gap:6px;">
       <input class="set-fi" value="${r.name.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateRoom('${r.id}','name',this.value)">
       <input class="set-fi" style="width:52px;flex:none;" value="${r.short.replace(/"/g,'&quot;')}" placeholder="Court" onblur="updateRoom('${r.id}','short',this.value)">
       <input type="color" class="set-color" value="${r.color||'#7A8C65'}" oninput="updateRoom('${r.id}','color',this.value)">
+      <span style="font-size:11px;color:var(--gray);flex-shrink:0;white-space:nowrap">max <input type="number" class="set-fi-sm" value="${r.maxPersons||2}" min="1" max="20" title="Capacité max" onblur="updateRoom('${r.id}','maxPersons',parseInt(this.value)||2)"> pers</span>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--gray);flex-shrink:0;cursor:pointer" title="Lit bébé disponible">
+        <input type="checkbox" ${r.babyCrib?'checked':''} onchange="updateRoom('${r.id}','babyCrib',this.checked)"> 🛏
+      </label>
+      ${r.babyCrib?`<input type="number" class="set-fi-sm" value="${r.babyCribPrice||15}" min="0" title="Prix lit bébé/nuit (€)" onblur="updateRoom('${r.id}','babyCribPrice',parseFloat(this.value)||15)"> <span style="font-size:11px;color:var(--gray)">€/nuit</span>`:''}
       <button class="set-del" onclick="delRoom('${r.id}')">×</button>
     </div>`;
   });
   h+=`<button class="set-add" onclick="addRoom()">+ Ajouter une chambre</button>
+  </div>`;
+
+  // — Sources de réservation —
+  h+=`<div class="set-sec">
+    <div class="set-sec-title">Sources de réservation</div>`;
+  const BUILTIN_SOURCES=['direct','airbnb','booking','homexchange','ghost'];
+  (st.sources||DEFAULT_SETTINGS.sources).forEach(s=>{
+    const isBuiltin=BUILTIN_SOURCES.includes(s.id);
+    h+=`<div class="set-row">
+      <input class="set-fi" value="${s.label.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateSource('${s.id}','label',this.value)">
+      <input type="color" class="set-color" value="${s.color||'#888'}" oninput="updateSource('${s.id}','color',this.value)">
+      <span style="font-size:10px;color:var(--gray);flex-shrink:0;opacity:.6">${s.noRevenue?'(sans CA)':''}</span>
+      ${isBuiltin?'':`<button class="set-del" onclick="delSource('${s.id}')">×</button>`}
+    </div>`;
+  });
+  h+=`<button class="set-add" onclick="addSource()">+ Ajouter une source</button>
   </div>`;
 
   // — Équipe ménage —
@@ -2723,7 +2797,7 @@ function addRoom(){
   const colors=['#7A8C65','#7A8CB5','#B57A8C','#8CB57A','#B5A07A','#7AB5A0'];
   const color=colors[S.settings.rooms.length%colors.length];
   const n=S.settings.rooms.length+1;
-  S.settings.rooms.push({id:uid(),name:'Chambre '+n,short:'C'+n,color});
+  S.settings.rooms.push({id:uid(),name:'Chambre '+n,short:'C'+n,color,maxPersons:2,babyCrib:false,babyCribPrice:15});
   saveSettings();applySettings();renderSettings();renderGrid();
 }
 function delRoom(id){
@@ -2737,6 +2811,25 @@ function updateRoom(id,field,val){
   r[field]=val;
   saveSettings();applySettings();
   if(field==='name'||field==='short')renderGrid();
+  if(field==='babyCrib')renderSettings();
+}
+
+// Source CRUD
+function addSource(){
+  S.settings.sources=S.settings.sources||[...DEFAULT_SETTINGS.sources];
+  S.settings.sources.push({id:uid(),label:'Nouvelle source',color:'#9E9E9E',noRevenue:false});
+  saveSettings();renderSettings();renderSourceBtns();
+}
+function delSource(id){
+  S.settings.sources=(S.settings.sources||[]).filter(s=>s.id!==id);
+  saveSettings();renderSettings();renderSourceBtns();
+}
+function updateSource(id,field,val){
+  const sources=S.settings.sources||DEFAULT_SETTINGS.sources;
+  const s=sources.find(x=>x.id===id);
+  if(!s)return;
+  s[field]=val;
+  saveSettings();renderSourceBtns();
 }
 
 // Cleaner CRUD
@@ -2822,19 +2915,23 @@ function updateModalTotal(){
   const ci=byId('bIn').value;
   const co=byId('bOut').value;
   if(!ci||!co||ci>=co){el.style.display='none';return;}
-  if(bkSource==='homexchange'||bkSource==='ghost'){el.style.display='none';return;}
+  if(isSourceNoRevenue(bkSource)){el.style.display='none';return;}
   const nights=Math.round((new Date(co)-new Date(ci))/86400000);
   const bk=editBid?S.bookings.find(b=>b.id===editBid):null;
   const prixNetVal=parseFloat(byId('prixNet').value)||null;
-  const tempBk={...(bk||{}),checkIn:ci,checkOut:co,guestId:selGid,source:bkSource,prixNet:prixNetVal};
+  const babyCribOn=byId('babyCribToggle')?.checked||false;
+  const rid=byId('bRoom')?.value;
+  const room=ROOMS.find(r=>r.id===rid);
+  const tempBk={...(bk||{}),checkIn:ci,checkOut:co,guestId:selGid,source:bkSource,prixNet:prixNetVal,babyCrib:babyCribOn,roomId:rid};
   const rate=getNightlyRate(tempBk);
   const tariff=getTariffForDate(ci);
   const dinnerNights=bk?bk.dinnerNights||{}:{};
   const pax=parseInt(document.querySelector('.pax-btn.on')?.textContent)||2;
   const dinCount=Object.keys(dinnerNights).filter(d=>dinnerNights[d]&&d>=ci&&d<co).length;
   const extTotal=bk?getExtrasTotal(bk):0;
+  const cribPrice=babyCribOn&&room&&room.babyCrib?nights*(room.babyCribPrice||15):0;
   const isCustom=prixNetVal&&prixNetVal>0;
-  const total=isCustom?prixNetVal:nights*rate+dinCount*pax*tariff.th+extTotal;
+  const total=isCustom?prixNetVal:nights*rate+dinCount*pax*tariff.th+extTotal+cribPrice;
   if(total<=0){el.style.display='none';return;}
   el.style.display='block';
   byId('bTotLbl').textContent=(isCustom?'Prix personnalisé':'Total séjour')+' — '+nights+' nuit'+(nights>1?'s':'');
@@ -2842,11 +2939,12 @@ function updateModalTotal(){
   let rows='';
   if(isCustom){
     rows+=`<div class="btot-line"><span>Prix personnalisé</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
-    const auto=nights*rate+dinCount*pax*tariff.th+extTotal;
+    const auto=nights*rate+dinCount*pax*tariff.th+extTotal+cribPrice;
     if(auto>0)rows+=`<div class="btot-line" style="opacity:.55;font-style:italic"><span>Calcul auto</span><span>${auto.toLocaleString('fr-FR')} €</span></div>`;
   } else {
     if(rate>0)rows+=`<div class="btot-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
     if(dinCount>0)rows+=`<div class="btot-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${(dinCount*pax*tariff.th).toLocaleString('fr-FR')} €</span></div>`;
+    if(cribPrice>0)rows+=`<div class="btot-line"><span>Lit bébé × ${nights} nuit${nights>1?'s':''}</span><span>${cribPrice.toLocaleString('fr-FR')} €</span></div>`;
     if(extTotal>0)rows+=`<div class="btot-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
     if(rows)rows+=`<div class="btot-line sep"><span>Total</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
   }
@@ -2866,7 +2964,7 @@ function getExtrasTotal(bk){
 function getStayTotal(bk){
   if(bk.prixNet!=null&&bk.prixNet>0) return bk.prixNet;
   const nights=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
-  return nights*getNightlyRate(bk)+getThRevenue(bk,bk.checkIn,bk.checkOut)+getExtrasTotal(bk);
+  return nights*getNightlyRate(bk)+getThRevenue(bk,bk.checkIn,bk.checkOut)+getExtrasTotal(bk)+getBabyCribRevenue(bk);
 }
 function getBookingRevForPeriod(bk,pStart,pEnd){
   const oStart=bk.checkIn>pStart?bk.checkIn:pStart;
@@ -3121,31 +3219,23 @@ function renderMonth(){
     });
     const clientRows=Object.values(byGuest).sort((a,b)=>b.rev-a.rev);
 
-    // Source breakdown
-    const srcDef=[
-      {key:'direct',      label:'Direct',      color:'#7ABF6A'},
-      {key:'plateformes', label:'Plateformes',  color:'#F1948A'},
-      {key:'homexchange', label:'Homexchange',  color:'#E6C96A'},
-      {key:'ghost',       label:'Ghost',        color:'#888'},
-    ];
-    const srcMap={direct:{n:0,rev:0},plateformes:{n:0,rev:0},homexchange:{n:0,rev:0},ghost:{n:0,rev:0}};
+    // Source breakdown — from settings
+    const srcDef=S.settings.sources||DEFAULT_SETTINGS.sources;
+    const srcMap={};
+    srcDef.forEach(s=>{srcMap[s.id]={n:0,rev:0};});
     bks.forEach(bk=>{
       const src=bk.source||'direct';
-      const grp=src==='airbnb'||src==='booking'?'plateformes':
-                src==='homexchange'?'homexchange':src==='ghost'?'ghost':'direct';
-      const oStart=bk.checkIn>mStart?bk.checkIn:mStart;
-      const oEnd=bk.checkOut<mEndExact?bk.checkOut:mEndExact;
-      const n=daysBetween(oStart,oEnd);
-      srcMap[grp].n++;
-      srcMap[grp].rev+=getBookingRevForPeriod(bk,mStart,mEndExact);
+      const key=srcMap[src]!==undefined?src:'direct';
+      srcMap[key].n++;
+      srcMap[key].rev+=getBookingRevForPeriod(bk,mStart,mEndExact);
     });
-    const srcActive=srcDef.filter(s=>srcMap[s.key].n>0);
-    const maxN=Math.max(...srcActive.map(s=>srcMap[s.key].n));
+    const srcActive=srcDef.filter(s=>srcMap[s.id]&&srcMap[s.id].n>0);
+    const maxN=Math.max(1,...srcActive.map(s=>srcMap[s.id].n));
 
     h+=`<div class="month-bklist"><div class="mbk-title">${bks.length} réservation${bks.length>1?'s':''}</div>
     <div class="src-breakdown">`;
     srcActive.forEach(s=>{
-      const d=srcMap[s.key];
+      const d=srcMap[s.id];
       const pct=Math.round(d.n/bks.length*100);
       const barW=Math.round(d.n/maxN*100);
       h+=`<div class="src-bk-row">
