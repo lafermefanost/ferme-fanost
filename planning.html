@@ -294,6 +294,13 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .tsec-body{background:var(--cream);padding:10px 10px 6px;}
 .tsec-panel.collapsed>.tsec-body{display:none;}
 .tsec-empty{font-size:12px;color:var(--gray);padding:8px 6px 4px;text-align:center;}
+.tev-panel{display:flex;flex-direction:column;gap:6px;}
+.tev-card{display:flex;align-items:center;gap:10px;background:#fff;border-radius:10px;
+  padding:10px 12px;border:1.5px solid var(--light);border-left-width:4px;
+  cursor:pointer;transition:opacity .15s;}
+.tev-card:hover{opacity:.75;}
+.tev-title{font-weight:600;font-size:13px;color:var(--dark);}
+.tev-dates{font-size:11px;color:var(--gray);margin-top:2px;}
 .tcard-total{display:flex;align-items:center;justify-content:space-between;
   padding:10px 12px;background:#BFBAB4;border-top:none;font-size:13px;cursor:pointer;}
 .tcard-total:active{background:#A8A29C;}
@@ -1424,7 +1431,7 @@ function renderGrid(){
       const ec=dayEvs[0].color||'#A8C5A0';
       const lc=light(ec);
       const evTitles=dayEvs.map(ev=>ev.title).join(', ');
-      dayTd.innerHTML=`<div class="ev-circle" style="background:${ec};color:${lc?'#2C2C2C':'#fff'}" title="${evTitles}">${date.getDate()}</div>`;
+      dayTd.innerHTML=`<div class="ev-circle" style="background:${ec};color:${lc?'#2C2C2C':'#fff'};cursor:pointer" title="${evTitles}" onclick="event.stopPropagation();goToDay('${ds}')">${date.getDate()}</div>`;
     } else {
       dayTd.innerHTML=date.getDate();
     }
@@ -1686,6 +1693,19 @@ function renderToday(){
       <div class="tsec-body">${body}</div>
     </div>`;
   };
+  const dayEvs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
+  if(dayEvs.length){
+    h+=`<div class="tev-panel">`;
+    dayEvs.forEach(ev=>{
+      const isSingle=ev.startDate===ev.endDate;
+      const dateRange=isSingle?fmtDate(ev.startDate):`${fmtDate(ev.startDate)} → ${fmtDate(ev.endDate)}`;
+      h+=`<div class="tev-card" onclick="openEventEdit('${ev.id}')" style="border-left-color:${ev.color||'#A8C5A0'}">
+        <div class="tev-title">${ev.title}</div>
+        <div class="tev-dates">${dateRange}</div>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
   h+=panel('dep','↑','Départs',deps,b=>card(b,'Départ',true));
   h+=panel('arr','↓','Arrivées',arrs,b=>card(b,b.arrivalTime?`Arrivée ${b.arrivalTime}`:'Arrivée'));
   h+=panel('stay','●','En cours',stays,b=>card(b,`Départ le ${fmtDate(b.checkOut)}`));
@@ -2541,6 +2561,7 @@ function getBookingRevForPeriod(bk,pStart,pEnd){
 
 function chDay(n){S.todayDate=addDays(S.todayDate||todayISO(),n);renderToday();}
 function goTodayView(){S.todayDate=todayISO();renderToday();}
+function goToDay(ds){S.todayDate=ds;setView('today');}
 
 function getMondayOf(ds){
   const d=new Date(ds+'T00:00:00');
