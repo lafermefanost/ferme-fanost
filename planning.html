@@ -415,9 +415,9 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .wstat-num{border-radius:8px;padding:8px 10px;display:flex;align-items:baseline;gap:6px;}
 .wstat-num-val{font-size:28px;font-weight:700;line-height:1;}
 .wstat-num-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;opacity:.75;}
-.wstat-num.dep{background:#FFF3CD;color:#7A5800;}
-.wstat-num.arr{background:#E8F3E5;color:#2E5C28;}
-.wstat-num.wstat-zero{background:var(--light);color:#ccc;}
+.wstat-num.dep{background:var(--earth);color:#fff;}
+.wstat-num.arr{background:var(--green);color:#fff;}
+.wstat-num.wstat-zero{background:var(--light);color:#bbb;}
 .wday-sec{font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase;
   letter-spacing:.05em;margin:7px 0 3px;}
 .wday-guest{display:flex;align-items:center;gap:7px;padding:3px 0;
@@ -2470,7 +2470,7 @@ function renderWeek(){
 
   h+=`<div class="week-summary">
     <div class="wsm-item"><div class="wsm-val">${totalNights}</div><div class="wsm-lbl">nuitées</div></div>
-    <div class="wsm-item"><div class="wsm-val">🍽 ${totalRepas}</div><div class="wsm-lbl">repas</div></div>
+    <div class="wsm-item"><div class="wsm-val">${totalRepas}</div><div class="wsm-lbl">repas</div></div>
     ${totalExtras>0?`<div class="wsm-item"><div class="wsm-val">${totalExtras.toLocaleString('fr-FR')} €</div><div class="wsm-lbl">extras</div></div>`:''}
     <div class="wsm-item" style="margin-left:auto"><div class="wsm-val">${totalRev>0?totalRev.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">revenus estimés</div></div>
   </div>`;
