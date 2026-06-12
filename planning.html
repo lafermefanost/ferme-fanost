@@ -658,14 +658,48 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .evcard-info{flex:1;min-width:0;}
 .evcard-title{font-weight:600;font-size:14px;color:var(--dark);}
 .evcard-time{font-size:11px;color:var(--gray);margin-top:2px;}
+
+/* Settings */
+.set-sec{margin-bottom:16px;}
+.set-sec-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--earth);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.set-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--light);}
+.set-row:last-child{border-bottom:none;}
+.set-fi{flex:1;border:none;background:transparent;font-family:'Jost',sans-serif;
+  font-size:13px;color:var(--dark);outline:none;min-width:0;}
+.set-fi-sm{width:60px;border:none;background:transparent;font-family:'Jost',sans-serif;
+  font-size:13px;color:var(--dark);text-align:right;outline:none;}
+.set-lbl{font-size:11px;color:var(--gray);flex-shrink:0;width:80px;}
+.set-del{width:26px;height:26px;border:none;background:none;cursor:pointer;
+  color:#ccc;font-size:16px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.set-del:hover{color:#e44;background:#FFF0F0;}
+.set-add{background:none;border:1.5px dashed var(--light);border-radius:8px;
+  font-family:'Jost',sans-serif;font-size:12px;color:var(--gray);cursor:pointer;
+  padding:6px 12px;width:100%;margin-top:6px;transition:all .15s;}
+.set-add:hover{border-color:var(--green);color:var(--green);}
+.set-tariff-row{display:grid;grid-template-columns:1fr 60px 60px 60px 28px;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--light);}
+.set-tariff-row:last-child{border-bottom:none;}
+.set-tariff-hd{display:grid;grid-template-columns:1fr 60px 60px 60px 28px;gap:6px;padding:0 0 4px;}
+.set-tariff-hd span{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);text-align:right;}
+.set-tariff-hd span:first-child{text-align:left;}
+.set-chip{display:flex;align-items:center;gap:4px;background:var(--light);border-radius:16px;
+  padding:4px 10px;font-size:12px;font-weight:500;color:var(--dark);}
+.set-chip-del{border:none;background:none;cursor:pointer;color:#aaa;font-size:13px;
+  padding:0 0 0 2px;line-height:1;}
+.set-chip-del:hover{color:#e44;}
+.set-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.set-color{width:28px;height:28px;border:none;padding:2px;border-radius:6px;cursor:pointer;flex-shrink:0;}
 </style>
 </head>
 <body>
 
 <!-- ─── HEADER ─────────────────────────────────────────────── -->
 <header>
-  <div class="logo"><b>Fanost</b> — Planning</div>
+  <div class="logo" id="appName"><b>Fanost</b> — Planning</div>
   <span class="sync-pip" id="syncPip" title="Synchronisation locale"></span>
+  <button class="hbtn" onclick="openSettings()" title="Paramètres">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
   <button class="hbtn" onclick="openEventsModal()" title="Événements">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
   </button>
@@ -1101,6 +1135,17 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
   </div>
 </div>
 
+<!-- ─── SETTINGS MODAL ─────────────────────────────────────────────── -->
+<div class="overlay" id="modalSettings" style="display:none" onclick="ovClose(event,'modalSettings')">
+  <div class="modal" style="max-height:85vh;overflow-y:auto;">
+    <div class="mhead">
+      <div class="mtitle">Paramètres</div>
+      <button class="mclose" onclick="closeM('modalSettings')">✕</button>
+    </div>
+    <div id="settingsBody"></div>
+  </div>
+</div>
+
 <!-- ─── RANGE BAR ──────────────────────────────────────────────────── -->
 <div id="rangeBar">
   <span id="rangeLabel"></span>
@@ -1112,7 +1157,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 // ═══════════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════════
-const ROOMS = [
+let ROOMS = [
   {id:'ch1',name:'Chambre 1',short:'Ch.1'},
   {id:'ch2',name:'Chambre 2',short:'Ch.2'},
   {id:'ch3',name:'Chambre 3',short:'Ch.3'},
@@ -1137,22 +1182,47 @@ const PALETTE = [
 // ═══════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════
-const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null, todayDate:null, catalog:[], charges:[]};
+const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null, todayDate:null, catalog:[], charges:[], settings:null};
 
 const DEFAULT_PRICES={solo:100, double:125, th:25};
+const DEFAULT_SETTINGS={
+  name:'Fanost — Planning',
+  rooms:[
+    {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65'},
+    {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5'},
+    {id:'ch3',name:'Chambre 3',short:'Ch.3',color:'#B57A8C'},
+    {id:'ch4',name:'Chambre 4',short:'Ch.4',color:'#8CB57A'},
+    {id:'vip',name:'VIP',short:'VIP',color:'#B5A07A'},
+    {id:'fam',name:'Famille',short:'FAM',color:'#7AB5A0'},
+    {id:'jdn',name:'Jardin',short:'JDN',color:'#A07AB5'},
+    {id:'wis',name:'Wissous',short:'WIS',color:'#B57A7A'},
+  ],
+  cleaners:['Rosa','Svetlana','Tatiana'],
+  tariffHistory:[{id:'t0',from:'2000-01-01',solo:100,double:125,th:25}],
+  charges:[]
+};
 
+function getTariffForDate(ds){
+  const hist=(S.settings&&S.settings.tariffHistory)||[{from:'2000-01-01',solo:100,double:125,th:25}];
+  const sorted=[...hist].sort((a,b)=>a.from.localeCompare(b.from));
+  let t=sorted[0];
+  for(const h of sorted){if(h.from<=ds)t=h;}
+  return t;
+}
 function getNightlyRate(bk){
   if(bk.source==='homexchange') return 0;
   const g=guest(bk.guestId);
   if(g&&g.price)return g.price;
-  return(bk.nbPersons||2)===1?DEFAULT_PRICES.solo:DEFAULT_PRICES.double;
+  const t=getTariffForDate(bk.checkIn||todayISO());
+  return(bk.nbPersons||2)===1?t.solo:t.double;
 }
 function getThRevenue(bk,fromDate,toDate){
   if(bk.source==='homexchange') return 0;
   if(!bk.dinnerNights)return 0;
+  const t=getTariffForDate(bk.checkIn||fromDate);
   return Object.keys(bk.dinnerNights)
     .filter(ds=>ds>=fromDate&&ds<toDate&&bk.dinnerNights[ds])
-    .length*(bk.nbPersons||2)*DEFAULT_PRICES.th;
+    .length*(bk.nbPersons||2)*t.th;
 }
 
 const DEFAULT_CATALOG=[
@@ -1311,6 +1381,12 @@ function connectFirebase(cfg){
         S.events=d.events||[];
         S.cleaning=d.cleaning||{};
         if(d.catalog&&d.catalog.length){S.catalog=d.catalog;saveCatalog();}
+        if(d.settings){
+          S.settings={...JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),...d.settings};
+          if(!S.settings.charges)S.settings.charges=[];
+          saveSettings();
+          applySettings();
+        }
         renderGrid();
         if(S.view==='today') renderToday();
         if(S.view==='week') renderWeek();
@@ -1329,7 +1405,7 @@ function pushToFirebase(){
   setSyncPip('busy','Envoi…');
   db.collection('planning').doc('data').set({
     bookings:S.bookings, guests:S.guests, events:S.events, cleaning:S.cleaning,
-    catalog:S.catalog,
+    catalog:S.catalog, settings:S.settings,
     updated:new Date().toISOString()
   }).then(()=>setSyncPip('ok','Synchronisé ✓'))
     .catch(()=>setSyncPip('err','Erreur envoi'));
@@ -1656,14 +1732,15 @@ function renderToday(){
       const total=getStayTotal(b);
       if(total>0){
         const tid='tt-'+b.id;
+        const tariff=getTariffForDate(b.checkIn||ds);
         let rows='';
         if(isCustom){
-          const autoTotal=nights*rate+dinCount*pax*DEFAULT_PRICES.th+extTotal;
+          const autoTotal=nights*rate+dinCount*pax*tariff.th+extTotal;
           rows+=`<div class="ttd-line"><span>Prix personnalisé</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
           if(autoTotal>0) rows+=`<div class="ttd-line" style="opacity:.5;font-style:italic"><span>Calcul auto : ${autoTotal.toLocaleString('fr-FR')} €</span><span></span></div>`;
         } else {
           rows+=`<div class="ttd-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
-          if(dinCount>0) rows+=`<div class="ttd-line"><span>${dinCount} repas × ${pax} pers × ${DEFAULT_PRICES.th} €</span><span>${(dinCount*pax*DEFAULT_PRICES.th).toLocaleString('fr-FR')} €</span></div>`;
+          if(dinCount>0) rows+=`<div class="ttd-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${(dinCount*pax*tariff.th).toLocaleString('fr-FR')} €</span></div>`;
           if(extTotal>0) rows+=`<div class="ttd-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
           rows+=`<div class="ttd-line ttd-sep"><span>Total séjour</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
         }
@@ -2434,7 +2511,7 @@ function flash(msg,bg){
 // ═══════════════════════════════════════════════════════════════
 //  WEEK VIEW
 // ═══════════════════════════════════════════════════════════════
-const CLEANERS=['Rosa','Svetlana','Tatiana'];
+let CLEANERS=['Rosa','Svetlana','Tatiana'];
 
 function setCleaner(ds,name){
   S.cleaning[ds]=S.cleaning[ds]===name?null:name;
@@ -2453,19 +2530,43 @@ function loadCatalog(){
 function saveCatalog(){localStorage.setItem('ff2_catalog',JSON.stringify(S.catalog));}
 
 // ═══════════════════════════════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════════════════════════════
+function loadSettings(){
+  const raw=localStorage.getItem('ff2_settings');
+  S.settings=raw?JSON.parse(raw):JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+  // Migrate charges from ff2_charges if needed
+  const legCharges=localStorage.getItem('ff2_charges');
+  if(legCharges&&(!S.settings.charges||!S.settings.charges.length)){
+    S.settings.charges=JSON.parse(legCharges);
+  }
+}
+function saveSettings(){
+  localStorage.setItem('ff2_settings',JSON.stringify(S.settings));
+  if(db)pushToFirebase();
+}
+function applySettings(){
+  ROOMS=S.settings.rooms||ROOMS;
+  CLEANERS=S.settings.cleaners||CLEANERS;
+  // Update logo name
+  const logoEl=byId('appName');
+  if(logoEl)logoEl.textContent=S.settings.name||'Fanost — Planning';
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  CHARGES COURANTES
 // ═══════════════════════════════════════════════════════════════
 function loadCharges(){
-  const raw=localStorage.getItem('ff2_charges');
-  S.charges=raw?JSON.parse(raw):[];
+  // Migration handled by loadSettings — this is a no-op kept for compatibility
 }
-function saveCharges(){localStorage.setItem('ff2_charges',JSON.stringify(S.charges));}
+function saveCharges(){saveSettings();}
 function monthlyAmt(c){return c.period==='annual'?c.amount/12:c.amount;}
-function totalMonthlyCharges(){return S.charges.reduce((s,c)=>s+monthlyAmt(c),0);}
+function totalMonthlyCharges(){return (S.settings.charges||[]).reduce((s,c)=>s+monthlyAmt(c),0);}
 
 function addCharge(){
-  S.charges.push({id:uid(),label:'',amount:0,period:'monthly'});
-  saveCharges();renderMonth();
+  S.settings.charges.push({id:uid(),label:'',amount:0,period:'monthly'});
+  saveSettings();renderMonth();
+  if(byId('modalSettings')&&byId('modalSettings').style.display==='flex')renderSettings();
   // focus new label input
   setTimeout(()=>{
     const inputs=document.querySelectorAll('.mch-label');
@@ -2473,22 +2574,181 @@ function addCharge(){
   },50);
 }
 function removeCharge(id){
-  S.charges=S.charges.filter(c=>c.id!==id);
-  saveCharges();renderMonth();
+  S.settings.charges=S.settings.charges.filter(c=>c.id!==id);
+  saveSettings();renderMonth();
+  if(byId('modalSettings')&&byId('modalSettings').style.display==='flex')renderSettings();
 }
 function updateCharge(id,field,val){
-  const c=S.charges.find(x=>x.id===id);
+  const c=S.settings.charges.find(x=>x.id===id);
   if(!c)return;
   if(field==='amount')c.amount=parseFloat(val)||0;
   else c[field]=val;
-  saveCharges();
-  if(field==='amount')renderMonth();
+  saveSettings();
+  if(field==='amount'){renderMonth();if(byId('modalSettings')&&byId('modalSettings').style.display==='flex')renderSettings();}
 }
 function toggleChargePeriod(id){
-  const c=S.charges.find(x=>x.id===id);
+  const c=S.settings.charges.find(x=>x.id===id);
   if(!c)return;
   c.period=c.period==='annual'?'monthly':'annual';
-  saveCharges();renderMonth();
+  saveSettings();renderMonth();
+  if(byId('modalSettings')&&byId('modalSettings').style.display==='flex')renderSettings();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SETTINGS UI
+// ═══════════════════════════════════════════════════════════════
+function openSettings(){
+  renderSettings();
+  byId('modalSettings').style.display='flex';
+}
+
+function renderSettings(){
+  const st=S.settings;
+  let h='';
+
+  // — Établissement —
+  h+=`<div class="set-sec">
+    <div class="set-sec-title">Établissement</div>
+    <div class="set-row">
+      <input class="set-fi" value="${st.name||''}" placeholder="Nom de l'établissement"
+        onblur="S.settings.name=this.value;saveSettings();applySettings()">
+    </div>
+  </div>`;
+
+  // — Tarifs —
+  h+=`<div class="set-sec">
+    <div class="set-sec-title">Tarifs nuitée &amp; repas</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Appliqués aux réservations sans prix personnalisé, selon la date de début.</div>
+    <div class="set-tariff-hd">
+      <span>À partir du</span><span>1 pers €</span><span>2+ pers €</span><span>Repas €</span><span></span>
+    </div>`;
+  const tariffs=[...(st.tariffHistory||[])].sort((a,b)=>a.from.localeCompare(b.from));
+  tariffs.forEach((t,i)=>{
+    const canDel=tariffs.length>1;
+    h+=`<div class="set-tariff-row">
+      <input class="set-fi" type="date" value="${t.from}"
+        onblur="updateTariff('${t.id}','from',this.value)">
+      <input class="set-fi-sm" type="number" value="${t.solo}"
+        onblur="updateTariff('${t.id}','solo',+this.value)">
+      <input class="set-fi-sm" type="number" value="${t.double}"
+        onblur="updateTariff('${t.id}','double',+this.value)">
+      <input class="set-fi-sm" type="number" value="${t.th}"
+        onblur="updateTariff('${t.id}','th',+this.value)">
+      <button class="set-del" ${canDel?'':'disabled style="opacity:.3"'} onclick="delTariff('${t.id}')">×</button>
+    </div>`;
+  });
+  h+=`<button class="set-add" onclick="addTariff()">+ Nouveau tarif à partir d'aujourd'hui</button>
+  </div>`;
+
+  // — Chambres —
+  h+=`<div class="set-sec">
+    <div class="set-sec-title">Chambres</div>`;
+  (st.rooms||[]).forEach(r=>{
+    h+=`<div class="set-row">
+      <input class="set-fi" value="${r.name.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateRoom('${r.id}','name',this.value)">
+      <input class="set-fi" style="width:52px;flex:none;" value="${r.short.replace(/"/g,'&quot;')}" placeholder="Court" onblur="updateRoom('${r.id}','short',this.value)">
+      <input type="color" class="set-color" value="${r.color||'#7A8C65'}" oninput="updateRoom('${r.id}','color',this.value)">
+      <button class="set-del" onclick="delRoom('${r.id}')">×</button>
+    </div>`;
+  });
+  h+=`<button class="set-add" onclick="addRoom()">+ Ajouter une chambre</button>
+  </div>`;
+
+  // — Équipe ménage —
+  h+=`<div class="set-sec">
+    <div class="set-sec-title">Équipe ménage</div>
+    <div class="set-chips">`;
+  (st.cleaners||[]).forEach((c,i)=>{
+    h+=`<div class="set-chip">${c}<button class="set-chip-del" onclick="delCleaner(${i})">×</button></div>`;
+  });
+  h+=`</div>
+    <div class="set-row">
+      <input class="set-fi" id="newCleanerInput" placeholder="Prénom…"
+        onkeydown="if(event.key==='Enter'){addCleaner();event.preventDefault();}">
+      <button class="btn-s" style="padding:4px 12px;font-size:12px;" onclick="addCleaner()">Ajouter</button>
+    </div>
+  </div>`;
+
+  // — Charges courantes —
+  h+=`<div class="set-sec">
+    <div class="set-sec-title">Charges courantes</div>`;
+  const charges=st.charges||[];
+  if(charges.length){
+    charges.forEach(c=>{
+      const periodLabel=c.period==='annual'?'Annuel':'Mensuel';
+      h+=`<div class="mch-row">
+        <input class="mch-label" value="${c.label.replace(/"/g,'&quot;')}" placeholder="Libellé"
+          onblur="updateCharge('${c.id}','label',this.value)"
+          onkeydown="if(event.key==='Enter')this.blur()">
+        <input class="mch-amount" type="number" min="0" value="${c.amount||''}" placeholder="0"
+          onblur="updateCharge('${c.id}','amount',this.value)"
+          onkeydown="if(event.key==='Enter')this.blur()"> €
+        <button class="mch-period ${c.period}" onclick="toggleChargePeriod('${c.id}')">${periodLabel}</button>
+        <button class="mch-del" onclick="removeCharge('${c.id}')">×</button>
+      </div>`;
+    });
+    const total=totalMonthlyCharges();
+    h+=`<div class="mch-total-row">
+      <span>Total mensuel</span>
+      <span class="mch-total-val">${Math.round(total).toLocaleString('fr-FR')} € / mois</span>
+    </div>`;
+  } else {
+    h+=`<div style="font-size:13px;color:#bbb;padding:4px 0 8px">Aucune charge renseignée.</div>`;
+  }
+  h+=`<button class="mch-add" onclick="addCharge()">+ Ajouter une charge</button>
+  </div>`;
+
+  byId('settingsBody').innerHTML=h;
+}
+
+// Tariff CRUD
+function addTariff(){
+  S.settings.tariffHistory.push({id:uid(),from:todayISO(),solo:100,double:125,th:25});
+  saveSettings();renderSettings();
+}
+function delTariff(id){
+  if(S.settings.tariffHistory.length<=1)return;
+  S.settings.tariffHistory=S.settings.tariffHistory.filter(t=>t.id!==id);
+  saveSettings();renderSettings();
+}
+function updateTariff(id,field,val){
+  const t=S.settings.tariffHistory.find(x=>x.id===id);
+  if(!t)return;
+  t[field]=val;
+  saveSettings();
+}
+
+// Room CRUD
+function addRoom(){
+  const colors=['#7A8C65','#7A8CB5','#B57A8C','#8CB57A','#B5A07A','#7AB5A0'];
+  const color=colors[S.settings.rooms.length%colors.length];
+  const n=S.settings.rooms.length+1;
+  S.settings.rooms.push({id:uid(),name:'Chambre '+n,short:'C'+n,color});
+  saveSettings();applySettings();renderSettings();renderGrid();
+}
+function delRoom(id){
+  if(!confirm('Supprimer cette chambre ? Les réservations associées ne seront pas supprimées.'))return;
+  S.settings.rooms=S.settings.rooms.filter(r=>r.id!==id);
+  saveSettings();applySettings();renderSettings();renderGrid();
+}
+function updateRoom(id,field,val){
+  const r=S.settings.rooms.find(x=>x.id===id);
+  if(!r)return;
+  r[field]=val;
+  saveSettings();applySettings();
+  if(field==='name'||field==='short')renderGrid();
+}
+
+// Cleaner CRUD
+function addCleaner(){
+  const v=(byId('newCleanerInput').value||'').trim();
+  if(!v)return;
+  S.settings.cleaners.push(v);
+  saveSettings();applySettings();renderSettings();
+}
+function delCleaner(i){
+  S.settings.cleaners.splice(i,1);
+  saveSettings();applySettings();renderSettings();
 }
 
 function openCatalogModal(){renderCatalogList();byId('modalCatalog').style.display='flex';}
@@ -2568,12 +2828,13 @@ function updateModalTotal(){
   const prixNetVal=parseFloat(byId('prixNet').value)||null;
   const tempBk={...(bk||{}),checkIn:ci,checkOut:co,guestId:selGid,source:bkSource,prixNet:prixNetVal};
   const rate=getNightlyRate(tempBk);
+  const tariff=getTariffForDate(ci);
   const dinnerNights=bk?bk.dinnerNights||{}:{};
   const pax=parseInt(document.querySelector('.pax-btn.on')?.textContent)||2;
   const dinCount=Object.keys(dinnerNights).filter(d=>dinnerNights[d]&&d>=ci&&d<co).length;
   const extTotal=bk?getExtrasTotal(bk):0;
   const isCustom=prixNetVal&&prixNetVal>0;
-  const total=isCustom?prixNetVal:nights*rate+dinCount*pax*DEFAULT_PRICES.th+extTotal;
+  const total=isCustom?prixNetVal:nights*rate+dinCount*pax*tariff.th+extTotal;
   if(total<=0){el.style.display='none';return;}
   el.style.display='block';
   byId('bTotLbl').textContent=(isCustom?'Prix personnalisé':'Total séjour')+' — '+nights+' nuit'+(nights>1?'s':'');
@@ -2581,11 +2842,11 @@ function updateModalTotal(){
   let rows='';
   if(isCustom){
     rows+=`<div class="btot-line"><span>Prix personnalisé</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
-    const auto=nights*rate+dinCount*pax*DEFAULT_PRICES.th+extTotal;
+    const auto=nights*rate+dinCount*pax*tariff.th+extTotal;
     if(auto>0)rows+=`<div class="btot-line" style="opacity:.55;font-style:italic"><span>Calcul auto</span><span>${auto.toLocaleString('fr-FR')} €</span></div>`;
   } else {
     if(rate>0)rows+=`<div class="btot-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
-    if(dinCount>0)rows+=`<div class="btot-line"><span>${dinCount} repas × ${pax} pers × ${DEFAULT_PRICES.th} €</span><span>${(dinCount*pax*DEFAULT_PRICES.th).toLocaleString('fr-FR')} €</span></div>`;
+    if(dinCount>0)rows+=`<div class="btot-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${(dinCount*pax*tariff.th).toLocaleString('fr-FR')} €</span></div>`;
     if(extTotal>0)rows+=`<div class="btot-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
     if(rows)rows+=`<div class="btot-line sep"><span>Total</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
   }
@@ -2824,7 +3085,7 @@ function renderMonth(){
       <div class="mfin-card">
         <div class="mfin-val charges">${Math.round(totalCh).toLocaleString('fr-FR')} €</div>
         <div class="mfin-sub">charges / mois</div>
-        <div class="mfin-detail">${S.charges.length} poste${S.charges.length>1?'s':''}</div>
+        <div class="mfin-detail">${S.settings.charges.length} poste${S.settings.charges.length>1?'s':''}</div>
       </div>
       <div class="mfin-card">
         <div class="mfin-val ${margeClass}">${totalRev>0?marge.toLocaleString('fr-FR')+' €':'—'}</div>
@@ -2913,8 +3174,8 @@ function renderMonth(){
     <div class="mch-header">
       <div class="mch-title">Charges courantes</div>
     </div>`;
-  if(S.charges.length){
-    S.charges.forEach(c=>{
+  if(S.settings.charges.length){
+    S.settings.charges.forEach(c=>{
       const periodLabel=c.period==='annual'?'Annuel':'Mensuel';
       h+=`<div class="mch-row">
         <input class="mch-label" value="${c.label.replace(/"/g,'&quot;')}" placeholder="Libellé"
@@ -2988,7 +3249,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
-  const ids=['modalEventEdit','modalGuestEdit','modalGuests','modalEvents','modalBooking','modalSync'];
+  const ids=['modalEventEdit','modalGuestEdit','modalGuests','modalEvents','modalBooking','modalSync','modalSettings'];
   for(const id of ids){const el=byId(id);if(el&&el.style.display==='flex'){closeM(id);break;}}
 });
 
@@ -3382,6 +3643,8 @@ function init(){
   importLegacy();
   loadCatalog();
   loadCharges();
+  loadSettings();
+  applySettings();
   byId('yrLabel').textContent=S.year;
   // Set year to current if we have bookings for it
   const curY=new Date().getFullYear();
