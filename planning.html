@@ -595,6 +595,14 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
   text-transform:uppercase;letter-spacing:.07em;color:var(--earth);}
 .msec-title svg{flex-shrink:0;opacity:.75;}
 .msec .fg{margin-bottom:0;}
+.btot-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0 0;cursor:pointer;}
+.btot-lbl{font-size:13px;color:var(--dark);font-weight:500;}
+.btot-right{display:flex;align-items:center;gap:6px;}
+.btot-val{font-size:15px;font-weight:700;color:var(--green);}
+.btot-chev{font-size:11px;color:var(--gray);transition:transform .2s;line-height:1;}
+.btot-detail{padding:8px 0 2px;display:flex;flex-direction:column;gap:5px;}
+.btot-line{display:flex;justify-content:space-between;font-size:12px;color:var(--gray);}
+.btot-line.sep{border-top:1px solid var(--light);padding-top:5px;font-weight:600;color:var(--dark);}
 
 /* Guest list */
 .gline{display:flex;align-items:center;gap:10px;padding:9px 0;
@@ -778,11 +786,11 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
       </div>
       <div class="fg">
         <label class="fl">Arrivée</label>
-        <input type="date" class="fi" id="bIn" onchange="chkConflict();renderDinnerList()">
+        <input type="date" class="fi" id="bIn" onchange="chkConflict();renderDinnerList();updateModalTotal()">
       </div>
       <div class="fg">
         <label class="fl">Départ</label>
-        <input type="date" class="fi" id="bOut" onchange="chkConflict();renderDinnerList()">
+        <input type="date" class="fi" id="bOut" onchange="chkConflict();renderDinnerList();updateModalTotal()">
       </div>
       <div class="frow">
         <div class="fg">
@@ -851,12 +859,22 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
       <div class="fg">
         <label class="fl">Prix personnalisé <span id="prixNetHint" style="color:var(--gray);font-weight:400;font-size:11px;"></span></label>
         <div style="position:relative;">
-          <input type="number" class="fi" id="prixNet" placeholder="Vide = calcul automatique" min="0" step="1" style="padding-right:26px;">
+          <input type="number" class="fi" id="prixNet" placeholder="Vide = calcul automatique" min="0" step="1" style="padding-right:26px;" oninput="updateModalTotal()">
           <span style="position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--gray);pointer-events:none;">€</span>
         </div>
       </div>
       <div id="bExtrasTotal" style="display:none;font-size:12px;color:#7A8C65;font-weight:600;">
         Extras enregistrés : <span id="bExtrasTotalVal"></span>
+      </div>
+      <div id="bTotalSejour" style="display:none;border-top:1px solid var(--light);margin-top:2px;">
+        <div class="btot-row" onclick="toggleBTot()">
+          <span class="btot-lbl" id="bTotLbl">Total séjour</span>
+          <span class="btot-right">
+            <span class="btot-val" id="bTotVal"></span>
+            <span class="btot-chev" id="bTotChev">▾</span>
+          </span>
+        </div>
+        <div class="btot-detail" id="bTotDetail" style="display:none"></div>
       </div>
     </div>
 
@@ -1133,6 +1151,7 @@ function setSource(v){
   ['direct','airbnb','booking','homexchange','ghost'].forEach(s=>
     byId('src-'+s)?.classList.toggle('on',s===v)
   );
+  updateModalTotal();
 }
 function resetPaymentUI(pay,ghost,depositAmt,source){
   bkPayment=pay||null;
@@ -1725,9 +1744,11 @@ function openAddModal(roomId,ds,dsOut){
   byId('prixNetHint').textContent='';
   resetPaymentUI(null,false,'');
   byId('bExtrasTotal').style.display='none';
+  byId('bTotalSejour').style.display='none';
 
   renderGPicker();
   renderDinnerList();
+  updateModalTotal();
   byId('modalBooking').style.display='flex';
 }
 
@@ -1759,6 +1780,7 @@ function openEditModal(id){
   else byId('bExtrasTotal').style.display='none';
   renderGPicker();
   renderDinnerList();
+  updateModalTotal();
   byId('modalBooking').style.display='flex';
 }
 
@@ -2454,6 +2476,48 @@ function getExtrasDayTotal(bk,ds){
   return Object.entries(bk.extras[ds]).reduce((s,[id,qty])=>{
     const item=S.catalog.find(c=>c.id===id);return s+(item?item.price*qty:0);},0);
 }
+function updateModalTotal(){
+  const el=byId('bTotalSejour');
+  if(!el)return;
+  const ci=byId('bIn').value;
+  const co=byId('bOut').value;
+  if(!ci||!co||ci>=co){el.style.display='none';return;}
+  if(bkSource==='homexchange'||bkSource==='ghost'){el.style.display='none';return;}
+  const nights=Math.round((new Date(co)-new Date(ci))/86400000);
+  const bk=editBid?S.bookings.find(b=>b.id===editBid):null;
+  const prixNetVal=parseFloat(byId('prixNet').value)||null;
+  const tempBk={...(bk||{}),checkIn:ci,checkOut:co,guestId:selGid,source:bkSource,prixNet:prixNetVal};
+  const rate=getNightlyRate(tempBk);
+  const dinnerNights=bk?bk.dinnerNights||{}:{};
+  const pax=parseInt(document.querySelector('.pax-btn.on')?.textContent)||2;
+  const dinCount=Object.keys(dinnerNights).filter(d=>dinnerNights[d]&&d>=ci&&d<co).length;
+  const extTotal=bk?getExtrasTotal(bk):0;
+  const isCustom=prixNetVal&&prixNetVal>0;
+  const total=isCustom?prixNetVal:nights*rate+dinCount*pax*DEFAULT_PRICES.th+extTotal;
+  if(total<=0){el.style.display='none';return;}
+  el.style.display='block';
+  byId('bTotLbl').textContent=(isCustom?'Prix personnalisé':'Total séjour')+' — '+nights+' nuit'+(nights>1?'s':'');
+  byId('bTotVal').textContent=total.toLocaleString('fr-FR')+' €';
+  let rows='';
+  if(isCustom){
+    rows+=`<div class="btot-line"><span>Prix personnalisé</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
+    const auto=nights*rate+dinCount*pax*DEFAULT_PRICES.th+extTotal;
+    if(auto>0)rows+=`<div class="btot-line" style="opacity:.55;font-style:italic"><span>Calcul auto</span><span>${auto.toLocaleString('fr-FR')} €</span></div>`;
+  } else {
+    if(rate>0)rows+=`<div class="btot-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
+    if(dinCount>0)rows+=`<div class="btot-line"><span>${dinCount} repas × ${pax} pers × ${DEFAULT_PRICES.th} €</span><span>${(dinCount*pax*DEFAULT_PRICES.th).toLocaleString('fr-FR')} €</span></div>`;
+    if(extTotal>0)rows+=`<div class="btot-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
+    if(rows)rows+=`<div class="btot-line sep"><span>Total</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
+  }
+  byId('bTotDetail').innerHTML=rows;
+}
+function toggleBTot(){
+  const d=byId('bTotDetail'),c=byId('bTotChev');
+  const show=d.style.display!=='block';
+  d.style.display=show?'block':'none';
+  if(c)c.style.transform=show?'rotate(180deg)':'';
+}
+
 function getExtrasTotal(bk){
   if(!bk.extras)return 0;
   return Object.keys(bk.extras).reduce((s,ds)=>s+getExtrasDayTotal(bk,ds),0);
