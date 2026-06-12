@@ -295,12 +295,17 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .tsec-panel.collapsed>.tsec-body{display:none;}
 .tsec-empty{font-size:12px;color:var(--gray);padding:8px 6px 4px;text-align:center;}
 .tev-panel{display:flex;flex-direction:column;gap:6px;}
-.tev-card{display:flex;align-items:center;gap:10px;background:#fff;border-radius:10px;
+.tev-hd{background:#7A8C65!important;}
+.tev-card{display:flex;flex-direction:column;background:#fff;border-radius:10px;
   padding:10px 12px;border:1.5px solid var(--light);border-left-width:4px;
   cursor:pointer;transition:opacity .15s;}
 .tev-card:hover{opacity:.75;}
 .tev-title{font-weight:600;font-size:13px;color:var(--dark);}
 .tev-dates{font-size:11px;color:var(--gray);margin-top:2px;}
+.tev-add-btn{margin-top:6px;background:none;border:1.5px dashed var(--light);border-radius:8px;
+  font-family:'Jost',sans-serif;font-size:12px;color:var(--gray);cursor:pointer;
+  padding:7px 12px;width:100%;transition:all .15s;}
+.tev-add-btn:hover{border-color:#7A8C65;color:#7A8C65;}
 .tcard-total{display:flex;align-items:center;justify-content:space-between;
   padding:10px 12px;background:#BFBAB4;border-top:none;font-size:13px;cursor:pointer;}
 .tcard-total:active{background:#A8A29C;}
@@ -1706,19 +1711,25 @@ function renderToday(){
     </div>`;
   };
   const dayEvs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
-  if(dayEvs.length){
-    h+=`<div class="tev-panel">`;
-    dayEvs.forEach(ev=>{
-      const isSingle=ev.startDate===ev.endDate;
-      const dateRange=isSingle?fmtDate(ev.startDate):`${fmtDate(ev.startDate)} → ${fmtDate(ev.endDate)}`;
-      const timeStr=ev.startTime?(ev.endTime?` · ${ev.startTime} – ${ev.endTime}`:(` · ${ev.startTime}`)):'';
-      h+=`<div class="tev-card" onclick="openEventEdit('${ev.id}')" style="border-left-color:${ev.color||'#A8C5A0'}">
-        <div class="tev-title">${ev.title}</div>
-        <div class="tev-dates">${dateRange}${timeStr}</div>
-      </div>`;
-    });
-    h+=`</div>`;
-  }
+  const evBody=dayEvs.length
+    ? dayEvs.map(ev=>{
+        const isSingle=ev.startDate===ev.endDate;
+        const dateRange=isSingle?fmtDate(ev.startDate):`${fmtDate(ev.startDate)} → ${fmtDate(ev.endDate)}`;
+        const timeStr=ev.startTime?(ev.endTime?` · ${ev.startTime} – ${ev.endTime}`:(` · ${ev.startTime}`)):'';
+        return`<div class="tev-card" onclick="openEventEdit('${ev.id}')" style="border-left-color:${ev.color||'#A8C5A0'}">
+          <div class="tev-title">${ev.title}</div>
+          <div class="tev-dates">${dateRange}${timeStr}</div>
+        </div>`;
+      }).join('')+`<button class="tev-add-btn" onclick="openEventEdit(null,'${ds}')">+ Ajouter un événement</button>`
+    : `<div class="tsec-empty">Pas d'événement prévu</div>
+       <button class="tev-add-btn" onclick="openEventEdit(null,'${ds}')">+ Ajouter un événement</button>`;
+  h+=`<div class="tsec-panel ev${dayEvs.length===0?' collapsed':''}">
+    <div class="tsec-hd tev-hd" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Événements<span class="tsec-count"><span>${dayEvs.length}</span></span><span class="tsec-chev">▾</span>
+    </div>
+    <div class="tsec-body">${evBody}</div>
+  </div>`;
   h+=panel('dep','↑','Départs',deps,b=>card(b,'Départ',true));
   h+=panel('arr','↓','Arrivées',arrs,b=>card(b,b.arrivalTime?`Arrivée ${b.arrivalTime}`:'Arrivée'));
   h+=panel('stay','●','En cours',stays,b=>card(b,`Départ le ${fmtDate(b.checkOut)}`));
@@ -2160,13 +2171,14 @@ function renderEvList(){
     </div>`).join('');
 }
 
-function openEventEdit(id){
+function openEventEdit(id,prefillDate){
   editEvid=id;
   const ev=id?S.events.find(e=>e.id===id):null;
+  const def=prefillDate||todayISO();
   byId('evEditTitle').textContent=ev?ev.title:'Nouvel événement';
   byId('evTitle').value=ev?ev.title:'';
-  byId('evStart').value=ev?ev.startDate:todayISO();
-  byId('evEnd').value=ev?ev.endDate:todayISO();
+  byId('evStart').value=ev?ev.startDate:def;
+  byId('evEnd').value=ev?ev.endDate:def;
   byId('evStartTime').value=ev?ev.startTime||'':'';
   byId('evEndTime').value=ev?ev.endTime||'':'';
   byId('evColor').value=ev?ev.color:'#A8C5A0';
