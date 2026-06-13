@@ -2642,6 +2642,13 @@ function loadSettings(){
   if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
   if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
   if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
+  // Migrate missing room fields (group, babyCrib, etc.) from DEFAULT_SETTINGS
+  if(S.settings.rooms){
+    const defMap=new Map(DEFAULT_SETTINGS.rooms.map(r=>[r.id,r]));
+    S.settings.rooms.forEach(r=>{
+      if(r.group===undefined){const d=defMap.get(r.id);r.group=d?d.group||'sasu':'sasu';}
+    });
+  }
 }
 function saveSettings(){
   localStorage.setItem('ff2_settings',JSON.stringify(S.settings));
