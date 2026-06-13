@@ -712,15 +712,18 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .yr-gauge.yr-gauge-danger .yr-gauge-lbl{color:#C0392B;}
 .yr-section{background:#fff;border-radius:12px;border:1.5px solid var(--light);padding:14px;margin-bottom:12px;}
 .yr-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--earth);margin-bottom:10px;}
-.yr-chart{display:flex;gap:2px;align-items:flex-end;height:80px;margin-bottom:6px;}
-.yr-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
-.yr-bar-wrap{flex:1;width:100%;position:relative;display:flex;align-items:flex-end;}
-.yr-bar-seg{position:absolute;left:0;right:0;border-radius:2px 2px 0 0;min-height:2px;}
-.yr-bar-sasu{background:#3D5C35;}
+.yr-chart{display:flex;gap:3px;align-items:flex-end;height:80px;margin-bottom:6px;}
+.yr-bar-col{flex:1;display:flex;flex-direction:column;align-items:stretch;height:100%;}
+.yr-bar-area{flex:1;display:flex;flex-direction:column;justify-content:flex-end;}
+.yr-bar-stack{display:flex;flex-direction:column;width:100%;}
+.yr-bar-seg{width:100%;}
+.yr-bar-sasu{background:#3D5C35;border-radius:2px 2px 0 0;}
 .yr-bar-lmnp{background:#B5A07A;}
-.yr-bar-mon{font-size:8px;color:var(--gray);text-transform:uppercase;letter-spacing:.03em;width:100%;text-align:center;}
+.yr-bar-lmnp:first-child{border-radius:2px 2px 0 0;}
+.yr-bar-mon{font-size:8px;color:var(--gray);text-transform:uppercase;letter-spacing:.03em;width:100%;text-align:center;padding-top:2px;}
 .yr-bar-col.yr-cur .yr-bar-sasu{background:#5A8C4A;}
 .yr-bar-col.yr-cur .yr-bar-lmnp{background:#C8B890;}
+.yr-chart-nodata{font-size:12px;color:var(--gray);text-align:center;padding:16px 0;}
 .yr-chart-legend{display:flex;gap:12px;font-size:10px;color:var(--gray);}
 .yr-legend-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:3px;}
 .yr-regl-body{display:none;}
@@ -3980,17 +3983,21 @@ function renderYear(){
   const maxRev=Math.max(1,...monthRevs.map(x=>x.rev.total));
   const curMon=today.slice(0,7);
 
+  const BAR_H=58;
+  const hasRevData=maxRev>1;
   const chartHTML=`<div class="yr-section">
     <div class="yr-section-title">Revenus par mois</div>
-    <div class="yr-chart">
+    ${hasRevData?`<div class="yr-chart">
       ${monthRevs.map(({m,mStart,rev})=>{
         const isCur=mStart.slice(0,7)===curMon;
-        const sasuH=rev.sasu/maxRev*100;
-        const lmnpH=rev.lmnp/maxRev*100;
+        const sasuPx=Math.round(rev.sasu/maxRev*BAR_H);
+        const lmnpPx=Math.round(rev.lmnp/maxRev*BAR_H);
         return`<div class="yr-bar-col${isCur?' yr-cur':''}">
-          <div class="yr-bar-wrap">
-            ${rev.lmnp>0?`<div class="yr-bar-seg yr-bar-lmnp" style="height:${lmnpH}%;bottom:${sasuH}%"></div>`:''}
-            ${rev.sasu>0?`<div class="yr-bar-seg yr-bar-sasu" style="height:${sasuH}%;bottom:0"></div>`:''}
+          <div class="yr-bar-area">
+            ${(sasuPx>0||lmnpPx>0)?`<div class="yr-bar-stack">
+              ${lmnpPx>0?`<div class="yr-bar-seg yr-bar-lmnp" style="height:${lmnpPx}px"></div>`:''}
+              ${sasuPx>0?`<div class="yr-bar-seg yr-bar-sasu" style="height:${sasuPx}px"></div>`:''}
+            </div>`:''}
           </div>
           <div class="yr-bar-mon">${MON[m].slice(0,1)}</div>
         </div>`;
@@ -3999,7 +4006,7 @@ function renderYear(){
     <div class="yr-chart-legend">
       <span><span class="yr-legend-dot" style="background:#3D5C35"></span>Chambres</span>
       <span><span class="yr-legend-dot" style="background:#B5A07A"></span>Wissous</span>
-    </div>
+    </div>`:`<div class="yr-chart-nodata">Aucune donnée de revenu pour ${year}<br><span style="font-size:11px">Vérifiez que vos réservations ont un tarif configuré</span></div>`}
   </div>`;
 
   // Regulatory
