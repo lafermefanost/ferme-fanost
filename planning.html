@@ -684,6 +684,52 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .set-chip-del:hover{color:#e44;}
 .set-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
 .set-color{width:28px;height:28px;border:none;padding:2px;border-radius:6px;cursor:pointer;flex-shrink:0;}
+/* ── Year view ── */
+#yearWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
+  -webkit-overflow-scrolling:touch;}
+.yr-inner{padding:12px;max-width:600px;margin:0 auto;}
+.yr-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:16px;}
+.yr-nav-btn{background:none;border:1.5px solid var(--light);border-radius:8px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--dark);}
+.yr-nav-title{font-size:22px;font-weight:700;color:var(--dark);}
+.yr-group{background:#fff;border-radius:12px;border:1.5px solid var(--light);padding:14px;margin-bottom:12px;}
+.yr-group-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.yr-group-name{font-size:13px;font-weight:700;color:var(--dark);}
+.yr-group-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:10px;background:var(--light);color:var(--gray);}
+.yr-room-dots{display:flex;gap:4px;align-items:center;}
+.yr-room-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.yr-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;}
+.yr-stat{text-align:center;}
+.yr-stat-val{font-size:18px;font-weight:700;color:var(--dark);line-height:1;}
+.yr-stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);margin-top:2px;}
+.yr-gauge{margin-bottom:10px;}
+.yr-gauge-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+.yr-gauge-lbl{font-size:11px;font-weight:600;color:var(--dark);}
+.yr-gauge-thr{font-size:10px;color:var(--gray);}
+.yr-gauge-bar{height:10px;background:var(--light);border-radius:6px;overflow:hidden;position:relative;}
+.yr-gauge-proj{position:absolute;top:0;left:0;height:100%;border-radius:6px;transition:width .3s;}
+.yr-gauge-real{position:absolute;top:0;left:0;height:100%;border-radius:6px;transition:width .3s;}
+.yr-gauge-bot{display:flex;justify-content:space-between;margin-top:3px;}
+.yr-gauge.yr-gauge-warn .yr-gauge-lbl{color:#E07828;}
+.yr-gauge.yr-gauge-danger .yr-gauge-lbl{color:#C0392B;}
+.yr-section{background:#fff;border-radius:12px;border:1.5px solid var(--light);padding:14px;margin-bottom:12px;}
+.yr-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--earth);margin-bottom:10px;}
+.yr-chart{display:flex;gap:2px;align-items:flex-end;height:80px;margin-bottom:6px;}
+.yr-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.yr-bar-wrap{flex:1;width:100%;position:relative;display:flex;align-items:flex-end;}
+.yr-bar-seg{position:absolute;left:0;right:0;border-radius:2px 2px 0 0;min-height:2px;}
+.yr-bar-sasu{background:#3D5C35;}
+.yr-bar-lmnp{background:#B5A07A;}
+.yr-bar-mon{font-size:8px;color:var(--gray);text-transform:uppercase;letter-spacing:.03em;width:100%;text-align:center;}
+.yr-bar-col.yr-cur .yr-bar-sasu{background:#5A8C4A;}
+.yr-bar-col.yr-cur .yr-bar-lmnp{background:#C8B890;}
+.yr-chart-legend{display:flex;gap:12px;font-size:10px;color:var(--gray);}
+.yr-legend-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:3px;}
+.yr-regl-body{display:none;}
+.yr-regl.open .yr-regl-body{display:block;}
+.yr-regl.open .yr-regl-chev{display:inline-block;transform:rotate(180deg);}
+.yr-regl-chev{display:inline-block;transition:transform .2s;margin-left:4px;}
+.yr-regl-item{font-size:12px;color:var(--dark);padding:5px 0;border-bottom:1px solid var(--light);line-height:1.5;}
+.yr-regl-item:last-child{border-bottom:none;}
 </style>
 </head>
 <body>
@@ -760,6 +806,9 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 <!-- ─── MONTH VIEW ─────────────────────────────────────────────── -->
 <div id="monthWrap"></div>
 
+<!-- ─── YEAR VIEW ──────────────────────────────────────────────── -->
+<div id="yearWrap" style="display:none"></div>
+
 <!-- ─── MOBILE NAV ─────────────────────────────────────────────── -->
 <nav class="mbnav">
   <button class="mbnav-btn on" id="mn-grid" onclick="setView('grid')">
@@ -774,8 +823,8 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
   <button class="mbnav-btn" id="mn-month" onclick="setView('month')">
     <span class="mbnav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Mois
   </button>
-  <button class="mbnav-btn" onclick="openGuestsModal()">
-    <span class="mbnav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Clients
+  <button class="mbnav-btn" id="mn-year" onclick="setView('year')">
+    <span class="mbnav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="4"/><line x1="12" y1="20" x2="12" y2="12"/><line x1="6" y1="20" x2="6" y2="9"/><line x1="3" y1="20" x2="21" y2="20"/></svg></span>Année
   </button>
 </nav>
 
@@ -1176,18 +1225,20 @@ const DEFAULT_PRICES={solo:100, double:125, th:25};
 const DEFAULT_SETTINGS={
   name:'Fanost — Planning',
   rooms:[
-    {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65',maxPersons:2,babyCrib:false,babyCribPrice:15},
-    {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5',maxPersons:2,babyCrib:false,babyCribPrice:15},
-    {id:'ch3',name:'Chambre 3',short:'Ch.3',color:'#B57A8C',maxPersons:2,babyCrib:false,babyCribPrice:15},
-    {id:'ch4',name:'Chambre 4',short:'Ch.4',color:'#8CB57A',maxPersons:2,babyCrib:false,babyCribPrice:15},
-    {id:'vip',name:'VIP',short:'VIP',color:'#B5A07A',maxPersons:2,babyCrib:false,babyCribPrice:15},
-    {id:'fam',name:'Famille',short:'FAM',color:'#7AB5A0',maxPersons:4,babyCrib:true,babyCribPrice:15},
-    {id:'jdn',name:'Jardin',short:'JDN',color:'#A07AB5',maxPersons:2,babyCrib:false,babyCribPrice:15},
-    {id:'wis',name:'Wissous',short:'WIS',color:'#B57A7A',maxPersons:4,babyCrib:false,babyCribPrice:15},
+    {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
+    {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
+    {id:'ch3',name:'Chambre 3',short:'Ch.3',color:'#B57A8C',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
+    {id:'ch4',name:'Chambre 4',short:'Ch.4',color:'#8CB57A',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
+    {id:'vip',name:'VIP',short:'VIP',color:'#B5A07A',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
+    {id:'fam',name:'Famille',short:'FAM',color:'#7AB5A0',maxPersons:4,babyCrib:true,babyCribPrice:15,group:'sasu'},
+    {id:'jdn',name:'Jardin',short:'JDN',color:'#A07AB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
+    {id:'wis',name:'Wissous',short:'WIS',color:'#B57A7A',maxPersons:4,babyCrib:false,babyCribPrice:15,group:'lmnp'},
   ],
   cleaners:['Rosa','Svetlana','Tatiana'],
   tariffHistory:[{id:'t0',from:'2000-01-01',solo:100,double:125,th:25}],
   charges:[],
+  groupNames:{sasu:"Chambres d'hôtes (SASU)", lmnp:'Wissous (LMNP)'},
+  thresholds:{tva:91900, lmnp:23000},
   sources:[
     {id:'direct',      label:'Direct',      color:'#7ABF6A',noRevenue:false},
     {id:'airbnb',      label:'Airbnb',      color:'#F1948A',noRevenue:false},
@@ -2587,6 +2638,9 @@ function loadSettings(){
   if(legCharges&&(!S.settings.charges||!S.settings.charges.length)){
     S.settings.charges=JSON.parse(legCharges);
   }
+  if(!S.settings.thresholds)S.settings.thresholds={...DEFAULT_SETTINGS.thresholds};
+  if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
+  if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
 }
 function saveSettings(){
   localStorage.setItem('ff2_settings',JSON.stringify(S.settings));
@@ -2706,6 +2760,10 @@ function renderSettings(){
         <input type="checkbox" ${r.babyCrib?'checked':''} onchange="updateRoom('${r.id}','babyCrib',this.checked)"> 🛏
       </label>
       ${r.babyCrib?`<input type="number" class="set-fi-sm" value="${r.babyCribPrice||15}" min="0" title="Prix lit bébé/nuit (€)" onblur="updateRoom('${r.id}','babyCribPrice',parseFloat(this.value)||15)"> <span style="font-size:11px;color:var(--gray)">€/nuit</span>`:''}
+      <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;padding:2px 4px;background:#fff;color:var(--dark);flex-shrink:0" onchange="updateRoom('${r.id}','group',this.value)">
+        <option value="sasu"${(r.group||'sasu')==='sasu'?' selected':''}>SASU</option>
+        <option value="lmnp"${r.group==='lmnp'?' selected':''}>LMNP</option>
+      </select>
       <button class="set-del" onclick="delRoom('${r.id}')">×</button>
     </div>`;
   });
@@ -2726,6 +2784,21 @@ function renderSettings(){
     </div>`;
   });
   h+=`<button class="set-add" onclick="addSource()">+ Ajouter une source</button>
+  </div>`;
+
+  // — Seuils fiscaux —
+  h+=`<div class="set-sec">
+    <div class="set-sec-title">Seuils fiscaux</div>
+    <div class="set-row">
+      <span class="set-lbl">Franchise TVA</span>
+      <input type="number" class="set-fi-sm" style="width:90px" value="${(st.thresholds||DEFAULT_SETTINGS.thresholds).tva||91900}" onblur="updateThreshold('tva',parseFloat(this.value)||91900)">
+      <span style="font-size:11px;color:var(--gray)">€</span>
+    </div>
+    <div class="set-row">
+      <span class="set-lbl">Seuil LMNP</span>
+      <input type="number" class="set-fi-sm" style="width:90px" value="${(st.thresholds||DEFAULT_SETTINGS.thresholds).lmnp||23000}" onblur="updateThreshold('lmnp',parseFloat(this.value)||23000)">
+      <span style="font-size:11px;color:var(--gray)">€</span>
+    </div>
   </div>`;
 
   // — Équipe ménage —
@@ -2812,6 +2885,13 @@ function updateRoom(id,field,val){
   saveSettings();applySettings();
   if(field==='name'||field==='short')renderGrid();
   if(field==='babyCrib')renderSettings();
+}
+
+function updateThreshold(field,val){
+  if(!S.settings.thresholds)S.settings.thresholds={...DEFAULT_SETTINGS.thresholds};
+  S.settings.thresholds[field]=val;
+  saveSettings();
+  if(S.view==='year')renderYear();
 }
 
 // Source CRUD
@@ -3298,7 +3378,7 @@ function renderMonth(){
 // ═══════════════════════════════════════════════════════════════
 function setView(v){
   S.view=v;
-  ['grid','today','week','month'].forEach(id=>{
+  ['grid','today','week','month','year'].forEach(id=>{
     const w=byId(id+'Wrap');
     if(w){w.style.display=id===v?(id==='grid'?'block':'block'):'none';w.style.background=id===v?'var(--cream)':'';}
     byId('vt-'+id)?.classList.toggle('on',id===v);
@@ -3307,6 +3387,7 @@ function setView(v){
   if(v==='today'){if(!S.todayDate)S.todayDate=todayISO();renderToday();}
   if(v==='week')renderWeek();
   if(v==='month')renderMonth();
+  if(v==='year')renderYear();
   if(v==='grid')setTimeout(()=>byId('row-today')?.scrollIntoView({block:'center'}),60);
 }
 
@@ -3723,6 +3804,162 @@ function importLegacy(){
   persist();
   localStorage.setItem('ff2_leg_v1','1');
   console.log('Import legacy: '+G.length+' clients, '+B.length+' réservations');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  YEAR VIEW
+// ═══════════════════════════════════════════════════════════════
+function renderYear(){
+  const year=S.year;
+  const yStart=`${year}-01-01`;
+  const yEnd=`${year+1}-01-01`;
+  const today=todayISO();
+  const thr=S.settings?.thresholds||DEFAULT_SETTINGS.thresholds;
+  const gNames=S.settings?.groupNames||DEFAULT_SETTINGS.groupNames;
+
+  function getGroupRooms(g){return ROOMS.filter(r=>(r.group||'sasu')===g);}
+
+  function groupStats(g){
+    const rooms=getGroupRooms(g);
+    const roomIds=new Set(rooms.map(r=>r.id));
+    const bks=S.bookings.filter(bk=>
+      roomIds.has(bk.roomId)&&bk.checkIn<yEnd&&bk.checkOut>yStart&&!isSourceNoRevenue(bk.source)
+    );
+    const realBks=bks.filter(bk=>bk.checkOut<=today);
+    const realCA=realBks.reduce((s,bk)=>s+getBookingRevForPeriod(bk,yStart,yEnd),0);
+    const realNights=realBks.reduce((s,bk)=>{
+      const oS=bk.checkIn>yStart?bk.checkIn:yStart;
+      const oE=bk.checkOut<yEnd?bk.checkOut:yEnd;
+      return s+daysBetween(oS,oE);
+    },0);
+    const projCA=bks.reduce((s,bk)=>s+getBookingRevForPeriod(bk,yStart,yEnd),0);
+    const projNights=bks.reduce((s,bk)=>{
+      const oS=bk.checkIn>yStart?bk.checkIn:yStart;
+      const oE=bk.checkOut<yEnd?bk.checkOut:yEnd;
+      return s+daysBetween(oS,oE);
+    },0);
+    const totalCap=rooms.length*365;
+    const occRate=totalCap>0?Math.round(projNights/totalCap*100):0;
+    return{rooms,bks,realCA,realNights,projCA,projNights,totalCap,occRate};
+  }
+
+  function gauge(realCA,projCA,threshold,color,label){
+    const projPct=Math.min(100,projCA/threshold*100);
+    const realPct=Math.min(100,realCA/threshold*100);
+    const cls=projPct>=100?'yr-gauge-danger':projPct>=80?'yr-gauge-warn':'';
+    const fillColor=cls==='yr-gauge-danger'?'#C0392B':cls==='yr-gauge-warn'?'#E07828':color;
+    return`<div class="yr-gauge${cls?' '+cls:''}">
+      <div class="yr-gauge-top">
+        <span class="yr-gauge-lbl">${label}${cls==='yr-gauge-danger'?' ⚠️':cls==='yr-gauge-warn'?' ⚡':''}</span>
+        <span class="yr-gauge-thr">seuil ${threshold.toLocaleString('fr-FR')} €</span>
+      </div>
+      <div class="yr-gauge-bar">
+        <div class="yr-gauge-proj" style="width:${projPct}%;background:${fillColor}44"></div>
+        <div class="yr-gauge-real" style="width:${realPct}%;background:${fillColor}"></div>
+      </div>
+      <div class="yr-gauge-bot">
+        <span style="font-size:10px;color:var(--gray)">Réalisé <b>${Math.round(realCA).toLocaleString('fr-FR')} €</b></span>
+        <span style="font-size:10px;color:var(--gray)">Projeté <b>${Math.round(projCA).toLocaleString('fr-FR')} €</b></span>
+      </div>
+    </div>`;
+  }
+
+  function groupCard(gid,name,thresholds){
+    const st=groupStats(gid);
+    const gaugesHTML=thresholds.map(t=>gauge(st.realCA,st.projCA,t.val,t.color,t.label)).join('');
+    return`<div class="yr-group">
+      <div class="yr-group-hd">
+        <div>
+          <div class="yr-group-name">${name}</div>
+          <div class="yr-room-dots">${st.rooms.map(r=>`<span class="yr-room-dot" style="background:${r.color||'#888'}" title="${r.name}"></span>`).join('')}</div>
+        </div>
+        <span class="yr-group-tag">${gid.toUpperCase()}</span>
+      </div>
+      <div class="yr-stats">
+        <div class="yr-stat"><div class="yr-stat-val">${Math.round(st.realCA).toLocaleString('fr-FR')}</div><div class="yr-stat-lbl">CA réalisé €</div></div>
+        <div class="yr-stat"><div class="yr-stat-val">${Math.round(st.projCA).toLocaleString('fr-FR')}</div><div class="yr-stat-lbl">CA projeté €</div></div>
+        <div class="yr-stat"><div class="yr-stat-val">${st.projNights}</div><div class="yr-stat-lbl">nuits</div></div>
+        <div class="yr-stat"><div class="yr-stat-val">${st.occRate}%</div><div class="yr-stat-lbl">occupation</div></div>
+      </div>
+      ${gaugesHTML}
+    </div>`;
+  }
+
+  const sasuHTML=groupCard('sasu',gNames.sasu||"Chambres d'hôtes (SASU)",[
+    {label:'Franchise TVA',val:thr.tva||91900,color:'#E07828'}
+  ]);
+  const lmnpHTML=groupCard('lmnp',gNames.lmnp||'Wissous (LMNP)',[
+    {label:'Seuil LMP',val:thr.lmnp||23000,color:'#C0392B'},
+    {label:'Franchise TVA',val:thr.tva||91900,color:'#E07828'}
+  ]);
+
+  // Monthly chart
+  const monthRevs=Array.from({length:12},(_,m)=>{
+    const mStart=`${year}-${p(m+1)}-01`;
+    const mEnd=m===11?`${year+1}-01-01`:`${year}-${p(m+2)}-01`;
+    const rev={sasu:0,lmnp:0};
+    ['sasu','lmnp'].forEach(g=>{
+      const rooms=getGroupRooms(g);
+      const roomIds=new Set(rooms.map(r=>r.id));
+      rev[g]=S.bookings
+        .filter(bk=>roomIds.has(bk.roomId)&&bk.checkIn<mEnd&&bk.checkOut>mStart&&!isSourceNoRevenue(bk.source))
+        .reduce((s,bk)=>s+getBookingRevForPeriod(bk,mStart,mEnd),0);
+    });
+    rev.total=rev.sasu+rev.lmnp;
+    return{m,mStart,rev};
+  });
+  const maxRev=Math.max(1,...monthRevs.map(x=>x.rev.total));
+  const curMon=today.slice(0,7);
+
+  const chartHTML=`<div class="yr-section">
+    <div class="yr-section-title">Revenus par mois</div>
+    <div class="yr-chart">
+      ${monthRevs.map(({m,mStart,rev})=>{
+        const isCur=mStart.slice(0,7)===curMon;
+        const sasuH=rev.sasu/maxRev*100;
+        const lmnpH=rev.lmnp/maxRev*100;
+        return`<div class="yr-bar-col${isCur?' yr-cur':''}">
+          <div class="yr-bar-wrap">
+            ${rev.lmnp>0?`<div class="yr-bar-seg yr-bar-lmnp" style="height:${lmnpH}%;bottom:${sasuH}%"></div>`:''}
+            ${rev.sasu>0?`<div class="yr-bar-seg yr-bar-sasu" style="height:${sasuH}%;bottom:0"></div>`:''}
+          </div>
+          <div class="yr-bar-mon">${MON[m].slice(0,1)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="yr-chart-legend">
+      <span><span class="yr-legend-dot" style="background:#3D5C35"></span>Chambres</span>
+      <span><span class="yr-legend-dot" style="background:#B5A07A"></span>Wissous</span>
+    </div>
+  </div>`;
+
+  // Regulatory
+  const reglHTML=`<div class="yr-section yr-regl" onclick="this.classList.toggle('open')">
+    <div class="yr-section-title" style="cursor:pointer;margin-bottom:0">Réglementation — rappels <span class="yr-regl-chev">▾</span></div>
+    <div class="yr-regl-body" style="margin-top:10px">
+      <div class="yr-regl-item">📋 <b>Déclaration meublé de tourisme</b> — numéro d'enregistrement obligatoire en mairie avant mise en location.</div>
+      <div class="yr-regl-item">💶 <b>Taxe de séjour</b> — à collecter et reverser à la commune (souvent automatisée par Airbnb/Booking).</div>
+      <div class="yr-regl-item">⚠️ <b>LMNP → LMP (Wissous)</b> — si recettes > ${(thr.lmnp||23000).toLocaleString('fr-FR')} € <em>et</em> > 50 % des revenus du foyer, passage au statut LMP avec cotisations sociales obligatoires.</div>
+      <div class="yr-regl-item">💰 <b>Franchise TVA hébergement</b> — si CA > ${(thr.tva||91900).toLocaleString('fr-FR')} €, assujettissement à la TVA. Vérifier avec votre expert-comptable.</div>
+      <div class="yr-regl-item">🏠 <b>Loi Le Meur (nov. 2024)</b> — nouvelles exigences DPE pour les meublés de tourisme. Vérifier le classement énergétique.</div>
+      <div class="yr-regl-item" style="color:var(--gray);font-style:italic;font-size:11px;border-bottom:none">Ces informations sont indicatives — consultez votre expert-comptable.</div>
+    </div>
+  </div>`;
+
+  const chevL=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`;
+  const chevR=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+
+  byId('yearWrap').innerHTML=`<div class="yr-inner">
+    <div class="yr-nav">
+      <button class="yr-nav-btn" onclick="S.year--;renderYear()">${chevL}</button>
+      <div class="yr-nav-title">${year}</div>
+      <button class="yr-nav-btn" onclick="S.year++;renderYear()">${chevR}</button>
+    </div>
+    ${sasuHTML}
+    ${lmnpHTML}
+    ${chartHTML}
+    ${reglHTML}
+  </div>`;
 }
 
 // ═══════════════════════════════════════════════════════════════
