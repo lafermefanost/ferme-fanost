@@ -1424,7 +1424,7 @@ function connectFirebase(cfg){
         if(d.settings){
           S.settings={...JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),...d.settings};
           if(!S.settings.charges)S.settings.charges=[];
-          saveSettings();
+          localStorage.setItem('ff2_settings',JSON.stringify(S.settings));
           applySettings();
         }
         renderGrid();
