@@ -2048,6 +2048,7 @@ function setPax(n){
   byId('paxPicker').innerHTML=[1,2,3,4,5].map(i=>
     `<button type="button" class="pax-btn${i===n?' on':''}" onclick="setPax(${i});renderDinnerList()">${i}</button>`
   ).join('');
+  updateModalTotal();
 }
 
 function filterGuests(val){
@@ -3041,16 +3042,18 @@ function updateModalTotal(){
   const babyCribOn=byId('babyCribToggle')?.checked||false;
   const rid=byId('bRoom')?.value;
   const room=ROOMS.find(r=>r.id===rid);
-  const tempBk={...(bk||{}),checkIn:ci,checkOut:co,guestId:selGid,source:bkSource,prixNet:prixNetVal,babyCrib:babyCribOn,roomId:rid};
-  const rate=getNightlyRate(tempBk);
   const tariff=getTariffForDate(ci);
   const dinnerNights=bk?bk.dinnerNights||{}:{};
   const pax=parseInt(document.querySelector('.pax-btn.on')?.textContent)||2;
+  const tempBk={...(bk||{}),checkIn:ci,checkOut:co,guestId:selGid,source:bkSource,prixNet:prixNetVal,babyCrib:babyCribOn,roomId:rid,nbPersons:pax};
+  const rate=getNightlyRate(tempBk);
   const dinCount=Object.keys(dinnerNights).filter(d=>dinnerNights[d]&&d>=ci&&d<co).length;
   const extTotal=bk?getExtrasTotal(bk):0;
   const cribPrice=babyCribOn&&room&&room.babyCrib?nights*(room.babyCribPrice||15):0;
   const isCustom=prixNetVal&&prixNetVal>0;
-  const total=isCustom?prixNetVal:nights*rate+dinCount*pax*tariff.th+extTotal+cribPrice;
+  const autoTotal=nights*rate+dinCount*pax*tariff.th+extTotal+cribPrice;
+  const total=isCustom?prixNetVal:autoTotal;
+  byId('prixNetHint').textContent=autoTotal>0&&!isCustom?`(auto : ${autoTotal.toLocaleString('fr-FR')} €)`:'';
   if(total<=0){el.style.display='none';return;}
   el.style.display='block';
   byId('bTotLbl').textContent=(isCustom?'Prix personnalisé':'Total séjour')+' — '+nights+' nuit'+(nights>1?'s':'');
