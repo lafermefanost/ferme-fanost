@@ -697,10 +697,9 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .yr-group-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:10px;background:var(--light);color:var(--gray);}
 .yr-room-dots{display:flex;gap:4px;align-items:center;}
 .yr-room-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
-.yr-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;}
-.yr-stat{text-align:center;}
-.yr-stat-val{font-size:18px;font-weight:700;color:var(--dark);line-height:1;}
-.yr-stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);margin-top:2px;}
+.yr-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.yr-stats .mstat-val{font-size:20px;}
+.yr-stats .mstat-sub{font-size:9px;}
 .yr-gauge{margin-bottom:10px;}
 .yr-gauge-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
 .yr-gauge-lbl{font-size:11px;font-weight:600;color:var(--dark);}
@@ -3929,10 +3928,26 @@ function renderYear(){
         <span class="yr-group-tag">${gid.toUpperCase()}</span>
       </div>
       <div class="yr-stats">
-        <div class="yr-stat"><div class="yr-stat-val">${Math.round(st.realCA).toLocaleString('fr-FR')}</div><div class="yr-stat-lbl">CA réalisé €</div></div>
-        <div class="yr-stat"><div class="yr-stat-val">${Math.round(st.projCA).toLocaleString('fr-FR')}</div><div class="yr-stat-lbl">CA projeté €</div></div>
-        <div class="yr-stat"><div class="yr-stat-val">${st.projNights}</div><div class="yr-stat-lbl">nuits</div></div>
-        <div class="yr-stat"><div class="yr-stat-val">${st.occRate}%</div><div class="yr-stat-lbl">occupation</div></div>
+        <div class="mstat-card mstat-rev">
+          <div class="mstat-val">${Math.round(st.realCA).toLocaleString('fr-FR')} €</div>
+          <div class="mstat-sub">CA réalisé</div>
+          <div class="mstat-detail">${st.realNights} nuits passées</div>
+        </div>
+        <div class="mstat-card mstat-rev">
+          <div class="mstat-val">${Math.round(st.projCA).toLocaleString('fr-FR')} €</div>
+          <div class="mstat-sub">CA projeté</div>
+          <div class="mstat-detail">${st.projNights} nuits totales</div>
+        </div>
+        <div class="mstat-card mstat-rev">
+          <div class="mstat-val">${st.occRate}%</div>
+          <div class="mstat-sub">occupation</div>
+          <div class="mstat-detail">${st.rooms.length} chambre${st.rooms.length>1?'s':''}</div>
+        </div>
+        <div class="mstat-card mstat-rev">
+          <div class="mstat-val">${st.platNights}</div>
+          <div class="mstat-sub">nuits plateformes</div>
+          <div class="mstat-detail">/ ${platLimit} autorisées</div>
+        </div>
       </div>
       ${gaugesHTML}
       ${nightsGauge(st.platNights,platLimit)}
