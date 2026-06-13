@@ -1238,7 +1238,7 @@ const DEFAULT_SETTINGS={
   tariffHistory:[{id:'t0',from:'2000-01-01',solo:100,double:125,th:25}],
   charges:[],
   groupNames:{sasu:"Chambres d'hôtes (SASU)", lmnp:'Wissous (LMNP)'},
-  thresholds:{tva:91900, lmnp:23000},
+  thresholds:{tva:91900, lmnp:23000, platformNights:120},
   sources:[
     {id:'direct',      label:'Direct',      color:'#7ABF6A',noRevenue:false},
     {id:'airbnb',      label:'Airbnb',      color:'#F1948A',noRevenue:false},
@@ -2639,6 +2639,7 @@ function loadSettings(){
     S.settings.charges=JSON.parse(legCharges);
   }
   if(!S.settings.thresholds)S.settings.thresholds={...DEFAULT_SETTINGS.thresholds};
+  if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
   if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
   if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
 }
@@ -2798,6 +2799,11 @@ function renderSettings(){
       <span class="set-lbl">Seuil LMNP</span>
       <input type="number" class="set-fi-sm" style="width:90px" value="${(st.thresholds||DEFAULT_SETTINGS.thresholds).lmnp||23000}" onblur="updateThreshold('lmnp',parseFloat(this.value)||23000)">
       <span style="font-size:11px;color:var(--gray)">€</span>
+    </div>
+    <div class="set-row">
+      <span class="set-lbl">Limite nuits plateformes</span>
+      <input type="number" class="set-fi-sm" style="width:70px" value="${(st.thresholds||DEFAULT_SETTINGS.thresholds).platformNights||120}" onblur="updateThreshold('platformNights',parseFloat(this.value)||120)">
+      <span style="font-size:11px;color:var(--gray)">nuits/an</span>
     </div>
   </div>`;
 
@@ -3840,7 +3846,36 @@ function renderYear(){
     },0);
     const totalCap=rooms.length*365;
     const occRate=totalCap>0?Math.round(projNights/totalCap*100):0;
-    return{rooms,bks,realCA,realNights,projCA,projNights,totalCap,occRate};
+    // Platform nights: non-direct, non-noRevenue sources (Airbnb, Booking, etc.)
+    const platBks=S.bookings.filter(bk=>
+      roomIds.has(bk.roomId)&&bk.checkIn<yEnd&&bk.checkOut>yStart
+      &&!isSourceNoRevenue(bk.source)&&bk.source!=='direct'
+    );
+    const platNights=platBks.reduce((s,bk)=>{
+      const oS=bk.checkIn>yStart?bk.checkIn:yStart;
+      const oE=bk.checkOut<yEnd?bk.checkOut:yEnd;
+      return s+daysBetween(oS,oE);
+    },0);
+    return{rooms,bks,realCA,realNights,projCA,projNights,totalCap,occRate,platNights};
+  }
+
+  function nightsGauge(nights,limit){
+    const pct=Math.min(100,nights/limit*100);
+    const cls=pct>=100?'yr-gauge-danger':pct>=80?'yr-gauge-warn':'';
+    const fillColor=cls==='yr-gauge-danger'?'#C0392B':cls==='yr-gauge-warn'?'#E07828':'#3D5C35';
+    return`<div class="yr-gauge${cls?' '+cls:''}">
+      <div class="yr-gauge-top">
+        <span class="yr-gauge-lbl">Nuits plateformes${cls==='yr-gauge-danger'?' ⚠️':cls==='yr-gauge-warn'?' ⚡':''}</span>
+        <span class="yr-gauge-thr">limite ${limit} nuits</span>
+      </div>
+      <div class="yr-gauge-bar">
+        <div class="yr-gauge-real" style="width:${pct}%;background:${fillColor}"></div>
+      </div>
+      <div class="yr-gauge-bot">
+        <span style="font-size:10px;color:var(--gray)"><b>${nights}</b> nuits via Airbnb / Booking</span>
+        <span style="font-size:10px;color:var(--gray)">${limit-nights > 0 ? `encore ${limit-nights} disponibles`:'limite atteinte'}</span>
+      </div>
+    </div>`;
   }
 
   function gauge(realCA,projCA,threshold,color,label){
@@ -3866,6 +3901,7 @@ function renderYear(){
 
   function groupCard(gid,name,thresholds){
     const st=groupStats(gid);
+    const platLimit=thr.platformNights||120;
     const gaugesHTML=thresholds.map(t=>gauge(st.realCA,st.projCA,t.val,t.color,t.label)).join('');
     return`<div class="yr-group">
       <div class="yr-group-hd">
@@ -3882,6 +3918,7 @@ function renderYear(){
         <div class="yr-stat"><div class="yr-stat-val">${st.occRate}%</div><div class="yr-stat-lbl">occupation</div></div>
       </div>
       ${gaugesHTML}
+      ${nightsGauge(st.platNights,platLimit)}
     </div>`;
   }
 
@@ -3941,7 +3978,7 @@ function renderYear(){
       <div class="yr-regl-item">💶 <b>Taxe de séjour</b> — à collecter et reverser à la commune (souvent automatisée par Airbnb/Booking).</div>
       <div class="yr-regl-item">⚠️ <b>LMNP → LMP (Wissous)</b> — si recettes > ${(thr.lmnp||23000).toLocaleString('fr-FR')} € <em>et</em> > 50 % des revenus du foyer, passage au statut LMP avec cotisations sociales obligatoires.</div>
       <div class="yr-regl-item">💰 <b>Franchise TVA hébergement</b> — si CA > ${(thr.tva||91900).toLocaleString('fr-FR')} €, assujettissement à la TVA. Vérifier avec votre expert-comptable.</div>
-      <div class="yr-regl-item">🏠 <b>Loi Le Meur (nov. 2024)</b> — nouvelles exigences DPE pour les meublés de tourisme. Vérifier le classement énergétique.</div>
+      <div class="yr-regl-item">🏠 <b>Loi Le Meur (nov. 2024)</b> — résidence principale : limite de <b>${(thr.platformNights||120)} nuits/an</b> via plateformes numériques. Les communes >200 000 hab. peuvent abaisser à 90 nuits. Nouvelles exigences DPE pour les meublés de tourisme neufs dès 2025.</div>
       <div class="yr-regl-item" style="color:var(--gray);font-style:italic;font-size:11px;border-bottom:none">Ces informations sont indicatives — consultez votre expert-comptable.</div>
     </div>
   </div>`;
