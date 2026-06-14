@@ -2284,6 +2284,7 @@ function renderDinnerList(){
 function updateDinnerChip(ds,checked){
   const chip=document.getElementById('dnc-'+ds);
   if(chip)chip.className='dn-chip'+(checked?' checked':'');
+  updateModalTotal();
 }
 
 function getDinnerNights(){
@@ -3043,11 +3044,11 @@ function updateModalTotal(){
   const rid=byId('bRoom')?.value;
   const room=ROOMS.find(r=>r.id===rid);
   const tariff=getTariffForDate(ci);
-  const dinnerNights=bk?bk.dinnerNights||{}:{};
   const pax=parseInt(document.querySelector('.pax-btn.on')?.textContent)||2;
   const tempBk={...(bk||{}),checkIn:ci,checkOut:co,guestId:selGid,source:bkSource,prixNet:prixNetVal,babyCrib:babyCribOn,roomId:rid,nbPersons:pax};
   const rate=getNightlyRate(tempBk);
-  const dinCount=Object.keys(dinnerNights).filter(d=>dinnerNights[d]&&d>=ci&&d<co).length;
+  const dinnerNights=getDinnerNights(); // read from DOM checkboxes, not saved booking
+  const dinCount=Object.keys(dinnerNights).length;
   const extTotal=bk?getExtrasTotal(bk):0;
   const cribPrice=babyCribOn&&room&&room.babyCrib?nights*(room.babyCribPrice||15):0;
   const isCustom=prixNetVal&&prixNetVal>0;
