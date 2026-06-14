@@ -1138,7 +1138,7 @@
     .events-mosaic {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: 320px 220px;
+      grid-template-rows: 270px 270px;
       gap: 4px;
       margin-bottom: 4px;
       border-radius: 3px;
@@ -1154,12 +1154,12 @@
       transition: transform .65s ease;
     }
     .events-mosaic-cell:hover img { transform: scale(1.04); }
-    .events-mosaic-large { grid-row: 1; }
+    .events-mosaic-large { grid-row: auto; }
 
     @media (max-width: 900px) {
       .events-mosaic {
         grid-template-columns: 1fr;
-        grid-template-rows: 260px 260px 200px 200px;
+        grid-template-rows: 260px 260px 260px 260px;
       }
       .events-mosaic-large { grid-row: auto; }
     }
