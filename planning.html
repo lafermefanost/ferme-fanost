@@ -3052,24 +3052,42 @@ function getExtrasDayTotal(bk,ds){
   return Object.entries(bk.extras[ds]).reduce((s,[id,qty])=>{
     const item=S.catalog.find(c=>c.id===id);return s+(item?item.price*qty:0);},0);
 }
-function buildConsoNoteText(bk){
+function buildStayNoteText(bk){
   const g=guest(bk.guestId);
   const name=g?g.name:'Client';
-  const lines=[`Note de consommations — ${name}`,`Séjour du ${fmtDate(bk.checkIn)} au ${fmtDate(bk.checkOut)}`,''];
-  let total=0;
-  Object.keys(bk.extras||{}).sort().forEach(ds=>{
-    const dayTotal=getExtrasDayTotal(bk,ds);
-    if(dayTotal<=0)return;
-    lines.push(fmtDate(ds));
-    Object.entries(bk.extras[ds]).filter(([,qty])=>qty).forEach(([id,qty])=>{
-      const item=S.catalog.find(c=>c.id===id);
-      if(!item)return;
-      lines.push(`  ${qty}× ${item.emoji||''} ${item.name} — ${(item.price*qty).toLocaleString('fr-FR')} €`);
+  const nights=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
+  const rate=getNightlyRate(bk);
+  const tariff=getTariffForDate(bk.checkIn);
+  const pax=bk.nbPersons||2;
+  const dinCount=Object.keys(bk.dinnerNights||{}).filter(ds=>bk.dinnerNights[ds]).length;
+  const thRevenue=getThRevenue(bk,bk.checkIn,bk.checkOut);
+  const cribRevenue=getBabyCribRevenue(bk);
+  const extTotal=getExtrasTotal(bk);
+  const isCustom=bk.prixNet!=null&&bk.prixNet>0;
+  const total=getStayTotal(bk);
+  const lines=[`Note de séjour — ${name}`,`Séjour du ${fmtDate(bk.checkIn)} au ${fmtDate(bk.checkOut)} — ${nights} nuit${nights>1?'s':''}`,''];
+  if(isCustom){
+    lines.push(`Prix personnalisé : ${total.toLocaleString('fr-FR')} €`,'');
+  } else {
+    if(rate>0)lines.push(`${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} € — ${(nights*rate).toLocaleString('fr-FR')} €`);
+    if(dinCount>0)lines.push(`${dinCount} repas × ${pax} pers × ${tariff.th} € — ${thRevenue.toLocaleString('fr-FR')} €`);
+    if(cribRevenue>0)lines.push(`Lit bébé × ${nights} nuit${nights>1?'s':''} — ${cribRevenue.toLocaleString('fr-FR')} €`);
+  }
+  if(extTotal>0){
+    lines.push('','Extras :');
+    Object.keys(bk.extras||{}).sort().forEach(ds=>{
+      const dayTotal=getExtrasDayTotal(bk,ds);
+      if(dayTotal<=0)return;
+      lines.push(fmtDate(ds));
+      Object.entries(bk.extras[ds]).filter(([,qty])=>qty).forEach(([id,qty])=>{
+        const item=S.catalog.find(c=>c.id===id);
+        if(!item)return;
+        lines.push(`  ${qty}× ${item.emoji||''} ${item.name} — ${(item.price*qty).toLocaleString('fr-FR')} €`);
+      });
+      lines.push(`  Sous-total : ${dayTotal.toLocaleString('fr-FR')} €`);
     });
-    lines.push(`  Sous-total : ${dayTotal.toLocaleString('fr-FR')} €`,'');
-    total+=dayTotal;
-  });
-  lines.push(`Total consommations : ${total.toLocaleString('fr-FR')} €`);
+  }
+  lines.push('',`Total séjour : ${total.toLocaleString('fr-FR')} €`);
   return lines.join('\n');
 }
 function renderConsoShareRow(el,bk){
@@ -3092,11 +3110,11 @@ function renderConsoShareRow(el,bk){
 }
 function shareConsoNote(bid,method){
   const bk=S.bookings.find(b=>b.id===bid);
-  if(!bk||!bk.extras)return;
+  if(!bk)return;
   const g=guest(bk.guestId);
-  const txt=buildConsoNoteText(bk);
+  const txt=buildStayNoteText(bk);
   if(method==='native'){
-    navigator.share({title:'Note de consommations',text:txt}).catch(()=>{});
+    navigator.share({title:'Note de séjour',text:txt}).catch(()=>{});
     return;
   }
   if(method==='wa'){
@@ -3112,13 +3130,13 @@ function shareConsoNote(bid,method){
   }
   if(method==='mail'){
     if(!g||!g.email)return;
-    location.href=`mailto:${g.email}?subject=${encodeURIComponent('Note de consommations')}&body=${encodeURIComponent(txt)}`;
+    location.href=`mailto:${g.email}?subject=${encodeURIComponent('Note de séjour')}&body=${encodeURIComponent(txt)}`;
     return;
   }
   if(method==='dl'){
     const name=g?g.name:'Client';
     const safeName=name.normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'').replace(/[^a-zA-Z0-9]+/g,'-').toLowerCase();
-    const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'})),download:`conso-${safeName}-${bk.checkIn}.txt`});
+    const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'})),download:`note-sejour-${safeName}-${bk.checkIn}.txt`});
     a.click();URL.revokeObjectURL(a.href);
   }
 }
@@ -3174,10 +3192,10 @@ function updateModalTotal(){
         }).join('');
         return `<div class="btot-line btot-subline"><span>${fmtDate(ds)}</span><span>${dayTotal.toLocaleString('fr-FR')} €</span></div>${itemLines}`;
       }).join('');
-      if(shareRow)renderConsoShareRow(shareRow,bk);
     }
     if(rows)rows+=`<div class="btot-line sep"><span>Total</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
   }
+  if(shareRow&&bk)renderConsoShareRow(shareRow,bk);
   byId('bTotDetail').innerHTML=rows;
 }
 function toggleBTot(){
