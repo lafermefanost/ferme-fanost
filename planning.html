@@ -311,6 +311,8 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .tcard-total-detail{background:#D0CBC5;padding:4px 14px 10px;}
 .ttd-line{display:flex;justify-content:space-between;font-size:12px;color:#6E6860;padding:3px 0;}
 .ttd-sep{border-top:1px solid rgba(0,0,0,.15);margin-top:5px;padding-top:7px!important;color:#6E6860!important;font-weight:700;font-size:13px!important;}
+.ttd-subline{padding-left:12px!important;font-size:10.5px!important;opacity:.8;}
+.ttd-subline span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .tcard{background:var(--white);border-radius:10px;display:flex;flex-direction:row;
   box-shadow:0 2px 10px rgba(0,0,0,.10);margin-bottom:14px;overflow:hidden;}
 .tbar{width:5px;flex-shrink:0;align-self:stretch;}
@@ -610,6 +612,8 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .btot-detail{padding:8px 0 2px;display:flex;flex-direction:column;gap:5px;}
 .btot-line{display:flex;justify-content:space-between;font-size:12px;color:var(--gray);}
 .btot-line.sep{border-top:1px solid var(--light);padding-top:5px;font-weight:600;color:var(--dark);}
+.btot-line.btot-subline{padding-left:14px;font-size:10.5px;color:var(--gray);opacity:.85;}
+.btot-line.btot-subline span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 /* Guest list */
 .gline{display:flex;align-items:center;gap:10px;padding:9px 0;
@@ -1860,7 +1864,18 @@ function renderToday(){
           rows+=`<div class="ttd-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
           if(dinCount>0) rows+=`<div class="ttd-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${(dinCount*pax*tariff.th).toLocaleString('fr-FR')} €</span></div>`;
           if(cribRev>0) rows+=`<div class="ttd-line"><span>Lit bébé × ${nights} nuit${nights>1?'s':''}</span><span>${cribRev.toLocaleString('fr-FR')} €</span></div>`;
-          if(extTotal>0) rows+=`<div class="ttd-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
+          if(extTotal>0){
+            rows+=`<div class="ttd-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
+            rows+=Object.keys(b.extras).sort().map(eds=>{
+              const dayTotal=getExtrasDayTotal(b,eds);
+              if(dayTotal<=0)return'';
+              const items=Object.entries(b.extras[eds]).filter(([,qty])=>qty).map(([id,qty])=>{
+                const item=S.catalog.find(c=>c.id===id);
+                return item?`${qty}× ${item.emoji||''} ${item.name}`.trim():null;
+              }).filter(Boolean).join(', ');
+              return `<div class="ttd-line ttd-subline"><span>${fmtDate(eds)} — ${items}</span><span>${dayTotal.toLocaleString('fr-FR')} €</span></div>`;
+            }).join('');
+          }
           rows+=`<div class="ttd-line ttd-sep"><span>Total séjour</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
         }
         const lbl=isCustom?'Prix personnalisé':'Total séjour';
@@ -3068,7 +3083,18 @@ function updateModalTotal(){
     if(rate>0)rows+=`<div class="btot-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
     if(dinCount>0)rows+=`<div class="btot-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${(dinCount*pax*tariff.th).toLocaleString('fr-FR')} €</span></div>`;
     if(cribPrice>0)rows+=`<div class="btot-line"><span>Lit bébé × ${nights} nuit${nights>1?'s':''}</span><span>${cribPrice.toLocaleString('fr-FR')} €</span></div>`;
-    if(extTotal>0)rows+=`<div class="btot-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
+    if(extTotal>0){
+      rows+=`<div class="btot-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
+      rows+=Object.keys(bk.extras).sort().map(ds=>{
+        const dayTotal=getExtrasDayTotal(bk,ds);
+        if(dayTotal<=0)return'';
+        const items=Object.entries(bk.extras[ds]).filter(([,qty])=>qty).map(([id,qty])=>{
+          const item=S.catalog.find(c=>c.id===id);
+          return item?`${qty}× ${item.emoji||''} ${item.name}`.trim():null;
+        }).filter(Boolean).join(', ');
+        return `<div class="btot-line btot-subline"><span>${fmtDate(ds)} — ${items}</span><span>${dayTotal.toLocaleString('fr-FR')} €</span></div>`;
+      }).join('');
+    }
     if(rows)rows+=`<div class="btot-line sep"><span>Total</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
   }
   byId('bTotDetail').innerHTML=rows;
