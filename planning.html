@@ -616,6 +616,10 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .btot-line.btot-subline{padding-left:14px;font-size:11px;font-weight:600;color:var(--dark);opacity:.9;}
 .btot-line.btot-subitem{padding-left:26px;font-size:10.5px;color:var(--gray);opacity:.75;}
 .btot-line.btot-subitem span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.btot-export-btn{margin-top:8px;font-size:11px;font-weight:600;color:var(--green);
+  background:#F0F7EE;border:1px solid rgba(122,140,101,.3);border-radius:6px;
+  padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+.btot-export-btn:hover{background:#E3EEDC;}
 
 /* Guest list */
 .gline{display:flex;align-items:center;gap:10px;padding:9px 0;
@@ -990,6 +994,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
           </span>
         </div>
         <div class="btot-detail" id="bTotDetail" style="display:none"></div>
+        <button type="button" class="btot-export-btn" id="bExportConsoBtn" style="display:none" onclick="exportConsoNote()">⬇ Exporter la note conso</button>
       </div>
     </div>
 
@@ -3048,9 +3053,36 @@ function getExtrasDayTotal(bk,ds){
   return Object.entries(bk.extras[ds]).reduce((s,[id,qty])=>{
     const item=S.catalog.find(c=>c.id===id);return s+(item?item.price*qty:0);},0);
 }
+function exportConsoNote(){
+  const bk=editBid?S.bookings.find(b=>b.id===editBid):null;
+  if(!bk||!bk.extras)return;
+  const g=guest(bk.guestId);
+  const name=g?g.name:'Client';
+  const lines=[`Note de consommations — ${name}`,`Séjour du ${fmtDate(bk.checkIn)} au ${fmtDate(bk.checkOut)}`,''];
+  let total=0;
+  Object.keys(bk.extras).sort().forEach(ds=>{
+    const dayTotal=getExtrasDayTotal(bk,ds);
+    if(dayTotal<=0)return;
+    lines.push(fmtDate(ds));
+    Object.entries(bk.extras[ds]).filter(([,qty])=>qty).forEach(([id,qty])=>{
+      const item=S.catalog.find(c=>c.id===id);
+      if(!item)return;
+      lines.push(`  ${qty}× ${item.emoji||''} ${item.name} — ${(item.price*qty).toLocaleString('fr-FR')} €`);
+    });
+    lines.push(`  Sous-total : ${dayTotal.toLocaleString('fr-FR')} €`,'');
+    total+=dayTotal;
+  });
+  lines.push(`Total consommations : ${total.toLocaleString('fr-FR')} €`);
+  const txt=lines.join('\n');
+  const safeName=name.normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'').replace(/[^a-zA-Z0-9]+/g,'-').toLowerCase();
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'})),download:`conso-${safeName}-${bk.checkIn}.txt`});
+  a.click();URL.revokeObjectURL(a.href);
+}
 function updateModalTotal(){
   const el=byId('bTotalSejour');
   if(!el)return;
+  const expBtn=byId('bExportConsoBtn');
+  if(expBtn)expBtn.style.display='none';
   const ci=byId('bIn').value;
   const co=byId('bOut').value;
   if(!ci||!co||ci>=co){el.style.display='none';return;}
@@ -3098,6 +3130,7 @@ function updateModalTotal(){
         }).join('');
         return `<div class="btot-line btot-subline"><span>${fmtDate(ds)}</span><span>${dayTotal.toLocaleString('fr-FR')} €</span></div>${itemLines}`;
       }).join('');
+      if(expBtn)expBtn.style.display='inline-flex';
     }
     if(rows)rows+=`<div class="btot-line sep"><span>Total</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
   }
