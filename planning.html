@@ -296,8 +296,8 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .tsec-hd:active{filter:brightness(.96);}
 .tsec-hd{background:#9A9690;color:#fff;}
 .tsec-hd.has-items{background:var(--green);}
-.tsec-count{margin-left:auto;background:currentColor;color:#fff!important;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:700;}
-.tsec-count span{color:#fff;}
+.tsec-count{margin-left:auto;background:#fff;color:var(--dark)!important;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:700;}
+.tsec-count span{color:var(--dark);}
 .tsec-chev{font-size:11px;opacity:.6;transition:transform .2s;margin-left:4px;}
 .tsec-panel.collapsed>.tsec-hd .tsec-chev{transform:rotate(-90deg);}
 .tsec-body{background:var(--cream);padding:10px 10px 6px;}
@@ -2019,8 +2019,11 @@ function renderToday(){
   </div>`;
   const dm=getMenu(ds);
   const menuHas=!!(dm.entree||dm.plat||dm.dessert);
+  const thCount=S.bookings
+    .filter(b=>activeOn(b,ds)&&b.dinnerNights&&b.dinnerNights[ds])
+    .reduce((sum,b)=>sum+(b.nbPersons||2),0);
   h+=`<div class="tsec-panel menu">
-    <div class="tsec-hd${menuHas?' has-items':''}">🍽 Menu du jour</div>
+    <div class="tsec-hd${menuHas?' has-items':''}">🍽 Menu du jour<span class="tsec-count"><span>${thCount} repas</span></span></div>
     <div class="tsec-body">
       <div class="fg"><label class="fl">Entrée</label><input class="fi" id="menu-entree" placeholder="—" onchange="setMenuField('${ds}','entree',this.value)"></div>
       <div class="fg"><label class="fl">Plat</label><input class="fi" id="menu-plat" placeholder="—" onchange="setMenuField('${ds}','plat',this.value)"></div>
