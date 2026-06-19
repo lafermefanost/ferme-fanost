@@ -436,18 +436,13 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .wday-today .wday-name{color:#fff;}
 .wday-date{font-size:12px;color:var(--gray);}
 .wday-today .wday-date{color:rgba(255,255,255,.75);}
-.wday-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
-.wday-col{display:flex;flex-direction:column;gap:3px;min-width:0;}
-.wstat-num{border-radius:8px;padding:8px 10px;display:flex;align-items:baseline;gap:6px;}
-.wstat-num-val{font-size:28px;font-weight:700;line-height:1;}
-.wstat-num-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;opacity:.75;}
-.wstat-num.dep{background:var(--green);color:#fff;}
-.wstat-num.arr{background:var(--green);color:#fff;}
-.wstat-num.wstat-zero{background:var(--light);color:#bbb;}
-.wday-sec{font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase;
-  letter-spacing:.05em;margin:7px 0 3px;}
-.wday-col .day-chip{margin-bottom:4px;box-shadow:none;border:1.5px solid var(--light);}
-.wday-col .day-chip:last-child{margin-bottom:0;}
+.wday-card .tsec-panel{margin-bottom:10px;}
+.wday-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;min-width:0;}
+.wday-cols .tsec-panel{margin-bottom:0;min-width:0;}
+.wday-cols .tsec-hd{padding:9px 10px;font-size:12px;gap:6px;}
+.wday-cols .tsec-body{padding:8px 8px 4px;}
+.wday-cols .day-chip{margin-bottom:6px;}
+.wday-cols .day-chip:last-child{margin-bottom:0;}
 .wday-cleaners{display:flex;gap:6px;margin-top:10px;padding-top:10px;
   border-top:1px solid var(--light);flex-wrap:wrap;align-items:center;}
 .wday-cleaner-lbl{font-size:10px;color:var(--gray);text-transform:uppercase;
@@ -458,11 +453,6 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .cleaner-btn:hover{border-color:#aaa;color:var(--dark);}
 .cleaner-on{background:#7A8C65!important;color:#fff!important;
   border-color:#7A8C65!important;}
-.wday-menu{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;
-  padding-top:10px;border-top:1px solid var(--light);}
-.wday-menu .fg{margin-bottom:0;}
-.wday-menu .fl{font-size:9px;margin-bottom:3px;}
-.wday-menu .fi{padding:6px 8px;font-size:12px;}
 
 /* ─── MONTH VIEW ─────────────────────────────────────────────── */
 #monthWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
@@ -3415,44 +3405,72 @@ function renderWeek(){
       <div class="wday-name">${isToday?'Aujourd\'hui — ':''}${DAY_NAMES[d.getDay()]}</div>
       <div class="wday-date">${d.getDate()} ${MON[d.getMonth()]}</div>
     </div>`;
-    const arrGuests=arrs.map(b=>{const g=guest(b.guestId);const rm=room(b.roomId);
+    const wMiniChip=(b,timeLabel)=>{const g=guest(b.guestId);const rm=room(b.roomId);
       return`<div class="day-chip" onclick="openEditModal('${b.id}')">
         <div class="tbar" style="background:${g?g.color:'#999'}"></div>
         <div class="day-chip-content">
           <span class="bname">${g?g.name:'?'}</span>
           <span class="bcont-init" style="flex:0 0 auto;opacity:.7">${rm?rm.short:''}</span>
-          ${b.arrivalTime?`<span class="btime">${b.arrivalTime}</span>`:''}
+          ${timeLabel?`<span class="btime">${timeLabel}</span>`:''}
         </div>
-      </div>`;}).join('');
-    const depGuests=deps.map(b=>{const g=guest(b.guestId);const rm=room(b.roomId);
-      return`<div class="day-chip" onclick="openEditModal('${b.id}')">
-        <div class="tbar" style="background:${g?g.color:'#999'}"></div>
-        <div class="day-chip-content">
-          <span class="bname">${g?g.name:'?'}</span>
-          <span class="bcont-init" style="flex:0 0 auto;opacity:.7">${rm?rm.short:''}</span>
+      </div>`;};
+    const wpanel=(cls,icon,title,items,renderFn)=>{
+      const cnt=items.length;
+      const body=cnt?items.map(renderFn).join(''):`<div class="tsec-empty">Aucun</div>`;
+      return`<div class="tsec-panel ${cls}${cnt===0?' collapsed':''}">
+        <div class="tsec-hd${cnt>0?' has-items':''}" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
+          ${icon} ${title}<span class="tsec-count"><span>${cnt}</span></span><span class="tsec-chev">▾</span>
         </div>
-      </div>`;}).join('');
-    h+=`<div class="wday-cols">
-      <div class="wday-col">
-        <div class="wstat-num arr${arrs.length===0?' wstat-zero':''}"><div class="wstat-num-val">↓ ${arrs.length}</div><div class="wstat-num-lbl">arrivée${arrs.length>1?'s':''}</div></div>
-        ${arrGuests}
+        <div class="tsec-body">${body}</div>
+      </div>`;
+    };
+
+    const dayEvs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
+    const evBody=dayEvs.length
+      ? dayEvs.map(ev=>{
+          const isSingle=ev.startDate===ev.endDate;
+          const dateRange=isSingle?fmtDate(ev.startDate):`${fmtDate(ev.startDate)} → ${fmtDate(ev.endDate)}`;
+          const timeStr=ev.startTime?(ev.endTime?` · ${ev.startTime} – ${ev.endTime}`:(` · ${ev.startTime}`)):'';
+          return`<div class="tev-card" onclick="openEventEdit('${ev.id}')" style="border-left-color:${ev.color||'#A8C5A0'}">
+            <div class="tev-title">${ev.title}</div>
+            <div class="tev-dates">${dateRange}${timeStr}</div>
+          </div>`;
+        }).join('')+`<button class="tev-add-btn" onclick="openEventEdit(null,'${ds}')">+ Ajouter un événement</button>`
+      : `<div class="tsec-empty">Pas d'événement prévu</div>
+         <button class="tev-add-btn" onclick="openEventEdit(null,'${ds}')">+ Ajouter un événement</button>`;
+    h+=`<div class="tsec-panel ev${dayEvs.length===0?' collapsed':''}">
+      <div class="tsec-hd tev-hd${dayEvs.length>0?' has-items':''}" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Événements<span class="tsec-count"><span>${dayEvs.length}</span></span><span class="tsec-chev">▾</span>
       </div>
-      <div class="wday-col">
-        <div class="wstat-num dep${deps.length===0?' wstat-zero':''}"><div class="wstat-num-val">↑ ${deps.length}</div><div class="wstat-num-lbl">départ${deps.length>1?'s':''}</div></div>
-        ${depGuests}
+      <div class="tsec-body">${evBody}</div>
+    </div>`;
+
+    const dm=getMenu(ds);
+    const menuHas=!!(dm.entree||dm.plat||dm.dessert);
+    const dThCount=S.bookings
+      .filter(b=>activeOn(b,ds)&&b.dinnerNights&&b.dinnerNights[ds])
+      .reduce((sum,b)=>sum+(b.nbPersons||2),0);
+    h+=`<div class="tsec-panel menu">
+      <div class="tsec-hd${menuHas?' has-items':''}">🍽 Menu du jour<span class="tsec-count"><span>${dThCount} repas</span></span></div>
+      <div class="tsec-body">
+        <div class="fg"><label class="fl">Entrée</label><input class="fi" id="wm-entree-${ds}" placeholder="—" onchange="setMenuField('${ds}','entree',this.value)"></div>
+        <div class="fg"><label class="fl">Plat</label><input class="fi" id="wm-plat-${ds}" placeholder="—" onchange="setMenuField('${ds}','plat',this.value)"></div>
+        <div class="fg" style="margin-bottom:0"><label class="fl">Dessert</label><input class="fi" id="wm-dessert-${ds}" placeholder="—" onchange="setMenuField('${ds}','dessert',this.value)"></div>
       </div>
     </div>`;
+
+    h+=`<div class="wday-cols">
+      ${wpanel('arr','↓','Arrivées',arrs,b=>wMiniChip(b,b.arrivalTime||null))}
+      ${wpanel('dep','↑','Départs',deps,b=>wMiniChip(b,null))}
+    </div>`;
+
     h+=`<div class="wday-cleaners">
       <span class="wday-cleaner-lbl">Ménage :</span>`;
     CLEANERS.forEach(name=>{
       h+=`<button class="cleaner-btn${cleaner===name?' cleaner-on':''}" onclick="setCleaner('${ds}','${name}')">${name}</button>`;
     });
     h+=`</div>`;
-    h+=`<div class="wday-menu">
-      <div class="fg"><label class="fl">Entrée</label><input class="fi" id="wm-entree-${ds}" placeholder="—" onchange="setMenuField('${ds}','entree',this.value)"></div>
-      <div class="fg"><label class="fl">Plat</label><input class="fi" id="wm-plat-${ds}" placeholder="—" onchange="setMenuField('${ds}','plat',this.value)"></div>
-      <div class="fg" style="margin-bottom:0"><label class="fl">Dessert</label><input class="fi" id="wm-dessert-${ds}" placeholder="—" onchange="setMenuField('${ds}','dessert',this.value)"></div>
-    </div>`;
     h+=`</div>`;
   }
   h+='</div>';
