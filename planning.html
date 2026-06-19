@@ -1969,6 +1969,7 @@ function renderToday(){
 
   const inHouse=stays
     .map(b=>({b,sub:`Départ le ${fmtDate(b.checkOut)}`}))
+    .concat(arrs.map(b=>({b,sub:b.arrivalTime?`Arrivée aujourd'hui · ${b.arrivalTime}`:`Arrivée aujourd'hui`})))
     .sort((x,y)=>(guest(x.b.guestId)?.name||'').localeCompare(guest(y.b.guestId)?.name||''));
 
   let h=`<div class="today-inner">
