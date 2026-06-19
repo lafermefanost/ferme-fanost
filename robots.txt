@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /bienvenue/
 Disallow: /petit-fanost/
+Disallow: /planning.html
 
 Sitemap: https://www.lafermefanost.com/sitemap.xml
