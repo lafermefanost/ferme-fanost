@@ -294,7 +294,8 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .tsec-panel{border-radius:10px;overflow:hidden;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
 .tsec-hd{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;font-weight:700;font-size:13px;user-select:none;letter-spacing:.01em;}
 .tsec-hd:active{filter:brightness(.96);}
-.tsec-hd{background:#6E6860;color:#fff;}
+.tsec-hd{background:#9A9690;color:#fff;}
+.tsec-hd.has-items{background:var(--green);}
 .tsec-count{margin-left:auto;background:currentColor;color:#fff!important;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:700;}
 .tsec-count span{color:#fff;}
 .tsec-chev{font-size:11px;opacity:.6;transition:transform .2s;margin-left:4px;}
@@ -303,7 +304,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .tsec-panel.collapsed>.tsec-body{display:none;}
 .tsec-empty{font-size:12px;color:var(--gray);padding:8px 6px 4px;text-align:center;}
 .tev-panel{display:flex;flex-direction:column;gap:6px;}
-.tev-hd{background:#7A8C65!important;}
+.tsec-panel.menu .tsec-body{padding:12px 10px 4px;}
 .tev-card{display:flex;flex-direction:column;background:#fff;border-radius:10px;
   padding:10px 12px;border:1.5px solid var(--light);border-left-width:4px;
   cursor:pointer;transition:opacity .15s;}
@@ -439,17 +440,13 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .wstat-num{border-radius:8px;padding:8px 10px;display:flex;align-items:baseline;gap:6px;}
 .wstat-num-val{font-size:28px;font-weight:700;line-height:1;}
 .wstat-num-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;opacity:.75;}
-.wstat-num.dep{background:#F0B429;color:#5C3E00;}
+.wstat-num.dep{background:var(--green);color:#fff;}
 .wstat-num.arr{background:var(--green);color:#fff;}
 .wstat-num.wstat-zero{background:var(--light);color:#bbb;}
 .wday-sec{font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase;
   letter-spacing:.05em;margin:7px 0 3px;}
-.wday-guest{display:flex;align-items:center;gap:7px;padding:3px 0;
-  cursor:pointer;font-size:13px;}
-.wday-guest:hover{opacity:.7;}
-.wday-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.wday-rm{font-size:11px;color:var(--gray);background:var(--light);
-  padding:1px 6px;border-radius:8px;margin-left:4px;}
+.wday-col .day-chip{margin-bottom:4px;box-shadow:none;border:1.5px solid var(--light);}
+.wday-col .day-chip:last-child{margin-bottom:0;}
 .wday-cleaners{display:flex;gap:6px;margin-top:10px;padding-top:10px;
   border-top:1px solid var(--light);flex-wrap:wrap;align-items:center;}
 .wday-cleaner-lbl{font-size:10px;color:var(--gray);text-transform:uppercase;
@@ -460,6 +457,11 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .cleaner-btn:hover{border-color:#aaa;color:var(--dark);}
 .cleaner-on{background:#7A8C65!important;color:#fff!important;
   border-color:#7A8C65!important;}
+.wday-menu{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;
+  padding-top:10px;border-top:1px solid var(--light);}
+.wday-menu .fg{margin-bottom:0;}
+.wday-menu .fl{font-size:9px;margin-bottom:3px;}
+.wday-menu .fi{padding:6px 8px;font-size:12px;}
 
 /* ─── MONTH VIEW ─────────────────────────────────────────────── */
 #monthWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
@@ -574,10 +576,11 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
   display:inline-block;padding:2px 0;}
 .gnew-btn:hover{text-decoration:underline;}
 .gcontact{display:flex;gap:6px;flex-wrap:wrap;}
-.gsel-change{background:none;border:none;font-family:'Jost',sans-serif;font-size:11px;
-  color:var(--gray);cursor:pointer;padding:0 12px;white-space:nowrap;
-  text-decoration:underline;text-underline-offset:2px;align-self:center;}
-.gsel-change:hover{color:var(--dark);}
+.gsel-acts{display:flex;gap:6px;align-items:center;padding-right:10px;flex-shrink:0;}
+.gsel-icobtn{width:28px;height:28px;border:none;background:var(--light);border-radius:50%;
+  cursor:pointer;color:var(--gray);display:flex;align-items:center;justify-content:center;
+  transition:all .15s;flex-shrink:0;}
+.gsel-icobtn:hover{background:var(--earth);color:#fff;}
 #gSearchWrap{display:flex;flex-direction:column;}
 .gcontact-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;
   border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;
@@ -1066,10 +1069,12 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
       <div class="mtitle">Clients</div>
       <button class="mclose" onclick="closeM('modalGuests')">✕</button>
     </div>
-    <div id="gList"></div>
-    <button class="btn-p" onclick="openGuestEdit(null)" style="width:100%;margin-top:14px">
+    <button class="btn-p" onclick="openGuestEdit(null)" style="width:100%;margin-bottom:12px">
       + Nouveau client
     </button>
+    <input class="fi" id="gListSearch" placeholder="Rechercher un client…" autocomplete="off"
+      style="margin-bottom:10px" oninput="renderGList(this.value)">
+    <div id="gList"></div>
   </div>
 </div>
 
@@ -1093,12 +1098,17 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
     <div class="frow">
       <div class="fg">
         <label class="fl">Téléphone</label>
-        <input type="text" class="fi" id="gePhone">
+        <input type="text" class="fi" id="gePhone" oninput="renderGeContact()">
       </div>
       <div class="fg">
         <label class="fl">Email</label>
-        <input type="email" class="fi" id="geEmail">
+        <input type="email" class="fi" id="geEmail" oninput="renderGeContact()">
       </div>
+    </div>
+    <div class="gcontact" id="geContact" style="display:none;margin-bottom:14px"></div>
+    <div class="fg">
+      <label class="fl">Adresse postale</label>
+      <input type="text" class="fi" id="geAddress" placeholder="Adresse, code postal, ville, pays…">
     </div>
     <div class="frow">
       <div class="fg">
@@ -1267,7 +1277,7 @@ const PALETTE = [
 // ═══════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════
-const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null, todayDate:null, catalog:[], charges:[], settings:null};
+const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, menus:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null, todayDate:null, catalog:[], charges:[], settings:null};
 
 const DEFAULT_PRICES={solo:100, double:125, th:25};
 const DEFAULT_SETTINGS={
@@ -1461,7 +1471,7 @@ let db=null; // Firebase Firestore instance when configured
 
 function persist(){
   localStorage.setItem('ff2_data',JSON.stringify({
-    bookings:S.bookings, guests:S.guests, events:S.events, cleaning:S.cleaning
+    bookings:S.bookings, guests:S.guests, events:S.events, cleaning:S.cleaning, menus:S.menus
   }));
   if(db) pushToFirebase();
   else setSyncPip('ok','Local');
@@ -1475,6 +1485,7 @@ function loadLocal(){
   S.guests=d.guests||[];
   S.events=d.events||[];
   S.cleaning=d.cleaning||{};
+  S.menus=d.menus||{};
   // Migrate old tableDhotes (boolean) → dinnerNights (per night)
   S.bookings.forEach(b=>{
     if(b.tableDhotes&&!b.dinnerNights){
@@ -1519,6 +1530,7 @@ function connectFirebase(cfg){
         S.guests=d.guests||[];
         S.events=d.events||[];
         S.cleaning=d.cleaning||{};
+        S.menus=d.menus||{};
         if(d.catalog&&d.catalog.length){S.catalog=d.catalog;saveCatalog();}
         if(d.settings){
           S.settings={...JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),...d.settings};
@@ -1553,7 +1565,7 @@ function pushToFirebase(){
   if(!db)return;
   setSyncPip('busy','Envoi…');
   db.collection('planning').doc('data').set({
-    bookings:S.bookings, guests:S.guests, events:S.events, cleaning:S.cleaning,
+    bookings:S.bookings, guests:S.guests, events:S.events, cleaning:S.cleaning, menus:S.menus,
     catalog:S.catalog, settings:S.settings,
     updated:new Date().toISOString()
   }).then(()=>setSyncPip('ok','Synchronisé ✓'))
@@ -1955,11 +1967,9 @@ function renderToday(){
     </div>`;
   };
 
-  const inHouse=[
-    ...arrs.map(b=>({b,sub:b.arrivalTime?`Arrivée ${b.arrivalTime}`:'Arrivée'})),
-    ...stays.map(b=>({b,sub:`Départ le ${fmtDate(b.checkOut)}`})),
-    ...deps.map(b=>({b,sub:'Départ'})),
-  ].sort((x,y)=>(guest(x.b.guestId)?.name||'').localeCompare(guest(y.b.guestId)?.name||''));
+  const inHouse=stays
+    .map(b=>({b,sub:`Départ le ${fmtDate(b.checkOut)}`}))
+    .sort((x,y)=>(guest(x.b.guestId)?.name||'').localeCompare(guest(y.b.guestId)?.name||''));
 
   let h=`<div class="today-inner">
   <div class="today-nav">
@@ -1981,7 +1991,7 @@ function renderToday(){
     const cnt=items.length;
     let body=cnt?items.map(cardFn).join(''):`<div class="tsec-empty">Aucun</div>`;
     return`<div class="tsec-panel ${cls}${cnt===0?' collapsed':''}">
-      <div class="tsec-hd" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
+      <div class="tsec-hd${cnt>0?' has-items':''}" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
         ${icon} ${title}<span class="tsec-count"><span>${cnt}</span></span><span class="tsec-chev">▾</span>
       </div>
       <div class="tsec-body">${body}</div>
@@ -2001,18 +2011,31 @@ function renderToday(){
     : `<div class="tsec-empty">Pas d'événement prévu</div>
        <button class="tev-add-btn" onclick="openEventEdit(null,'${ds}')">+ Ajouter un événement</button>`;
   h+=`<div class="tsec-panel ev${dayEvs.length===0?' collapsed':''}">
-    <div class="tsec-hd tev-hd" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
+    <div class="tsec-hd tev-hd${dayEvs.length>0?' has-items':''}" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Événements<span class="tsec-count"><span>${dayEvs.length}</span></span><span class="tsec-chev">▾</span>
     </div>
     <div class="tsec-body">${evBody}</div>
   </div>`;
-  h+=panel('dep','↑','Départs',deps,b=>miniChip(b,null));
+  const dm=getMenu(ds);
+  const menuHas=!!(dm.entree||dm.plat||dm.dessert);
+  h+=`<div class="tsec-panel menu">
+    <div class="tsec-hd${menuHas?' has-items':''}">🍽 Menu du jour</div>
+    <div class="tsec-body">
+      <div class="fg"><label class="fl">Entrée</label><input class="fi" id="menu-entree" placeholder="—" onchange="setMenuField('${ds}','entree',this.value)"></div>
+      <div class="fg"><label class="fl">Plat</label><input class="fi" id="menu-plat" placeholder="—" onchange="setMenuField('${ds}','plat',this.value)"></div>
+      <div class="fg" style="margin-bottom:0"><label class="fl">Dessert</label><input class="fi" id="menu-dessert" placeholder="—" onchange="setMenuField('${ds}','dessert',this.value)"></div>
+    </div>
+  </div>`;
   h+=panel('arr','↓','Arrivées',arrs,b=>miniChip(b,b.arrivalTime||null));
+  h+=panel('dep','↑','Départs',deps,b=>miniChip(b,null));
   h+=panel('stay','●','En séjour',inHouse,({b,sub})=>card(b,sub,true));
   if(tArrs.length) h+=panel('tom','⏰','Demain',tArrs,b=>card(b,b.arrivalTime?`Demain ${b.arrivalTime}`:'Demain'));
   h+='</div>';
   byId('todayWrap').innerHTML=h;
+  byId('menu-entree').value=dm.entree||'';
+  byId('menu-plat').value=dm.plat||'';
+  byId('menu-dessert').value=dm.dessert||'';
   if(openExtrasId){const p=document.getElementById('xe-'+openExtrasId);if(p)p.style.display='block';}
 }
 
@@ -2132,6 +2155,21 @@ function fmtIntlPhone(p){
   if(d.startsWith('33')) return d;
   return d;
 }
+function contactButtonsHTML(phone,email){
+  const icoWa=`<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.109.549 4.09 1.508 5.808L.057 24l6.304-1.654A11.93 11.93 0 0012 23.943C18.627 23.943 24 18.57 24 11.943S18.627 0 12 0zm0 21.87a9.882 9.882 0 01-5.032-1.373l-.361-.214-3.741.981.998-3.648-.235-.374A9.86 9.86 0 012.12 12c0-5.455 4.436-9.891 9.891-9.891S21.902 6.545 21.902 12c0 5.454-4.436 9.89-9.901 9.877z"/></svg>`;
+  const icoSms=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+  const icoMail=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`;
+  const btns=[];
+  if(phone){
+    const p=fmtIntlPhone(phone);
+    btns.push(`<a class="gcontact-btn wa" href="https://wa.me/${p}" target="_blank">${icoWa} WA</a>`);
+    btns.push(`<a class="gcontact-btn sms" href="sms:+${p}">${icoSms} SMS</a>`);
+  }
+  if(email){
+    btns.push(`<a class="gcontact-btn mail" href="mailto:${email}">${icoMail} Mail</a>`);
+  }
+  return btns.join('');
+}
 function renderGPicker(){
   const sorted=[...S.guests].sort((a,b)=>a.name.localeCompare(b.name));
   const searching=!!gSearchTerm;
@@ -2148,10 +2186,15 @@ function renderGPicker(){
   const g=selGid?S.guests.find(x=>x.id===selGid):null;
   const gSelEl=byId('gSelectedName');
   if(showName&&g){
-    const changeBtn=editBid
-      ?`<button class="gsel-change" onclick="gChanging=true;renderGPicker();byId('gSearch').focus()">Changer</button>`
+    const icoSwap=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
+    const icoEdit=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+    const actBtns=editBid
+      ?`<div class="gsel-acts">
+          <button class="gsel-icobtn" title="Changer de client" onclick="gChanging=true;renderGPicker();byId('gSearch').focus()">${icoSwap}</button>
+          <button class="gsel-icobtn" title="Modifier le client" onclick="openGuestEdit('${g.id}')">${icoEdit}</button>
+        </div>`
       :'';
-    gSelEl.innerHTML=`<div class="gsel-card"><div class="gsel-bar" style="background:${g.color}"></div><div class="gsel-info"><div class="gsel-name-label">${g.name}</div></div>${changeBtn}</div>`;
+    gSelEl.innerHTML=`<div class="gsel-card"><div class="gsel-bar" style="background:${g.color}"></div><div class="gsel-info"><div class="gsel-name-label">${g.name}</div></div>${actBtns}</div>`;
     gSelEl.style.display='block';
     byId('gSearchWrap').style.display=editBid?'none':'flex';
   }else{
@@ -2159,20 +2202,9 @@ function renderGPicker(){
     byId('gSearchWrap').style.display='flex';
   }
   byId('gNewBtn').style.display=editBid?'none':'block';
-  const btns=[];
-  const icoWa=`<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.109.549 4.09 1.508 5.808L.057 24l6.304-1.654A11.93 11.93 0 0012 23.943C18.627 23.943 24 18.57 24 11.943S18.627 0 12 0zm0 21.87a9.882 9.882 0 01-5.032-1.373l-.361-.214-3.741.981.998-3.648-.235-.374A9.86 9.86 0 012.12 12c0-5.455 4.436-9.891 9.891-9.891S21.902 6.545 21.902 12c0 5.454-4.436 9.89-9.901 9.877z"/></svg>`;
-  const icoSms=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
-  const icoMail=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`;
-  if(g&&g.phone){
-    const p=fmtIntlPhone(g.phone);
-    btns.push(`<a class="gcontact-btn wa" href="https://wa.me/${p}" target="_blank">${icoWa} WA</a>`);
-    btns.push(`<a class="gcontact-btn sms" href="sms:+${p}">${icoSms} SMS</a>`);
-  }
-  if(g&&g.email){
-    btns.push(`<a class="gcontact-btn mail" href="mailto:${g.email}">${icoMail} Mail</a>`);
-  }
-  byId('gContact').innerHTML=btns.join('');
-  byId('gContact').style.display=btns.length?'flex':'none';
+  const contactHtml=g?contactButtonsHTML(g.phone,g.email):'';
+  byId('gContact').innerHTML=contactHtml;
+  byId('gContact').style.display=contactHtml?'flex':'none';
 }
 
 function pickGuest(id){
@@ -2374,11 +2406,14 @@ function getDinnerNights(){
 //  GUESTS MODAL
 // ═══════════════════════════════════════════════════════════════
 function openGuestsModal(){
+  byId('gListSearch').value='';
   renderGList();byId('modalGuests').style.display='flex';
 }
 
-function renderGList(){
-  const sorted=[...S.guests].sort((a,b)=>a.name.localeCompare(b.name));
+function renderGList(term){
+  term=(term||'').trim().toLowerCase();
+  let sorted=[...S.guests].sort((a,b)=>a.name.localeCompare(b.name));
+  if(term)sorted=sorted.filter(g=>g.name.toLowerCase().includes(term));
   if(!sorted.length){
     byId('gList').innerHTML='<p style="text-align:center;color:var(--gray);padding:20px">Aucun client</p>';return;
   }
@@ -2403,17 +2438,26 @@ function openGuestEdit(id){
   byId('geColor').value=g?g.color:nextColor();
   byId('gePhone').value=g?g.phone||'':'';
   byId('geEmail').value=g?g.email||'':'';
+  byId('geAddress').value=g?g.address||'':'';
   byId('gePrice').value=g?g.price||'':'';
   byId('geNotes').value=g?g.notes||'':'';
   byId('gDelBtn').style.display=g?'block':'none';
+  renderGeContact();
   closeM('modalGuests');byId('modalGuestEdit').style.display='flex';
+}
+
+function renderGeContact(){
+  const html=contactButtonsHTML(byId('gePhone').value,byId('geEmail').value);
+  byId('geContact').innerHTML=html;
+  byId('geContact').style.display=html?'flex':'none';
 }
 
 function saveGuest(){
   const nm=byId('geName').value.trim();
   if(!nm){alert('Nom requis');return;}
   const data={name:nm,color:byId('geColor').value,phone:byId('gePhone').value,
-    email:byId('geEmail').value,price:parseFloat(byId('gePrice').value)||0,
+    email:byId('geEmail').value,address:byId('geAddress').value,
+    price:parseFloat(byId('gePrice').value)||0,
     notes:byId('geNotes').value};
   if(editGid){
     const i=S.guests.findIndex(g=>g.id===editGid);
@@ -2422,6 +2466,7 @@ function saveGuest(){
     S.guests.push({id:uid(),...data});
   }
   persist();closeM('modalGuestEdit');renderGrid();
+  if(byId('modalBooking').style.display==='flex')renderGPicker();
 }
 
 function delGuest(){
@@ -2712,6 +2757,15 @@ function setCleaner(ds,name){
   S.cleaning[ds]=S.cleaning[ds]===name?null:name;
   persist();
   renderWeek();
+}
+
+function getMenu(ds){
+  return S.menus[ds]||{entree:'',plat:'',dessert:''};
+}
+function setMenuField(ds,field,val){
+  if(!S.menus[ds])S.menus[ds]={entree:'',plat:'',dessert:''};
+  S.menus[ds][field]=val;
+  persist();
 }
 
 function daysBetween(d1,d2){
@@ -3357,14 +3411,21 @@ function renderWeek(){
       <div class="wday-date">${d.getDate()} ${MON[d.getMonth()]}</div>
     </div>`;
     const arrGuests=arrs.map(b=>{const g=guest(b.guestId);const rm=room(b.roomId);
-      return`<div class="wday-guest" onclick="openEditModal('${b.id}')">
-        <div class="wday-dot" style="background:${g?g.color:'#999'}"></div>
-        <div>${g?g.name:'?'}<span class="wday-rm">${rm?rm.short:''}</span>${b.arrivalTime?'<br><span style="font-size:10px;color:#888">'+b.arrivalTime+'</span>':''}</div>
+      return`<div class="day-chip" onclick="openEditModal('${b.id}')">
+        <div class="tbar" style="background:${g?g.color:'#999'}"></div>
+        <div class="day-chip-content">
+          <span class="bname">${g?g.name:'?'}</span>
+          <span class="bcont-init" style="flex:0 0 auto;opacity:.7">${rm?rm.short:''}</span>
+          ${b.arrivalTime?`<span class="btime">${b.arrivalTime}</span>`:''}
+        </div>
       </div>`;}).join('');
     const depGuests=deps.map(b=>{const g=guest(b.guestId);const rm=room(b.roomId);
-      return`<div class="wday-guest" onclick="openEditModal('${b.id}')">
-        <div class="wday-dot" style="background:${g?g.color:'#999'}"></div>
-        <div>${g?g.name:'?'}<span class="wday-rm">${rm?rm.short:''}</span></div>
+      return`<div class="day-chip" onclick="openEditModal('${b.id}')">
+        <div class="tbar" style="background:${g?g.color:'#999'}"></div>
+        <div class="day-chip-content">
+          <span class="bname">${g?g.name:'?'}</span>
+          <span class="bcont-init" style="flex:0 0 auto;opacity:.7">${rm?rm.short:''}</span>
+        </div>
       </div>`;}).join('');
     h+=`<div class="wday-cols">
       <div class="wday-col">
@@ -3381,10 +3442,23 @@ function renderWeek(){
     CLEANERS.forEach(name=>{
       h+=`<button class="cleaner-btn${cleaner===name?' cleaner-on':''}" onclick="setCleaner('${ds}','${name}')">${name}</button>`;
     });
-    h+=`</div></div>`;
+    h+=`</div>`;
+    h+=`<div class="wday-menu">
+      <div class="fg"><label class="fl">Entrée</label><input class="fi" id="wm-entree-${ds}" placeholder="—" onchange="setMenuField('${ds}','entree',this.value)"></div>
+      <div class="fg"><label class="fl">Plat</label><input class="fi" id="wm-plat-${ds}" placeholder="—" onchange="setMenuField('${ds}','plat',this.value)"></div>
+      <div class="fg" style="margin-bottom:0"><label class="fl">Dessert</label><input class="fi" id="wm-dessert-${ds}" placeholder="—" onchange="setMenuField('${ds}','dessert',this.value)"></div>
+    </div>`;
+    h+=`</div>`;
   }
   h+='</div>';
   byId('weekWrap').innerHTML=h;
+  for(let i=0;i<7;i++){
+    const ds=addDays(S.wStart,i);
+    const dm=getMenu(ds);
+    byId('wm-entree-'+ds).value=dm.entree||'';
+    byId('wm-plat-'+ds).value=dm.plat||'';
+    byId('wm-dessert-'+ds).value=dm.dessert||'';
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
