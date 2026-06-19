@@ -195,11 +195,18 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .blk.ghost,.blk.ghost *{color:#1A1A1A!important;}
 .blk.ghost .sdot{background:#1A1A1A!important;}
 
-/* Day view: simple one-line chip reusing the grid block look */
-.blk.day-chip{height:auto;padding:10px 12px;border-radius:8px;margin-bottom:6px;}
-.blk.day-chip:last-child{margin-bottom:0;}
-.blk.day-chip .bname{font-size:13px;}
-.blk.day-chip .sdot{width:6px;height:6px;}
+/* Day view: simple one-line chip, color shown only as a discrete left bar (like .tcard) */
+.day-chip{background:var(--white);border-radius:8px;display:flex;flex-direction:row;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:6px;overflow:hidden;
+  cursor:pointer;user-select:none;transition:filter .1s;}
+.day-chip:hover{filter:brightness(.97);}
+.day-chip:last-child{margin-bottom:0;}
+.day-chip.canc{opacity:.5;text-decoration:line-through;}
+.day-chip .tbar{width:4px;}
+.day-chip-content{flex:1;display:flex;align-items:center;gap:5px;padding:10px 12px;
+  overflow:hidden;white-space:nowrap;color:var(--dark);}
+.day-chip .bname{font-size:13px;}
+.day-chip .sdot{width:6px;height:6px;}
 
 /* Payment modal UI */
 .pay-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
@@ -1929,20 +1936,22 @@ function renderToday(){
 
   const miniChip=(b,timeLabel)=>{
     const g=guest(b.guestId);const col=g?g.color:'#999';const rm=room(b.roomId);
-    const lbg=light(col);
     const isPaid=b.payment==='paid';
     const isGhost=b.source==='ghost'||b.ghost;
-    const dispCol=isGhost?'#1A1A1A':isPaid?'#A0A0A0':col;
+    const barCol=isGhost?'#1A1A1A':isPaid?'#A0A0A0':col;
     const sc=b.status==='opt'?' opt':b.status==='no'?' canc':'';
     const dot=b.status==='opt'?'#FF9800':b.status==='no'?'#F44336':'#4CAF50';
     const hasDin=b.dinnerNights&&b.dinnerNights[ds];
     const thIcon=hasDin?`<span class="bth">🍽${b.nbPersons||''}</span>`:'';
-    return `<div class="blk day-chip ${lbg?'lbg':'dbg'}${sc}${isPaid?' paid':''}${isGhost?' ghost':''}" style="background:${dispCol}" onclick="openEditModal('${b.id}')">
-      <span class="sdot" style="background:${dot}"></span>
-      <span class="bname">${g?g.name:'?'}</span>
-      <span class="bcont-init" style="flex:0 0 auto;opacity:.85">${rm?rm.short:''}</span>
-      ${timeLabel?`<span class="btime">${timeLabel}</span>`:''}
-      ${thIcon}
+    return `<div class="day-chip${sc}" onclick="openEditModal('${b.id}')">
+      <div class="tbar" style="background:${barCol}"></div>
+      <div class="day-chip-content">
+        <span class="sdot" style="background:${dot}"></span>
+        <span class="bname">${g?g.name:'?'}</span>
+        <span class="bcont-init" style="flex:0 0 auto;opacity:.7">${rm?rm.short:''}</span>
+        ${timeLabel?`<span class="btime">${timeLabel}</span>`:''}
+        ${thIcon}
+      </div>
     </div>`;
   };
 
