@@ -204,7 +204,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .day-chip:last-child{margin-bottom:0;}
 .day-chip.canc{opacity:.5;text-decoration:line-through;}
 .day-chip .tbar{width:4px;}
-.day-chip-content{flex:1;display:flex;align-items:center;gap:5px;padding:10px 12px;
+.day-chip-content{flex:1;min-width:0;display:flex;align-items:center;gap:5px;padding:10px 12px;
   overflow:hidden;white-space:nowrap;color:var(--dark);}
 .day-chip .bname{font-size:13px;}
 .day-chip .sdot{width:6px;height:6px;}
@@ -437,7 +437,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .wday-date{font-size:12px;color:var(--gray);}
 .wday-today .wday-date{color:rgba(255,255,255,.75);}
 .wday-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
-.wday-col{display:flex;flex-direction:column;gap:3px;}
+.wday-col{display:flex;flex-direction:column;gap:3px;min-width:0;}
 .wstat-num{border-radius:8px;padding:8px 10px;display:flex;align-items:baseline;gap:6px;}
 .wstat-num-val{font-size:28px;font-weight:700;line-height:1;}
 .wstat-num-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.05em;opacity:.75;}
