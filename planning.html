@@ -1292,7 +1292,7 @@ const DEFAULT_SETTINGS={
     {id:'airbnb',      label:'Airbnb',      color:'#F1948A',noRevenue:false},
     {id:'booking',     label:'Booking',     color:'#9FA8DA',noRevenue:false},
     {id:'homexchange', label:'HomeExchange',color:'#E6C96A',noRevenue:true},
-    {id:'ghost',       label:'Ghost',       color:'#888888',noRevenue:true},
+    {id:'ghost',       label:'Ghost',       color:'#888888',noRevenue:false},
   ]
 };
 
@@ -1529,6 +1529,8 @@ function connectFirebase(cfg){
           if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
           if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
           if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
+          const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
+          if(ghostSrc)ghostSrc.noRevenue=false;
           if(S.settings.rooms){
             const defMap=new Map(DEFAULT_SETTINGS.rooms.map(r=>[r.id,r]));
             S.settings.rooms.forEach(r=>{
@@ -2788,6 +2790,8 @@ function loadSettings(){
   if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
   if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
   if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
+  const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
+  if(ghostSrc)ghostSrc.noRevenue=false;
   // Migrate missing room fields (group, babyCrib, etc.) from DEFAULT_SETTINGS
   if(S.settings.rooms){
     const defMap=new Map(DEFAULT_SETTINGS.rooms.map(r=>[r.id,r]));
