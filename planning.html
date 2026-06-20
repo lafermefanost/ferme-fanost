@@ -1873,14 +1873,15 @@ function renderToday(){
     const xd=getExtrasDayTotal(b,ds);
     const extLabel=xd>0?`<span class="extbtn-total">${xd.toLocaleString('fr-FR')} €</span>`:`<span class="extbtn-add">+</span>`;
     let totalHtml='';
-    if(showTotal&&!isSourceNoRevenue(b.source)){
+    const isCustomPrice=b.prixNet!=null&&b.prixNet>0;
+    if(showTotal&&(!isSourceNoRevenue(b.source)||isCustomPrice)){
       const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
       const rate=getNightlyRate(b);
       const dinCount=b.dinnerNights?Object.keys(b.dinnerNights).filter(d=>b.dinnerNights[d]&&d>=b.checkIn&&d<b.checkOut).length:0;
       const pax=b.nbPersons||2;
       const extTotal=getExtrasTotal(b);
       const cribRev=getBabyCribRevenue(b);
-      const isCustom=b.prixNet!=null&&b.prixNet>0;
+      const isCustom=isCustomPrice;
       const total=getStayTotal(b);
       if(total>0){
         const tid='tt-'+b.id;
