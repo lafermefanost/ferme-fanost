@@ -296,7 +296,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .tsec-hd{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;font-weight:700;font-size:13px;user-select:none;letter-spacing:.01em;}
 .tsec-hd:active{filter:brightness(.96);}
 .tsec-hd{background:#9A9690;color:#fff;}
-.tsec-hd.has-items{background:var(--green);}
+.tsec-hd.has-items{background:#7A8C65;}
 .tsec-count{margin-left:auto;background:#fff;color:var(--dark)!important;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:700;}
 .tsec-count span{color:var(--dark);}
 .tsec-chev{font-size:11px;opacity:.6;transition:transform .2s;margin-left:4px;}
@@ -442,16 +442,21 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .wday-cols .tsec-body{padding:8px 8px 4px;}
 .wday-cols .day-chip{margin-bottom:6px;}
 .wday-cols .day-chip:last-child{margin-bottom:0;}
-.wday-cleaners{display:flex;gap:6px;margin-top:10px;padding-top:10px;
-  border-top:1px solid var(--light);flex-wrap:wrap;align-items:center;}
-.wday-cleaner-lbl{font-size:10px;color:var(--gray);text-transform:uppercase;
-  letter-spacing:.05em;margin-right:2px;}
+.cln-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
 .cleaner-btn{padding:5px 13px;border:1.5px solid var(--light);border-radius:16px;
   font-family:'Jost',sans-serif;font-size:12px;font-weight:500;
   color:var(--gray);background:#fff;cursor:pointer;transition:all .15s;}
 .cleaner-btn:hover{border-color:#aaa;color:var(--dark);}
 .cleaner-on{background:#7A8C65!important;color:#fff!important;
   border-color:#7A8C65!important;}
+.cln-detail-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.cln-detail-name{font-size:12px;font-weight:600;flex:1;min-width:0;}
+.cln-detail-row input[type=time],.cln-detail-row input[type=number]{
+  flex:none;padding:5px 6px;border:1px solid var(--light);border-radius:6px;
+  font-family:'Jost',sans-serif;font-size:12px;color:var(--dark);background:var(--white);outline:none;}
+.cln-detail-row input[type=time]{width:84px;}
+.cln-detail-row input[type=number]{width:46px;text-align:center;}
+.cln-unit{font-size:11px;color:var(--gray);flex:none;}
 
 /* ─── MONTH VIEW ─────────────────────────────────────────────── */
 #monthWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
@@ -1283,6 +1288,7 @@ const DEFAULT_SETTINGS={
     {id:'wis',name:'Wissous',short:'WIS',color:'#B57A7A',maxPersons:4,babyCrib:false,babyCribPrice:15,group:'lmnp'},
   ],
   cleaners:['Rosa','Svetlana','Tatiana'],
+  cleanerRate:15,
   tariffHistory:[{id:'t0',from:'2000-01-01',solo:100,double:125,th:25}],
   charges:[],
   groupNames:{sasu:"Chambres d'hôtes (SASU)", lmnp:'Wissous (LMNP)'},
@@ -1475,6 +1481,7 @@ function loadLocal(){
   S.guests=d.guests||[];
   S.events=d.events||[];
   S.cleaning=d.cleaning||{};
+  migrateCleaning();
   S.menus=d.menus||{};
   // Migrate old tableDhotes (boolean) → dinnerNights (per night)
   S.bookings.forEach(b=>{
@@ -1520,6 +1527,7 @@ function connectFirebase(cfg){
         S.guests=d.guests||[];
         S.events=d.events||[];
         S.cleaning=d.cleaning||{};
+        migrateCleaning();
         S.menus=d.menus||{};
         if(d.catalog&&d.catalog.length){S.catalog=d.catalog;saveCatalog();}
         if(d.settings){
@@ -2750,10 +2758,40 @@ function flash(msg,bg){
 // ═══════════════════════════════════════════════════════════════
 let CLEANERS=['Rosa','Svetlana','Tatiana'];
 
-function setCleaner(ds,name){
-  S.cleaning[ds]=S.cleaning[ds]===name?null:name;
+// Migrate old format S.cleaning[ds]=name (string) → array of {name,hours,time}
+function migrateCleaning(){
+  Object.keys(S.cleaning).forEach(ds=>{
+    const v=S.cleaning[ds];
+    if(Array.isArray(v))return;
+    S.cleaning[ds]=v?[{name:v,hours:null,time:null}]:[];
+  });
+}
+
+function toggleCleaner(ds,name){
+  const list=S.cleaning[ds]||[];
+  const idx=list.findIndex(c=>c.name===name);
+  if(idx>=0) list.splice(idx,1);
+  else list.push({name,hours:null,time:null});
+  S.cleaning[ds]=list;
   persist();
   renderWeek();
+}
+function setCleanerField(ds,name,field,val){
+  const list=S.cleaning[ds]||[];
+  const c=list.find(x=>x.name===name);
+  if(!c)return;
+  c[field]=field==='hours'?(val===''?null:parseFloat(val)||0):val;
+  persist();
+  if(S.view==='month')renderMonth();
+}
+function cleanerHourlyRate(){return (S.settings&&S.settings.cleanerRate)||0;}
+function dayCleaningCost(ds){
+  return (S.cleaning[ds]||[]).reduce((s,c)=>s+(c.hours||0)*cleanerHourlyRate(),0);
+}
+function monthlyCleaningCost(mStart,mEndExact){
+  return Object.keys(S.cleaning)
+    .filter(ds=>ds>=mStart&&ds<mEndExact)
+    .reduce((s,ds)=>s+dayCleaningCost(ds),0);
 }
 
 function getMenu(ds){
@@ -2790,6 +2828,7 @@ function loadSettings(){
   if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
   if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
   if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
+  if(S.settings.cleanerRate===undefined)S.settings.cleanerRate=DEFAULT_SETTINGS.cleanerRate;
   const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
   if(ghostSrc)ghostSrc.noRevenue=false;
   // Migrate missing room fields (group, babyCrib, etc.) from DEFAULT_SETTINGS
@@ -2977,6 +3016,11 @@ function renderSettings(){
         onkeydown="if(event.key==='Enter'){addCleaner();event.preventDefault();}">
       <button class="btn-s" style="padding:4px 12px;font-size:12px;" onclick="addCleaner()">Ajouter</button>
     </div>
+    <div class="set-row">
+      <span class="set-lbl">Tarif horaire ménage</span>
+      <input type="number" class="set-fi-sm" style="width:70px" min="0" step="0.5" value="${st.cleanerRate!=null?st.cleanerRate:15}" onblur="updateCleanerRate(this.value)">
+      <span style="font-size:11px;color:var(--gray)">€ / heure</span>
+    </div>
   </div>`;
 
   // — Charges courantes —
@@ -3085,6 +3129,11 @@ function addCleaner(){
 function delCleaner(i){
   S.settings.cleaners.splice(i,1);
   saveSettings();applySettings();renderSettings();
+}
+function updateCleanerRate(val){
+  S.settings.cleanerRate=parseFloat(val)||0;
+  saveSettings();
+  if(S.view==='month')renderMonth();
 }
 
 function openCatalogModal(){renderCatalogList();byId('modalCatalog').style.display='flex';}
@@ -3403,7 +3452,7 @@ function renderWeek(){
     const arrs=S.bookings.filter(b=>b.checkIn===ds);
     const deps=S.bookings.filter(b=>b.checkOut===ds);
     const isToday=ds===today;
-    const cleaner=S.cleaning[ds]||null;
+    const dayCleaners=S.cleaning[ds]||[];
     h+=`<div class="wday-card${isToday?' wday-today':''}">`;
     h+=`<div class="wday-head">
       <div class="wday-name">${isToday?'Aujourd\'hui — ':''}${DAY_NAMES[d.getDay()]}</div>
@@ -3469,12 +3518,25 @@ function renderWeek(){
       ${wpanel('dep','↑','Départs',deps,b=>wMiniChip(b,null))}
     </div>`;
 
-    h+=`<div class="wday-cleaners">
-      <span class="wday-cleaner-lbl">Ménage :</span>`;
+    h+=`<div class="tsec-panel menage">
+      <div class="tsec-hd${dayCleaners.length>0?' has-items':''}">🧹 Ménage<span class="tsec-count"><span>${dayCleaners.length}</span></span></div>
+      <div class="tsec-body">
+        <div class="cln-chips">`;
     CLEANERS.forEach(name=>{
-      h+=`<button class="cleaner-btn${cleaner===name?' cleaner-on':''}" onclick="setCleaner('${ds}','${name}')">${name}</button>`;
+      const on=dayCleaners.some(c=>c.name===name);
+      h+=`<button class="cleaner-btn${on?' cleaner-on':''}" onclick="toggleCleaner('${ds}','${name}')">${name}</button>`;
     });
     h+=`</div>`;
+    dayCleaners.forEach(c=>{
+      h+=`<div class="cln-detail-row">
+        <span class="cln-detail-name">${c.name}</span>
+        <input type="time" value="${c.time||''}" title="Heure de venue" onchange="setCleanerField('${ds}','${c.name}','time',this.value)">
+        <input type="number" min="0" step="0.5" placeholder="h" value="${c.hours!=null?c.hours:''}" title="Nombre d'heures" onchange="setCleanerField('${ds}','${c.name}','hours',this.value)">
+        <span class="cln-unit">h</span>
+      </div>`;
+    });
+    h+=`</div>
+    </div>`;
     h+=`</div>`;
   }
   h+='</div>';
@@ -3571,7 +3633,8 @@ function renderMonth(){
   </div>`;
 
   // Financial summary (charges + marge) — only if charges configured
-  const totalCh=totalMonthlyCharges();
+  const cleaningCost=monthlyCleaningCost(mStart,mEndExact);
+  const totalCh=totalMonthlyCharges()+cleaningCost;
   if(totalCh>0){
     const marge=totalRev-totalCh;
     const margeClass=marge>=0?'pos':'neg';
@@ -3579,7 +3642,7 @@ function renderMonth(){
       <div class="mfin-card">
         <div class="mfin-val charges">${Math.round(totalCh).toLocaleString('fr-FR')} €</div>
         <div class="mfin-sub">charges / mois</div>
-        <div class="mfin-detail">${S.settings.charges.length} poste${S.settings.charges.length>1?'s':''}</div>
+        <div class="mfin-detail">${S.settings.charges.length} poste${S.settings.charges.length>1?'s':''}${cleaningCost>0?' + ménage':''}</div>
       </div>
       <div class="mfin-card">
         <div class="mfin-val ${margeClass}">${totalRev>0?marge.toLocaleString('fr-FR')+' €':'—'}</div>
@@ -3660,7 +3723,7 @@ function renderMonth(){
     <div class="mch-header">
       <div class="mch-title">Charges courantes</div>
     </div>`;
-  if(S.settings.charges.length){
+  if(S.settings.charges.length||cleaningCost>0){
     S.settings.charges.forEach(c=>{
       const periodLabel=c.period==='annual'?'Annuel':'Mensuel';
       h+=`<div class="mch-row">
@@ -3674,10 +3737,15 @@ function renderMonth(){
         <button class="mch-del" onclick="removeCharge('${c.id}')">×</button>
       </div>`;
     });
-    const totalCh2=totalMonthlyCharges();
+    if(cleaningCost>0){
+      h+=`<div class="mch-row">
+        <span style="flex:1;font-size:13px;color:var(--dark)">🧹 Ménage (heures planifiées)</span>
+        <span style="font-size:13px;font-weight:600;color:var(--dark)">${Math.round(cleaningCost).toLocaleString('fr-FR')} €</span>
+      </div>`;
+    }
     h+=`<div class="mch-total-row">
       <span>Total mensuel</span>
-      <span class="mch-total-val">${Math.round(totalCh2).toLocaleString('fr-FR')} € / mois</span>
+      <span class="mch-total-val">${Math.round(totalCh).toLocaleString('fr-FR')} € / mois</span>
     </div>`;
   }else{
     h+=`<div style="font-size:13px;color:#bbb;padding:4px 0 8px">Aucune charge renseignée.</div>`;
