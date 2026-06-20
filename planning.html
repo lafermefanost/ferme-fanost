@@ -705,12 +705,6 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .set-tariff-hd{display:grid;grid-template-columns:1fr 60px 60px 60px 28px;gap:6px;padding:0 0 4px;}
 .set-tariff-hd span{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);text-align:right;}
 .set-tariff-hd span:first-child{text-align:left;}
-.set-chip{display:flex;align-items:center;gap:4px;background:var(--light);border-radius:16px;
-  padding:4px 10px;font-size:12px;font-weight:500;color:var(--dark);}
-.set-chip-del{border:none;background:none;cursor:pointer;color:#aaa;font-size:13px;
-  padding:0 0 0 2px;line-height:1;}
-.set-chip-del:hover{color:#e44;}
-.set-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
 .set-color{width:28px;height:28px;border:none;padding:2px;border-radius:6px;cursor:pointer;flex-shrink:0;}
 /* ── Year view ── */
 #yearWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
@@ -1287,8 +1281,7 @@ const DEFAULT_SETTINGS={
     {id:'jdn',name:'Jardin',short:'JDN',color:'#A07AB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
     {id:'wis',name:'Wissous',short:'WIS',color:'#B57A7A',maxPersons:4,babyCrib:false,babyCribPrice:15,group:'lmnp'},
   ],
-  cleaners:['Rosa','Svetlana','Tatiana'],
-  cleanerRate:15,
+  cleaners:[{name:'Rosa',rate:15},{name:'Svetlana',rate:15},{name:'Tatiana',rate:15}],
   tariffHistory:[{id:'t0',from:'2000-01-01',solo:100,double:125,th:25}],
   charges:[],
   groupNames:{sasu:"Chambres d'hôtes (SASU)", lmnp:'Wissous (LMNP)'},
@@ -1537,6 +1530,7 @@ function connectFirebase(cfg){
           if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
           if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
           if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
+          migrateCleaners();
           const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
           if(ghostSrc)ghostSrc.noRevenue=false;
           if(S.settings.rooms){
@@ -2756,7 +2750,8 @@ function flash(msg,bg){
 // ═══════════════════════════════════════════════════════════════
 //  WEEK VIEW
 // ═══════════════════════════════════════════════════════════════
-let CLEANERS=['Rosa','Svetlana','Tatiana'];
+let CLEANERS=[{name:'Rosa',rate:15},{name:'Svetlana',rate:15},{name:'Tatiana',rate:15}];
+const CLEAN_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M20 4 11 13"/><path d="M11 13 5 21h10z"/><line x1="7.5" y1="18" x2="12.5" y2="18"/></svg>';
 
 // Migrate old format S.cleaning[ds]=name (string) → array of {name,hours,time}
 function migrateCleaning(){
@@ -2784,9 +2779,12 @@ function setCleanerField(ds,name,field,val){
   persist();
   if(S.view==='month')renderMonth();
 }
-function cleanerHourlyRate(){return (S.settings&&S.settings.cleanerRate)||0;}
+function cleanerRateByName(name){
+  const c=(S.settings.cleaners||[]).find(x=>x.name===name);
+  return c?(c.rate||0):0;
+}
 function dayCleaningCost(ds){
-  return (S.cleaning[ds]||[]).reduce((s,c)=>s+(c.hours||0)*cleanerHourlyRate(),0);
+  return (S.cleaning[ds]||[]).reduce((s,c)=>s+(c.hours||0)*cleanerRateByName(c.name),0);
 }
 function monthlyCleaningCost(mStart,mEndExact){
   return Object.keys(S.cleaning)
@@ -2828,7 +2826,7 @@ function loadSettings(){
   if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
   if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
   if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
-  if(S.settings.cleanerRate===undefined)S.settings.cleanerRate=DEFAULT_SETTINGS.cleanerRate;
+  migrateCleaners();
   const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
   if(ghostSrc)ghostSrc.noRevenue=false;
   // Migrate missing room fields (group, babyCrib, etc.) from DEFAULT_SETTINGS
@@ -2837,6 +2835,14 @@ function loadSettings(){
     S.settings.rooms.forEach(r=>{
       if(r.group===undefined){const d=defMap.get(r.id);r.group=d?d.group||'sasu':'sasu';}
     });
+  }
+}
+// Migrate old format S.settings.cleaners=[name,...] (strings) → [{name,rate}]
+function migrateCleaners(){
+  if(!S.settings.cleaners||!S.settings.cleaners.length)return;
+  if(typeof S.settings.cleaners[0]==='string'){
+    const legacyRate=S.settings.cleanerRate||15;
+    S.settings.cleaners=S.settings.cleaners.map(name=>({name,rate:legacyRate}));
   }
 }
 function saveSettings(){
@@ -3005,21 +3011,21 @@ function renderSettings(){
 
   // — Équipe ménage —
   h+=`<div class="set-sec">
-    <div class="set-sec-title">Équipe ménage</div>
-    <div class="set-chips">`;
+    <div class="set-sec-title">Équipe ménage</div>`;
   (st.cleaners||[]).forEach((c,i)=>{
-    h+=`<div class="set-chip">${c}<button class="set-chip-del" onclick="delCleaner(${i})">×</button></div>`;
+    h+=`<div class="set-row">
+      <input class="set-fi" value="${c.name.replace(/"/g,'&quot;')}" placeholder="Prénom" onblur="updateCleanerField(${i},'name',this.value)">
+      <input type="number" class="set-fi-sm" style="width:60px" min="0" step="0.5" value="${c.rate!=null?c.rate:15}" onblur="updateCleanerField(${i},'rate',this.value)">
+      <span style="font-size:11px;color:var(--gray)">€/h</span>
+      <button class="set-del" onclick="delCleaner(${i})">×</button>
+    </div>`;
   });
-  h+=`</div>
-    <div class="set-row">
+  h+=`<div class="set-row">
       <input class="set-fi" id="newCleanerInput" placeholder="Prénom…"
         onkeydown="if(event.key==='Enter'){addCleaner();event.preventDefault();}">
+      <input type="number" class="set-fi-sm" id="newCleanerRateInput" style="width:60px" min="0" step="0.5" placeholder="15">
+      <span style="font-size:11px;color:var(--gray)">€/h</span>
       <button class="btn-s" style="padding:4px 12px;font-size:12px;" onclick="addCleaner()">Ajouter</button>
-    </div>
-    <div class="set-row">
-      <span class="set-lbl">Tarif horaire ménage</span>
-      <input type="number" class="set-fi-sm" style="width:70px" min="0" step="0.5" value="${st.cleanerRate!=null?st.cleanerRate:15}" onblur="updateCleanerRate(this.value)">
-      <span style="font-size:11px;color:var(--gray)">€ / heure</span>
     </div>
   </div>`;
 
@@ -3123,17 +3129,21 @@ function updateSource(id,field,val){
 function addCleaner(){
   const v=(byId('newCleanerInput').value||'').trim();
   if(!v)return;
-  S.settings.cleaners.push(v);
+  const rate=parseFloat(byId('newCleanerRateInput').value)||15;
+  S.settings.cleaners.push({name:v,rate});
   saveSettings();applySettings();renderSettings();
 }
 function delCleaner(i){
   S.settings.cleaners.splice(i,1);
   saveSettings();applySettings();renderSettings();
 }
-function updateCleanerRate(val){
-  S.settings.cleanerRate=parseFloat(val)||0;
-  saveSettings();
+function updateCleanerField(i,field,val){
+  const c=S.settings.cleaners[i];
+  if(!c)return;
+  c[field]=field==='rate'?(parseFloat(val)||0):val;
+  saveSettings();applySettings();
   if(S.view==='month')renderMonth();
+  if(S.view==='week')renderWeek();
 }
 
 function openCatalogModal(){renderCatalogList();byId('modalCatalog').style.display='flex';}
@@ -3519,10 +3529,11 @@ function renderWeek(){
     </div>`;
 
     h+=`<div class="tsec-panel menage">
-      <div class="tsec-hd${dayCleaners.length>0?' has-items':''}">🧹 Ménage<span class="tsec-count"><span>${dayCleaners.length}</span></span></div>
+      <div class="tsec-hd${dayCleaners.length>0?' has-items':''}">${CLEAN_ICON} Ménage<span class="tsec-count"><span>${dayCleaners.length}</span></span></div>
       <div class="tsec-body">
         <div class="cln-chips">`;
-    CLEANERS.forEach(name=>{
+    CLEANERS.forEach(cl=>{
+      const name=cl.name;
       const on=dayCleaners.some(c=>c.name===name);
       h+=`<button class="cleaner-btn${on?' cleaner-on':''}" onclick="toggleCleaner('${ds}','${name}')">${name}</button>`;
     });
@@ -3739,7 +3750,7 @@ function renderMonth(){
     });
     if(cleaningCost>0){
       h+=`<div class="mch-row">
-        <span style="flex:1;font-size:13px;color:var(--dark)">🧹 Ménage (heures planifiées)</span>
+        <span style="flex:1;font-size:13px;color:var(--dark)">${CLEAN_ICON} Ménage (heures planifiées)</span>
         <span style="font-size:13px;font-weight:600;color:var(--dark)">${Math.round(cleaningCost).toLocaleString('fr-FR')} €</span>
       </div>`;
     }
