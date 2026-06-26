@@ -478,7 +478,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   width:34px;height:34px;cursor:pointer;color:var(--dark);flex-shrink:0;
   display:flex;align-items:center;justify-content:center;}
 .month-nav-btn:hover{background:var(--light);}
-.month-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.month-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
 .mstat-card{background:#fff;border-radius:12px;padding:14px 14px 12px;
   border:1.5px solid var(--light);text-align:center;}
 .mstat-card.mstat-rev{background:#7A8C65;border-color:#7A8C65;}
@@ -1185,6 +1185,10 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
     <div class="fg">
       <label class="fl">Couleur</label>
       <input type="color" class="fi" id="evColor" style="height:42px;padding:3px;" value="#A8C5A0">
+    </div>
+    <div class="fg">
+      <label class="fl">Revenu généré <span style="font-weight:400;color:var(--gray)">(optionnel, si événement rémunérateur)</span></label>
+      <input type="number" class="fi" id="evRevenue" min="0" step="1" placeholder="0 €">
     </div>
     <div class="macts">
       <button class="btn-d" id="evDelBtn" onclick="delEvent()">Supprimer</button>
@@ -2536,6 +2540,7 @@ function renderEvList(){
       <div class="evcard-info">
         <div class="evcard-title">${ev.title}</div>
         ${timeStr?`<div class="evcard-time">${timeStr}</div>`:''}
+        ${ev.revenue>0?`<div class="evcard-time">${ev.revenue.toLocaleString('fr-FR')} € générés</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -2552,6 +2557,7 @@ function openEventEdit(id,prefillDate){
   byId('evStartTime').value=ev?ev.startTime||'':'';
   byId('evEndTime').value=ev?ev.endTime||'':'';
   byId('evColor').value=ev?ev.color:'#A8C5A0';
+  byId('evRevenue').value=ev&&ev.revenue?ev.revenue:'';
   byId('evDelBtn').style.display=ev?'block':'none';
   closeM('modalEvents');byId('modalEventEdit').style.display='flex';
 }
@@ -2561,7 +2567,8 @@ function saveEvent(){
   if(!t){alert('Titre requis');return;}
   const st=byId('evStartTime').value||null;
   const et=byId('evEndTime').value||null;
-  const data={title:t,startDate:byId('evStart').value,endDate:byId('evEnd').value,startTime:st,endTime:et,color:byId('evColor').value};
+  const revenue=parseFloat(byId('evRevenue').value)||0;
+  const data={title:t,startDate:byId('evStart').value,endDate:byId('evEnd').value,startTime:st,endTime:et,color:byId('evColor').value,revenue};
   if(editEvid){
     const i=S.events.findIndex(e=>e.id===editEvid);
     if(i!==-1)S.events[i]={...S.events[i],...data};
@@ -3702,18 +3709,44 @@ function renderMonth(){
   // All bookings overlapping this month
   const bks=S.bookings.filter(b=>b.checkIn<mEndExact&&b.checkOut>mStart);
 
-  // Global stats
+  // Global stats — revenue breakdown (nuitées / repas / extras / événements), même logique que la vue semaine
   const totalPossible=daysInMonth*ROOMS.length;
-  let totalNights=0, totalRev=0;
+  let totalNights=0,periodRevTotal=0,totalExtras=0,totalRepas=0,repasRevenueFromBookings=0;
   bks.forEach(bk=>{
     const oStart=bk.checkIn>mStart?bk.checkIn:mStart;
     const oEnd=bk.checkOut<mEndExact?bk.checkOut:mEndExact;
     const n=daysBetween(oStart,oEnd);
     if(n>0){
       totalNights+=n;
-      totalRev+=getBookingRevForPeriod(bk,mStart,mEndExact);
+      periodRevTotal+=getBookingRevForPeriod(bk,mStart,mEndExact);
+    }
+    if(bk.extras){
+      for(let i=0;i<daysInMonth;i++){
+        const ds=addDays(mStart,i);
+        totalExtras+=getExtrasDayTotal(bk,ds);
+      }
+    }
+    if(bk.dinnerNights){
+      for(let i=0;i<daysInMonth;i++){
+        const ds=addDays(mStart,i);
+        if(bk.dinnerNights[ds]){
+          const pax=bk.nbPersons||2;
+          totalRepas+=pax;
+          if(!isSourceNoRevenue(bk.source)&&!(bk.prixNet>0)) repasRevenueFromBookings+=pax*getTariffForDate(ds).th;
+        }
+      }
     }
   });
+  let extDinersRevenueTotal=0;
+  for(let i=0;i<daysInMonth;i++){
+    const ds=addDays(mStart,i);
+    totalRepas+=extDinersCount(ds);
+    extDinersRevenueTotal+=extDinersRevenueForDate(ds);
+  }
+  const nightsRevenue=periodRevTotal-repasRevenueFromBookings;
+  const repasRevenue=repasRevenueFromBookings+extDinersRevenueTotal;
+  const eventsRevenue=S.events.filter(ev=>ev.revenue>0&&ev.startDate>=mStart&&ev.startDate<mEndExact).reduce((s,ev)=>s+ev.revenue,0);
+  const totalRev=nightsRevenue+repasRevenue+totalExtras+eventsRevenue;
   const occPct=totalPossible>0?Math.round(totalNights/totalPossible*100):0;
 
   // Per-room occupancy
@@ -3751,11 +3784,20 @@ function renderMonth(){
       <div class="mstat-sub">remplissage</div>
       <div class="mstat-detail">${ROOMS.length} chambres</div>
     </div>
-    <div class="mstat-card mstat-rev">
-      <div class="mstat-val">${totalRev>0?totalRev.toLocaleString('fr-FR')+' €':'—'}</div>
-      <div class="mstat-sub">revenus estimés</div>
-      <div class="mstat-detail">${totalRev>0?'prix / nuit renseignés':'prix non renseignés'}</div>
-    </div>
+  </div>`;
+
+  // Revenue breakdown — total chapeau + détail par catégorie
+  const mRevItems=[
+    `<div class="wsm-item"><div class="wsm-val">${totalNights}</div><div class="wsm-lbl">nuitées</div><div class="wsm-sub">${nightsRevenue>0?nightsRevenue.toLocaleString('fr-FR')+' €':'—'}</div></div>`,
+    `<div class="wsm-item"><div class="wsm-val">${totalRepas}</div><div class="wsm-lbl">repas / table d'hôtes</div><div class="wsm-sub">${repasRevenue>0?repasRevenue.toLocaleString('fr-FR')+' €':'—'}</div></div>`,
+    `<div class="wsm-item"><div class="wsm-val">${totalExtras>0?totalExtras.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">extras</div></div>`
+  ];
+  if(eventsRevenue>0){
+    mRevItems.push(`<div class="wsm-item"><div class="wsm-val">${eventsRevenue.toLocaleString('fr-FR')} €</div><div class="wsm-lbl">événements</div></div>`);
+  }
+  h+=`<div class="week-summary" style="margin-top:14px">
+    <div class="wsm-total"><div class="wsm-val">${totalRev>0?totalRev.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">revenus totaux du mois</div></div>
+    <div class="wsm-row" style="grid-template-columns:repeat(${mRevItems.length},1fr)">${mRevItems.join('')}</div>
   </div>`;
 
   // Financial summary (charges + marge) — only if charges configured
