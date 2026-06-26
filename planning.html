@@ -1290,7 +1290,8 @@ const PALETTE = [
 // ═══════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════
-const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, menus:{}, extDiners:{}, view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null, todayDate:null, catalog:[], charges:[], settings:null};
+const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, menus:{}, extDiners:{}, transactions:[], view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null, todayDate:null, catalog:[], charges:[], settings:null};
+let bankExpandedCat=null;
 
 const DEFAULT_PRICES={solo:100, double:125, th:25};
 const DEFAULT_SETTINGS={
@@ -1308,6 +1309,24 @@ const DEFAULT_SETTINGS={
   cleaners:[{name:'Rosa',rate:15},{name:'Svetlana',rate:15},{name:'Tatiana',rate:15}],
   tariffHistory:[{id:'t0',from:'2000-01-01',solo:100,double:125,th:25}],
   charges:[],
+  chargeCategories:[
+    {id:'depot',label:'Dépôt / Caution',keywords:['depot de garantie','dépôt de garantie'],excluded:true},
+    {id:'notesfrais',label:'Notes de frais',keywords:['note de frais','achat pro'],excluded:false},
+    {id:'perso',label:'Dépenses personnelles',keywords:['uk visas and immigration'],excluded:true},
+    {id:'associe',label:'Compte courant associé',keywords:['marandin'],excluded:true},
+    {id:'alim',label:'Alimentaire',keywords:['carrefour','biocoop','lidl','la fourche','e.leclerc','sc-','boucherie','isa volaille',"prim' et saisons",'aux gourmets','sarl fossato','barberon vikings','liknadistrib','tomas poisson','nagar','intermarché','pointier','chez pompette'],excluded:false},
+    {id:'petitdej',label:'Petit-déjeuner',keywords:['fab tradition'],excluded:false},
+    {id:'energie',label:'Énergie',keywords:['engie','bellenergie'],excluded:false},
+    {id:'travaux',label:'Travaux / Matériel',keywords:['point.p','leroy merlin','ppg idf','amazon pay','amazon','dyson','gardena','bsh electroménager','arrosage distrib'],excluded:false},
+    {id:'deco',label:'Déco / Ameublement',keywords:['tropiflora','westwing','the bradery','create','sephora','flaconsapot','maison citron','minibout'],excluded:false},
+    {id:'logiciels',label:'Logiciels / Abonnements',keywords:['molotov','adobe','chatgpt','qonto'],excluded:false},
+    {id:'marketing',label:'Marketing',keywords:['google ads'],excluded:false},
+    {id:'auto',label:'Auto / Divers',keywords:['morangis auto'],excluded:false},
+    {id:'compta',label:'Comptabilité',keywords:['wity'],excluded:false},
+    {id:'mutuelle',label:'Mutuelle / Assurance',keywords:['aésio','mutuelle'],excluded:false},
+    {id:'conciergerie',label:'Conciergerie',keywords:['conciergerie'],excluded:false},
+    {id:'linge',label:'Linge / Pressing',keywords:['saifwad'],excluded:false},
+  ],
   groupNames:{sasu:"Chambres d'hôtes (SASU)", lmnp:'Wissous (LMNP)'},
   thresholds:{tva:91900, lmnp:23000, platformNights:120},
   sources:[
@@ -1485,7 +1504,7 @@ let db=null; // Firebase Firestore instance when configured
 
 function persist(){
   localStorage.setItem('ff2_data',JSON.stringify({
-    bookings:S.bookings, guests:S.guests, events:S.events, cleaning:S.cleaning, menus:S.menus, extDiners:S.extDiners
+    bookings:S.bookings, guests:S.guests, events:S.events, cleaning:S.cleaning, menus:S.menus, extDiners:S.extDiners, transactions:S.transactions
   }));
   if(db) pushToFirebase();
   else setSyncPip('ok','Local');
@@ -1502,6 +1521,7 @@ function loadLocal(){
   migrateCleaning();
   S.menus=d.menus||{};
   S.extDiners=d.extDiners||{};
+  S.transactions=d.transactions||[];
   // Migrate old tableDhotes (boolean) → dinnerNights (per night)
   S.bookings.forEach(b=>{
     if(b.tableDhotes&&!b.dinnerNights){
@@ -1549,10 +1569,12 @@ function connectFirebase(cfg){
         migrateCleaning();
         S.menus=d.menus||{};
         S.extDiners=d.extDiners||{};
+        S.transactions=d.transactions||[];
         if(d.catalog&&d.catalog.length){S.catalog=d.catalog;saveCatalog();}
         if(d.settings){
           S.settings={...JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),...d.settings};
           if(!S.settings.charges)S.settings.charges=[];
+          if(!S.settings.chargeCategories||!S.settings.chargeCategories.length)S.settings.chargeCategories=JSON.parse(JSON.stringify(DEFAULT_SETTINGS.chargeCategories));
           if(!S.settings.thresholds)S.settings.thresholds={...DEFAULT_SETTINGS.thresholds};
           if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
           if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
@@ -1586,7 +1608,7 @@ function pushToFirebase(){
   if(!db)return;
   setSyncPip('busy','Envoi…');
   db.collection('planning').doc('data').set({
-    bookings:S.bookings, guests:S.guests, events:S.events, cleaning:S.cleaning, menus:S.menus, extDiners:S.extDiners,
+    bookings:S.bookings, guests:S.guests, events:S.events, cleaning:S.cleaning, menus:S.menus, extDiners:S.extDiners, transactions:S.transactions,
     catalog:S.catalog, settings:S.settings,
     updated:new Date().toISOString()
   }).then(()=>setSyncPip('ok','Synchronisé ✓'))
@@ -2904,6 +2926,7 @@ function loadSettings(){
   if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
   if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
   if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
+  if(!S.settings.chargeCategories||!S.settings.chargeCategories.length)S.settings.chargeCategories=JSON.parse(JSON.stringify(DEFAULT_SETTINGS.chargeCategories));
   migrateCleaners();
   const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
   if(ghostSrc)ghostSrc.noRevenue=false;
@@ -2980,6 +3003,146 @@ function toggleChargePeriod(id){
   c.period=c.period==='annual'?'monthly':'annual';
   saveSettings();renderMonth();
   if(byId('modalSettings')&&byId('modalSettings').style.display==='flex')renderSettings();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CHARGES RÉELLES — IMPORT RELEVÉ BANCAIRE
+// ═══════════════════════════════════════════════════════════════
+function parseCSV(text){
+  const rows=[];
+  let row=[],field='',inQ=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){
+        if(text[i+1]==='"'){field+='"';i++;}
+        else inQ=false;
+      } else field+=ch;
+    } else if(ch==='"'){
+      inQ=true;
+    } else if(ch===','){
+      row.push(field);field='';
+    } else if(ch==='\n'||ch==='\r'){
+      if(ch==='\r'&&text[i+1]==='\n')i++;
+      row.push(field);field='';
+      if(row.length>1||row[0]!=='')rows.push(row);
+      row=[];
+    } else field+=ch;
+  }
+  if(field||row.length){row.push(field);rows.push(row);}
+  return rows;
+}
+function categorizeTransaction(t){
+  const hay=((t.counterparty||'')+' '+(t.description||'')).toLowerCase();
+  const cats=S.settings.chargeCategories||[];
+  for(const cat of cats){
+    if((cat.keywords||[]).some(k=>k&&hay.includes(k.toLowerCase())))return cat.id;
+  }
+  return '';
+}
+function handleBankFileChange(input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
+  importBankCSV(file);
+  input.value='';
+}
+function importBankCSV(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const rows=parseCSV(e.target.result);
+    if(rows.length<2)return;
+    const header=rows[0].map(h=>h.trim().toLowerCase());
+    const idx={date:header.indexOf('date'),amount:header.indexOf('amount'),direction:header.indexOf('direction'),counterparty:header.indexOf('counterparty'),description:header.indexOf('description'),type:header.indexOf('type')};
+    // Dedup by occurrence count (not just presence) — a CSV can legitimately contain
+    // two distinct transactions with identical date/amount/counterparty/description
+    // (e.g. a deposit split into two equal payments), which a simple Set would conflate.
+    const existingCounts=new Map();
+    S.transactions.forEach(t=>{
+      const key=[t.date,t.amount,t.direction,t.counterparty,t.description].join('|');
+      existingCounts.set(key,(existingCounts.get(key)||0)+1);
+    });
+    let added=0,skipped=0,uncategorized=0;
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];
+      const date=(r[idx.date]||'').trim();
+      if(!date)continue;
+      const amount=parseFloat(String(r[idx.amount]||'0').trim().replace(',','.'))||0;
+      const direction=(r[idx.direction]||'').trim();
+      const counterparty=(r[idx.counterparty]||'').trim();
+      const description=(r[idx.description]||'').trim();
+      const type=(r[idx.type]||'').trim();
+      const key=[date,amount,direction,counterparty,description].join('|');
+      const remaining=existingCounts.get(key)||0;
+      if(remaining>0){existingCounts.set(key,remaining-1);skipped++;continue;}
+      const t={id:uid(),date,amount,direction,counterparty,description,type,categoryId:''};
+      t.categoryId=categorizeTransaction(t);
+      if(!t.categoryId&&direction==='Debit')uncategorized++;
+      S.transactions.push(t);
+      added++;
+    }
+    persist();
+    if(S.view==='month')renderMonth();
+    if(byId('modalSettings')&&byId('modalSettings').style.display==='flex')renderSettings();
+    alert(`Import terminé : ${added} transaction(s) ajoutée(s), ${skipped} déjà présente(s) ignorée(s)${uncategorized?', '+uncategorized+' dépense(s) non catégorisée(s) à corriger ci-dessous':''}.`);
+  };
+  reader.readAsText(file);
+}
+function monthTransactions(mStart,mEndExact){
+  return S.transactions.filter(t=>t.date>=mStart&&t.date<mEndExact);
+}
+function variableChargesForMonth(mStart,mEndExact){
+  const cats=S.settings.chargeCategories||[];
+  const byCat={};
+  cats.forEach(c=>{byCat[c.id]={label:c.label,total:0,excluded:!!c.excluded,count:0};});
+  byCat['']={label:'Non catégorisé',total:0,excluded:false,count:0};
+  let total=0;
+  monthTransactions(mStart,mEndExact).forEach(t=>{
+    if(t.direction!=='Debit')return;
+    const cid=t.categoryId||'';
+    if(!byCat[cid])byCat[cid]={label:'Non catégorisé',total:0,excluded:false,count:0};
+    byCat[cid].total+=t.amount;
+    byCat[cid].count++;
+    if(!byCat[cid].excluded)total+=t.amount;
+  });
+  return {byCat,total};
+}
+function setTransactionCategory(id,categoryId){
+  const t=S.transactions.find(x=>x.id===id);
+  if(!t)return;
+  t.categoryId=categoryId;
+  persist();
+  if(S.view==='month')renderMonth();
+}
+function deleteTransaction(id){
+  S.transactions=S.transactions.filter(t=>t.id!==id);
+  persist();
+  if(S.view==='month')renderMonth();
+}
+function toggleBankCat(id){
+  bankExpandedCat=bankExpandedCat===id?null:id;
+  if(S.view==='month')renderMonth();
+}
+function addChargeCategory(){
+  S.settings.chargeCategories.push({id:uid(),label:'',keywords:[],excluded:false});
+  saveSettings();renderSettings();
+}
+function removeChargeCategory(id){
+  S.settings.chargeCategories=S.settings.chargeCategories.filter(c=>c.id!==id);
+  saveSettings();renderSettings();renderMonth();
+}
+function updateChargeCategoryField(id,field,val){
+  const c=S.settings.chargeCategories.find(x=>x.id===id);
+  if(!c)return;
+  if(field==='keywords')c.keywords=val.split(',').map(k=>k.trim()).filter(Boolean);
+  else c[field]=val;
+  saveSettings();
+  if(S.view==='month')renderMonth();
+}
+function toggleChargeCategoryExcluded(id){
+  const c=S.settings.chargeCategories.find(x=>x.id===id);
+  if(!c)return;
+  c.excluded=!c.excluded;
+  saveSettings();renderSettings();renderMonth();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -3134,6 +3297,27 @@ function renderSettings(){
     h+=`<div style="font-size:13px;color:#bbb;padding:4px 0 8px">Aucune charge renseignée.</div>`;
   }
   h+=`<button class="mch-add" onclick="addCharge()">+ Ajouter une charge</button>
+  </div>`;
+
+  // — Catégories de charges bancaires (import CSV) —
+  h+=`<div class="set-sec">
+    <div class="set-sec-title">Catégories — relevé bancaire</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:8px">Mots-clés (séparés par des virgules) recherchés dans le marchand/description pour catégoriser automatiquement chaque import.</div>`;
+  (st.chargeCategories||[]).forEach(c=>{
+    h+=`<div class="mch-row" style="flex-wrap:wrap">
+      <input class="mch-label" style="flex:0 0 140px" value="${(c.label||'').replace(/"/g,'&quot;')}" placeholder="Catégorie"
+        onblur="updateChargeCategoryField('${c.id}','label',this.value)"
+        onkeydown="if(event.key==='Enter')this.blur()">
+      <input class="mch-label" style="font-size:12px;color:var(--gray)" value="${(c.keywords||[]).join(', ').replace(/"/g,'&quot;')}" placeholder="mot-clé1, mot-clé2…"
+        onblur="updateChargeCategoryField('${c.id}','keywords',this.value)"
+        onkeydown="if(event.key==='Enter')this.blur()">
+      <label style="font-size:10px;color:var(--gray);display:flex;align-items:center;gap:3px;white-space:nowrap">
+        <input type="checkbox" ${c.excluded?'checked':''} onchange="toggleChargeCategoryExcluded('${c.id}')"> hors charges
+      </label>
+      <button class="mch-del" onclick="removeChargeCategory('${c.id}')">×</button>
+    </div>`;
+  });
+  h+=`<button class="mch-add" onclick="addChargeCategory()">+ Ajouter une catégorie</button>
   </div>`;
 
   byId('settingsBody').innerHTML=h;
@@ -3802,7 +3986,8 @@ function renderMonth(){
 
   // Financial summary (charges + marge) — only if charges configured
   const cleaningCost=monthlyCleaningCost(mStart,mEndExact);
-  const totalCh=totalMonthlyCharges()+cleaningCost;
+  const bankCharges=variableChargesForMonth(mStart,mEndExact);
+  const totalCh=totalMonthlyCharges()+cleaningCost+bankCharges.total;
   if(totalCh>0){
     const marge=totalRev-totalCh;
     const margeClass=marge>=0?'pos':'neg';
@@ -3810,7 +3995,7 @@ function renderMonth(){
       <div class="mfin-card">
         <div class="mfin-val charges">${Math.round(totalCh).toLocaleString('fr-FR')} €</div>
         <div class="mfin-sub">charges / mois</div>
-        <div class="mfin-detail">${S.settings.charges.length} poste${S.settings.charges.length>1?'s':''}${cleaningCost>0?' + ménage':''}</div>
+        <div class="mfin-detail">${S.settings.charges.length} poste${S.settings.charges.length>1?'s':''}${cleaningCost>0?' + ménage':''}${bankCharges.total>0?' + relevé bancaire':''}</div>
       </div>
       <div class="mfin-card">
         <div class="mfin-val ${margeClass}">${totalRev>0?marge.toLocaleString('fr-FR')+' €':'—'}</div>
@@ -3912,14 +4097,60 @@ function renderMonth(){
       </div>`;
     }
     h+=`<div class="mch-total-row">
-      <span>Total mensuel</span>
-      <span class="mch-total-val">${Math.round(totalCh).toLocaleString('fr-FR')} € / mois</span>
+      <span>Total postes manuels</span>
+      <span class="mch-total-val">${Math.round(totalMonthlyCharges()+cleaningCost).toLocaleString('fr-FR')} € / mois</span>
     </div>`;
   }else{
     h+=`<div style="font-size:13px;color:#bbb;padding:4px 0 8px">Aucune charge renseignée.</div>`;
   }
   h+=`<button class="mch-add" onclick="addCharge()">+ Ajouter une charge</button>
   </div>`;
+
+  // Charges réelles — relevé bancaire panel
+  h+=`<div class="month-charges" style="margin-top:12px">
+    <div class="mch-header">
+      <div class="mch-title">Charges réelles — relevé bancaire</div>
+      <div>
+        <input type="file" id="bankCsvInput" accept=".csv" style="display:none" onchange="handleBankFileChange(this)">
+        <button class="btn-s" style="padding:4px 10px;font-size:11px" onclick="byId('bankCsvInput').click()">Importer CSV</button>
+      </div>
+    </div>`;
+  const bankCatRows=Object.entries(bankCharges.byCat).filter(([id,v])=>v.count>0).sort((a,b)=>b[1].total-a[1].total);
+  if(bankCatRows.length){
+    const txByCat={};
+    monthTransactions(mStart,mEndExact).filter(t=>t.direction==='Debit').forEach(t=>{
+      const cid=t.categoryId||'';
+      if(!txByCat[cid])txByCat[cid]=[];
+      txByCat[cid].push(t);
+    });
+    const cats=S.settings.chargeCategories||[];
+    bankCatRows.forEach(([id,v])=>{
+      h+=`<div class="mch-row" style="cursor:pointer" onclick="toggleBankCat('${id}')">
+        <span style="flex:1;font-size:13px;color:var(--dark)">${v.label}${v.excluded?' <span style="color:#bbb;font-size:10px">(hors charges)</span>':''} <span style="color:var(--gray);font-size:11px">(${v.count})</span></span>
+        <span style="font-size:13px;font-weight:600;color:${v.excluded?'#bbb':'var(--dark)'}">${Math.round(v.total).toLocaleString('fr-FR')} €</span>
+      </div>`;
+      if(bankExpandedCat===id){
+        (txByCat[id]||[]).sort((a,b)=>a.date<b.date?1:-1).forEach(t=>{
+          h+=`<div class="mch-row" style="padding-left:10px;background:#FAFAF8">
+            <span style="width:70px;font-size:11px;color:var(--gray);flex-shrink:0">${t.date.slice(8,10)}/${t.date.slice(5,7)}</span>
+            <span style="flex:1;font-size:12px;color:var(--dark);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.counterparty}${t.description?' — '+t.description:''}</span>
+            <span style="font-size:12px;font-weight:600;color:var(--dark);flex-shrink:0">${t.amount.toLocaleString('fr-FR')} €</span>
+            <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;flex-shrink:0" onchange="setTransactionCategory('${t.id}',this.value)">
+              <option value="">Non catégorisé</option>
+              ${cats.map(c=>`<option value="${c.id}" ${c.id===t.categoryId?'selected':''}>${c.label}</option>`).join('')}
+            </select>
+          </div>`;
+        });
+      }
+    });
+    h+=`<div class="mch-total-row">
+      <span>Total charges bancaires</span>
+      <span class="mch-total-val">${Math.round(bankCharges.total).toLocaleString('fr-FR')} € / mois</span>
+    </div>`;
+  } else {
+    h+=`<div style="font-size:13px;color:#bbb;padding:4px 0 8px">Aucune transaction importée pour ce mois.</div>`;
+  }
+  h+=`</div>`;
 
   h+='</div>';
   byId('monthWrap').innerHTML=h;
