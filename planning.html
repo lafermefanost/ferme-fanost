@@ -1311,15 +1311,21 @@ const DEFAULT_SETTINGS={
   charges:[],
   chargeCategories:[
     {id:'depot',label:'Dépôt / Caution',keywords:['depot de garantie','dépôt de garantie'],excluded:true},
+    {id:'notesfrais',label:'Notes de frais',keywords:['note de frais','achat pro'],excluded:false},
+    {id:'perso',label:'Dépenses personnelles',keywords:['uk visas and immigration'],excluded:true},
     {id:'associe',label:'Compte courant associé',keywords:['marandin'],excluded:true},
-    {id:'alim',label:'Alimentaire',keywords:['carrefour','biocoop','lidl','la fourche','e.leclerc','sc-','boucherie','isa volaille',"prim' et saisons",'aux gourmets','sarl fossato','barberon vikings','liknadistrib','tomas poisson','nagar'],excluded:false},
+    {id:'alim',label:'Alimentaire',keywords:['carrefour','biocoop','lidl','la fourche','e.leclerc','sc-','boucherie','isa volaille',"prim' et saisons",'aux gourmets','sarl fossato','barberon vikings','liknadistrib','tomas poisson','nagar','intermarché','pointier','chez pompette'],excluded:false},
     {id:'petitdej',label:'Petit-déjeuner',keywords:['fab tradition'],excluded:false},
     {id:'energie',label:'Énergie',keywords:['engie','bellenergie'],excluded:false},
-    {id:'travaux',label:'Travaux / Matériel',keywords:['point.p','leroy merlin','ppg idf','amazon pay'],excluded:false},
-    {id:'deco',label:'Déco / Ameublement',keywords:['tropiflora','westwing','the bradery','create'],excluded:false},
+    {id:'travaux',label:'Travaux / Matériel',keywords:['point.p','leroy merlin','ppg idf','amazon pay','amazon','dyson','gardena','bsh electroménager','arrosage distrib'],excluded:false},
+    {id:'deco',label:'Déco / Ameublement',keywords:['tropiflora','westwing','the bradery','create','sephora','flaconsapot','maison citron'],excluded:false},
     {id:'logiciels',label:'Logiciels / Abonnements',keywords:['molotov','adobe','chatgpt','qonto'],excluded:false},
     {id:'marketing',label:'Marketing',keywords:['google ads'],excluded:false},
     {id:'auto',label:'Auto / Divers',keywords:['morangis auto'],excluded:false},
+    {id:'compta',label:'Comptabilité',keywords:['wity'],excluded:false},
+    {id:'mutuelle',label:'Mutuelle / Assurance',keywords:['aésio','mutuelle'],excluded:false},
+    {id:'conciergerie',label:'Conciergerie',keywords:['conciergerie'],excluded:false},
+    {id:'linge',label:'Linge / Pressing',keywords:['saifwad'],excluded:false},
   ],
   groupNames:{sasu:"Chambres d'hôtes (SASU)", lmnp:'Wissous (LMNP)'},
   thresholds:{tva:91900, lmnp:23000, platformNights:120},
@@ -3047,7 +3053,14 @@ function importBankCSV(file){
     if(rows.length<2)return;
     const header=rows[0].map(h=>h.trim().toLowerCase());
     const idx={date:header.indexOf('date'),amount:header.indexOf('amount'),direction:header.indexOf('direction'),counterparty:header.indexOf('counterparty'),description:header.indexOf('description'),type:header.indexOf('type')};
-    const existingKeys=new Set(S.transactions.map(t=>[t.date,t.amount,t.direction,t.counterparty,t.description].join('|')));
+    // Dedup by occurrence count (not just presence) — a CSV can legitimately contain
+    // two distinct transactions with identical date/amount/counterparty/description
+    // (e.g. a deposit split into two equal payments), which a simple Set would conflate.
+    const existingCounts=new Map();
+    S.transactions.forEach(t=>{
+      const key=[t.date,t.amount,t.direction,t.counterparty,t.description].join('|');
+      existingCounts.set(key,(existingCounts.get(key)||0)+1);
+    });
     let added=0,skipped=0,uncategorized=0;
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
@@ -3059,12 +3072,12 @@ function importBankCSV(file){
       const description=(r[idx.description]||'').trim();
       const type=(r[idx.type]||'').trim();
       const key=[date,amount,direction,counterparty,description].join('|');
-      if(existingKeys.has(key)){skipped++;continue;}
+      const remaining=existingCounts.get(key)||0;
+      if(remaining>0){existingCounts.set(key,remaining-1);skipped++;continue;}
       const t={id:uid(),date,amount,direction,counterparty,description,type,categoryId:''};
       t.categoryId=categorizeTransaction(t);
       if(!t.categoryId&&direction==='Debit')uncategorized++;
       S.transactions.push(t);
-      existingKeys.add(key);
       added++;
     }
     persist();
