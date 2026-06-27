@@ -2879,18 +2879,6 @@ function setCleanerField(ds,name,field,val){
   persist();
   if(S.view==='month')renderMonth();
 }
-function cleanerRateByName(name){
-  const c=(S.settings.cleaners||[]).find(x=>x.name===name);
-  return c?(c.rate||0):0;
-}
-function dayCleaningCost(ds){
-  return (S.cleaning[ds]||[]).reduce((s,c)=>s+(c.hours||0)*cleanerRateByName(c.name),0);
-}
-function monthlyCleaningCost(mStart,mEndExact){
-  return Object.keys(S.cleaning)
-    .filter(ds=>ds>=mStart&&ds<mEndExact)
-    .reduce((s,ds)=>s+dayCleaningCost(ds),0);
-}
 
 function getMenu(ds){
   return S.menus[ds]||{entree:'',plat:'',dessert:''};
@@ -3910,9 +3898,8 @@ function renderMonth(){
   </div>`;
 
   // Financial summary (charges + marge) — only if charges configured
-  const cleaningCost=monthlyCleaningCost(mStart,mEndExact);
   const bankCharges=variableChargesForMonth(mStart,mEndExact);
-  const totalCh=cleaningCost+bankCharges.total;
+  const totalCh=bankCharges.total;
   if(totalCh>0){
     const marge=totalRev-totalCh;
     const margeClass=marge>=0?'pos':'neg';
@@ -3920,7 +3907,7 @@ function renderMonth(){
       <div class="mfin-card">
         <div class="mfin-val charges">${Math.round(totalCh).toLocaleString('fr-FR')} €</div>
         <div class="mfin-sub">charges / mois</div>
-        <div class="mfin-detail">relevé bancaire${cleaningCost>0?' + ménage':''}</div>
+        <div class="mfin-detail">relevé bancaire</div>
       </div>
       <div class="mfin-card">
         <div class="mfin-val ${margeClass}">${totalRev>0?marge.toLocaleString('fr-FR')+' €':'—'}</div>
@@ -4006,7 +3993,7 @@ function renderMonth(){
       </div>
     </div>`;
   const bankCatRows=Object.entries(bankCharges.byCat).filter(([id,v])=>v.count>0).sort((a,b)=>b[1].total-a[1].total);
-  if(bankCatRows.length||cleaningCost>0){
+  if(bankCatRows.length){
     const txByCat={};
     monthTransactions(mStart,mEndExact).filter(t=>t.direction==='Debit').forEach(t=>{
       const cid=t.categoryId||'';
@@ -4033,15 +4020,9 @@ function renderMonth(){
         });
       }
     });
-    if(cleaningCost>0){
-      h+=`<div class="mch-row">
-        <span style="flex:1;font-size:13px;color:var(--dark)">${CLEAN_ICON} Ménage (heures planifiées)</span>
-        <span style="font-size:13px;font-weight:600;color:var(--dark)">${Math.round(cleaningCost).toLocaleString('fr-FR')} €</span>
-      </div>`;
-    }
     h+=`<div class="mch-total-row">
       <span>Total charges réelles</span>
-      <span class="mch-total-val">${Math.round(bankCharges.total+cleaningCost).toLocaleString('fr-FR')} € / mois</span>
+      <span class="mch-total-val">${Math.round(bankCharges.total).toLocaleString('fr-FR')} € / mois</span>
     </div>`;
   } else {
     h+=`<div style="font-size:13px;color:#bbb;padding:4px 0 8px">Aucune transaction importée pour ce mois.</div>`;
