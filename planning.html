@@ -738,8 +738,6 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
   background:var(--yr-accent,var(--green));margin:-12px -14px 12px;padding:10px 14px;border-radius:10px 10px 0 0;}
 .yr-group-name{font-weight:600;font-size:14px;color:#fff;}
 .yr-group-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.25);color:#fff;}
-.yr-room-dots{display:flex;gap:4px;align-items:center;}
-.yr-room-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
 .yr-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;}
 .yr-gauge{margin-bottom:10px;}
 .yr-gauge-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
@@ -1340,7 +1338,7 @@ const DEFAULT_SETTINGS={
     {id:'conciergerie',label:'Conciergerie',keywords:['conciergerie','marine dubois'],excluded:false},
     {id:'linge',label:'Linge / Pressing',keywords:['saifwad','tissco'],excluded:false},
   ],
-  groupNames:{sasu:"Chambres d'hôtes (SASU)", lmnp:'Wissous (LMNP)'},
+  groupNames:{sasu:"Chambres d'hôtes", lmnp:'Wissous'},
   thresholds:{tva:91900, lmnp:23000, platformNights:120},
   sources:[
     {id:'direct',      label:'Direct',      color:'#7ABF6A',noRevenue:false},
@@ -4526,7 +4524,9 @@ function renderYear(){
       return s+daysBetween(oS,oE);
     },0);
     const totalCap=rooms.length*365;
-    const occRate=totalCap>0?Math.round(projNights/totalCap*100):0;
+    const elapsedEnd=today<yEnd?today:yEnd;
+    const elapsedCap=rooms.length*daysBetween(yStart,elapsedEnd);
+    const occRate=elapsedCap>0?Math.round(realNights/elapsedCap*100):0;
     // Platform nights: non-direct, non-noRevenue sources (Airbnb, Booking, etc.)
     const platBks=S.bookings.filter(bk=>
       roomIds.has(bk.roomId)&&bk.checkIn<yEnd&&bk.checkOut>yStart
@@ -4591,10 +4591,7 @@ function renderYear(){
         </div>`:'';
     return`<div class="yr-group" style="--yr-accent:${accent}">
       <div class="yr-group-hd">
-        <div>
-          <div class="yr-group-name">${name}</div>
-          <div class="yr-room-dots">${st.rooms.map(r=>`<span class="yr-room-dot" style="background:${r.color||'#888'}" title="${r.name}"></span>`).join('')}</div>
-        </div>
+        <div class="yr-group-name">${name.replace(/\s*\([^)]*\)\s*$/,'')}</div>
         <span class="yr-group-tag">${gid.toUpperCase()}</span>
       </div>
       <div class="yr-stats" style="grid-template-columns:repeat(${showPlatform?2:3},1fr)">
@@ -4620,10 +4617,10 @@ function renderYear(){
     </div>`;
   }
 
-  const sasuHTML=groupCard('sasu',gNames.sasu||"Chambres d'hôtes (SASU)",[
+  const sasuHTML=groupCard('sasu',gNames.sasu||"Chambres d'hôtes",[
     {label:'Franchise TVA',val:thr.tva||91900,color:'#E07828'}
   ],false,'#3D5C35');
-  const lmnpHTML=groupCard('lmnp',gNames.lmnp||'Wissous (LMNP)',[
+  const lmnpHTML=groupCard('lmnp',gNames.lmnp||'Wissous',[
     {label:'Seuil LMP',val:thr.lmnp||23000,color:'#C0392B'}
   ],true,'#B5A07A');
 
