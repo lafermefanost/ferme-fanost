@@ -746,7 +746,12 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .yr-gauge-bar{height:10px;background:var(--light);border-radius:6px;overflow:hidden;position:relative;}
 .yr-gauge-proj{position:absolute;top:0;left:0;height:100%;border-radius:6px;transition:width .3s;}
 .yr-gauge-real{position:absolute;top:0;left:0;height:100%;border-radius:6px;transition:width .3s;}
+.yr-gauge-ghost{position:absolute;top:0;left:0;height:100%;
+  background:repeating-linear-gradient(45deg,rgba(26,26,26,.5) 0 4px,transparent 4px 8px);transition:width .3s;}
 .yr-gauge-bot{display:flex;justify-content:space-between;margin-top:3px;}
+.yr-gauge-ghost-lgd{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gray);margin-top:4px;}
+.yr-gauge-ghost-sw{width:10px;height:10px;border-radius:2px;flex-shrink:0;
+  background:repeating-linear-gradient(45deg,#1A1A1A 0 2px,#bbb 2px 4px);}
 .yr-gauge.yr-gauge-warn .yr-gauge-lbl{color:#E07828;}
 .yr-gauge.yr-gauge-danger .yr-gauge-lbl{color:#C0392B;}
 .yr-section{background:#fff;border-radius:12px;border:1.5px solid var(--light);padding:14px;}
@@ -4537,7 +4542,9 @@ function renderYear(){
       const oE=bk.checkOut<yEnd?bk.checkOut:yEnd;
       return s+daysBetween(oS,oE);
     },0);
-    return{rooms,bks,realCA,realNights,projCA,projNights,totalCap,occRate,platNights};
+    const ghostBks=bks.filter(bk=>bk.source==='ghost');
+    const ghostCA=ghostBks.reduce((s,bk)=>s+getBookingRevForPeriod(bk,yStart,yEnd),0);
+    return{rooms,bks,realCA,realNights,projCA,projNights,totalCap,occRate,platNights,ghostCA};
   }
 
   function nightsGauge(nights,limit){
@@ -4559,9 +4566,10 @@ function renderYear(){
     </div>`;
   }
 
-  function gauge(realCA,projCA,threshold,color,label){
+  function gauge(realCA,projCA,threshold,color,label,ghostCA){
     const projPct=Math.min(100,projCA/threshold*100);
     const realPct=Math.min(100,realCA/threshold*100);
+    const ghostPct=Math.min(100,(ghostCA||0)/threshold*100);
     const cls=projPct>=100?'yr-gauge-danger':projPct>=80?'yr-gauge-warn':'';
     const fillColor=cls==='yr-gauge-danger'?'#C0392B':cls==='yr-gauge-warn'?'#E07828':color;
     return`<div class="yr-gauge${cls?' '+cls:''}">
@@ -4572,18 +4580,20 @@ function renderYear(){
       <div class="yr-gauge-bar">
         <div class="yr-gauge-proj" style="width:${projPct}%;background:${fillColor}44"></div>
         <div class="yr-gauge-real" style="width:${realPct}%;background:${fillColor}"></div>
+        ${ghostPct>0?`<div class="yr-gauge-ghost" style="width:${ghostPct}%" title="Dont ${Math.round(ghostCA).toLocaleString('fr-FR')} € via Ghost"></div>`:''}
       </div>
       <div class="yr-gauge-bot">
         <span style="font-size:10px;color:var(--gray)">Réalisé <b>${Math.round(realCA).toLocaleString('fr-FR')} €</b></span>
         <span style="font-size:10px;color:var(--gray)">Projeté <b>${Math.round(projCA).toLocaleString('fr-FR')} €</b></span>
       </div>
+      ${ghostPct>0?`<div class="yr-gauge-ghost-lgd"><span class="yr-gauge-ghost-sw"></span>dont <b>${Math.round(ghostCA).toLocaleString('fr-FR')} €</b> via Ghost</div>`:''}
     </div>`;
   }
 
   function groupCard(gid,name,thresholds,showPlatform,accent){
     const st=groupStats(gid);
     const platLimit=thr.platformNights||120;
-    const gaugesHTML=thresholds.map(t=>gauge(st.realCA,st.projCA,t.val,t.color,t.label)).join('');
+    const gaugesHTML=thresholds.map(t=>gauge(st.realCA,st.projCA,t.val,t.color,t.label,st.ghostCA)).join('');
     const platStatHTML=showPlatform?`<div class="mstat-card mstat-rev">
           <div class="mstat-val">${st.platNights}</div>
           <div class="mstat-sub">nuits plateformes</div>
