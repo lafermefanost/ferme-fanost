@@ -733,10 +733,10 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .yr-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:4px;}
 .yr-nav-btn{background:none;border:1.5px solid var(--light);border-radius:8px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--dark);}
 .yr-nav-title{font-size:22px;font-weight:700;color:var(--dark);}
-.yr-group{background:#fff;border-radius:12px;border:1.5px solid var(--light);padding:14px;}
+.yr-group{padding-left:12px;border-left:4px solid var(--yr-accent,var(--earth));}
 .yr-group-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.yr-group-name{font-size:13px;font-weight:700;color:var(--dark);}
-.yr-group-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:10px;background:var(--light);color:var(--gray);}
+.yr-group-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--dark);}
+.yr-group-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:10px;background:var(--yr-accent,var(--earth));color:#fff;}
 .yr-room-dots{display:flex;gap:4px;align-items:center;}
 .yr-room-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
 .yr-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;}
@@ -4579,7 +4579,7 @@ function renderYear(){
     </div>`;
   }
 
-  function groupCard(gid,name,thresholds,showPlatform){
+  function groupCard(gid,name,thresholds,showPlatform,accent){
     const st=groupStats(gid);
     const platLimit=thr.platformNights||120;
     const gaugesHTML=thresholds.map(t=>gauge(st.realCA,st.projCA,t.val,t.color,t.label)).join('');
@@ -4588,7 +4588,7 @@ function renderYear(){
           <div class="mstat-sub">nuits plateformes</div>
           <div class="mstat-detail">/ ${platLimit} autorisées</div>
         </div>`:'';
-    return`<div class="yr-group">
+    return`<div class="yr-group" style="--yr-accent:${accent}">
       <div class="yr-group-hd">
         <div>
           <div class="yr-group-name">${name}</div>
@@ -4621,10 +4621,10 @@ function renderYear(){
 
   const sasuHTML=groupCard('sasu',gNames.sasu||"Chambres d'hôtes (SASU)",[
     {label:'Franchise TVA',val:thr.tva||91900,color:'#E07828'}
-  ],false);
+  ],false,'#3D5C35');
   const lmnpHTML=groupCard('lmnp',gNames.lmnp||'Wissous (LMNP)',[
     {label:'Seuil LMP',val:thr.lmnp||23000,color:'#C0392B'}
-  ],true);
+  ],true,'#B5A07A');
 
   // Monthly chart
   const monthRevs=Array.from({length:12},(_,m)=>{
