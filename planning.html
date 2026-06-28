@@ -412,6 +412,7 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .week-nav-center{text-align:center;flex:1;padding:0 8px;}
 .week-nav-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:500;color:var(--dark);}
 .week-nav-sub{font-size:11px;color:var(--gray);margin-top:2px;}
+.week-nav-rel{font-size:11px;color:#7A8C65;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
 .week-today-btn{background:none;border:1.5px solid #7A8C65;border-radius:20px;
   padding:5px 16px;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;
   color:#7A8C65;cursor:pointer;display:block;margin:0 auto;}
@@ -436,10 +437,14 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   border:1.5px solid var(--light);}
 .wday-today{border-color:#7A8C65;background:#fff;}
 .wday-head{display:flex;justify-content:space-between;align-items:baseline;
-  background:var(--green);margin:-12px -14px 12px;padding:10px 14px;border-radius:10px 10px 0 0;}
+  background:var(--green);margin:-12px -14px 12px;padding:10px 14px;border-radius:10px 10px 0 0;cursor:pointer;}
+.wday-card.collapsed .wday-head{margin:-12px -14px -12px;border-radius:10px;}
+.wday-card.collapsed .wday-body{display:none;}
 .wday-today .wday-head{background:#7A8C65;}
 .wday-name{font-weight:600;font-size:14px;color:#fff;}
-.wday-date{font-size:12px;color:rgba(255,255,255,.75);}
+.wday-date{font-size:12px;color:rgba(255,255,255,.75);display:flex;align-items:center;gap:6px;}
+.wday-chev{display:inline-block;transition:transform .15s;}
+.wday-card.collapsed .wday-chev{transform:rotate(-90deg);}
 .wday-card .tsec-panel{margin-bottom:10px;}
 .wday-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;min-width:0;}
 .wday-cols .tsec-panel{margin-bottom:0;min-width:0;}
@@ -473,7 +478,9 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   -webkit-overflow-scrolling:touch;}
 .month-inner{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
 .month-nav{display:flex;align-items:center;justify-content:space-between;padding:4px 0;}
+.month-nav-center{text-align:center;flex:1;padding:0 8px;}
 .month-nav-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:500;color:var(--dark);}
+.month-nav-rel{font-size:11px;color:#7A8C65;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
 .month-nav-btn{background:none;border:1.5px solid var(--light);border-radius:8px;
   width:34px;height:34px;cursor:pointer;color:var(--dark);flex-shrink:0;
   display:flex;align-items:center;justify-content:center;}
@@ -1292,6 +1299,8 @@ const PALETTE = [
 // ═══════════════════════════════════════════════════════════════
 const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, menus:{}, extDiners:{}, transactions:[], view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null, todayDate:null, catalog:[], charges:[], settings:null};
 let bankExpandedCat=null;
+let weekOpenDays=new Set();
+let weekOpenDaysFor=null;
 
 const DEFAULT_PRICES={solo:100, double:125, th:25};
 const DEFAULT_SETTINGS={
@@ -1882,6 +1891,9 @@ function renderToday(){
   const isToday=ds===today;
   const d=new Date(ds+'T00:00:00');
   const tom=addDays(ds,1);
+  const isYesterday=ds===addDays(today,-1);
+  const isTomorrow=ds===addDays(today,1);
+  const relLabel=isToday?'Aujourd\'hui':isYesterday?'Hier':isTomorrow?'Demain':'';
   const arrs=S.bookings.filter(b=>b.checkIn===ds);
   const deps=S.bookings.filter(b=>b.checkOut===ds);
   const stays=S.bookings.filter(b=>b.checkIn<ds&&b.checkOut>ds);
@@ -1996,7 +2008,8 @@ function renderToday(){
   <div class="today-nav">
     <button class="today-nav-btn" onclick="chDay(-1)">${chevL}</button>
     <div class="today-nav-center">
-      <div class="tday-head">${isToday?'Aujourd\'hui — ':''}${DAY_NAMES[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}</div>
+      <div class="tday-head">${DAY_NAMES[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}</div>
+      ${relLabel?`<div class="tday-sub">${relLabel}</div>`:''}
     </div>
     <button class="today-nav-btn" onclick="chDay(1)">${chevR}</button>
   </div>
@@ -3599,12 +3612,24 @@ function getMondayOf(ds){
 }
 function chWeek(dir){S.wStart=addDays(S.wStart,dir*7);renderWeek();}
 function thisWeek(){S.wStart=getMondayOf(todayISO());renderWeek();}
+function toggleWeekDay(ds){
+  if(weekOpenDays.has(ds)) weekOpenDays.delete(ds); else weekOpenDays.add(ds);
+  renderWeek();
+}
 
 function renderWeek(){
   if(!S.wStart) S.wStart=getMondayOf(todayISO());
   const today=todayISO();
   const wEnd=addDays(S.wStart,7);
   const isCurrentWeek=S.wStart===getMondayOf(today);
+  const isLastWeek=S.wStart===addDays(getMondayOf(today),-7);
+  const isNextWeek=S.wStart===addDays(getMondayOf(today),7);
+  const weekRelLabel=isCurrentWeek?'Cette semaine':isLastWeek?'Semaine dernière':isNextWeek?'Semaine prochaine':'';
+  if(weekOpenDaysFor!==S.wStart){
+    weekOpenDaysFor=S.wStart;
+    weekOpenDays=new Set();
+    if(today>=S.wStart&&today<wEnd) weekOpenDays.add(today);
+  }
   const mondayDate=new Date(S.wStart+'T00:00:00');
   const sundayDate=new Date(addDays(S.wStart,6)+'T00:00:00');
   const wn=weekNum(mondayDate);
@@ -3656,6 +3681,7 @@ function renderWeek(){
   h+=`<div class="week-nav">
     <button class="week-nav-btn" onclick="chWeek(-1)">${chevL}</button>
     <div class="week-nav-center">
+      ${weekRelLabel?`<div class="week-nav-rel">${weekRelLabel}</div>`:''}
       <div class="week-nav-title">Semaine ${wn}</div>
       <div class="week-nav-sub">${fmtD(mondayDate)} – ${fmtD(sundayDate)}</div>
     </div>
@@ -3682,11 +3708,13 @@ function renderWeek(){
     const deps=S.bookings.filter(b=>b.checkOut===ds);
     const isToday=ds===today;
     const dayCleaners=S.cleaning[ds]||[];
-    h+=`<div class="wday-card${isToday?' wday-today':''}">`;
-    h+=`<div class="wday-head">
+    const dayOpen=weekOpenDays.has(ds);
+    h+=`<div class="wday-card${isToday?' wday-today':''}${dayOpen?'':' collapsed'}">`;
+    h+=`<div class="wday-head" onclick="toggleWeekDay('${ds}')">
       <div class="wday-name">${isToday?'Aujourd\'hui — ':''}${DAY_NAMES[d.getDay()]}</div>
-      <div class="wday-date">${d.getDate()} ${MON[d.getMonth()]}</div>
+      <div class="wday-date">${d.getDate()} ${MON[d.getMonth()]}<span class="wday-chev">▾</span></div>
     </div>`;
+    h+=`<div class="wday-body">`;
     const wMiniChip=(b,timeLabel)=>{const g=guest(b.guestId);const rm=room(b.roomId);
       return`<div class="day-chip" onclick="openEditModal('${b.id}')">
         <div class="tbar" style="background:${g?g.color:'#999'}"></div>
@@ -3767,7 +3795,7 @@ function renderWeek(){
     });
     h+=`</div>
     </div>`;
-    h+=`</div>`;
+    h+=`</div></div>`;
   }
   h+='</div>';
   byId('weekWrap').innerHTML=h;
@@ -3863,9 +3891,15 @@ function renderMonth(){
   // Navigation
   const chevL=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`;
   const chevR=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+  const now=new Date();
+  const monthDiff=(y-now.getFullYear())*12+(m-now.getMonth());
+  const monthRelLabel=monthDiff===0?'Ce mois-ci':monthDiff===-1?'Mois dernier':monthDiff===1?'Mois prochain':'';
   h+=`<div class="month-nav">
     <button class="month-nav-btn" onclick="chMonth(-1)">${chevL}</button>
-    <div class="month-nav-title">${MONTH_NAMES[m]} ${y}</div>
+    <div class="month-nav-center">
+      ${monthRelLabel?`<div class="month-nav-rel">${monthRelLabel}</div>`:''}
+      <div class="month-nav-title">${MONTH_NAMES[m]} ${y}</div>
+    </div>
     <button class="month-nav-btn" onclick="chMonth(1)">${chevR}</button>
   </div>`;
 
