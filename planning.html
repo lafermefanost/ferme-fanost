@@ -429,6 +429,9 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   display:flex;flex-direction:column;align-items:center;text-align:center;}
 .wsm-total .wsm-val{font-size:30px;}
 .wsm-total .wsm-lbl{font-size:11px;}
+.wsm-toprow{display:grid;grid-template-columns:2fr 1fr;gap:10px;}
+.wsm-toprow .wsm-total{padding:16px 10px 14px;}
+.wsm-toprow .wsm-occ .wsm-val{font-size:26px;}
 .today-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 .tsm-item{background:#7A8C65;border-radius:12px;padding:14px 10px 12px;
   display:flex;flex-direction:column;align-items:center;text-align:center;}
@@ -486,7 +489,6 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   width:34px;height:34px;cursor:pointer;color:var(--dark);flex-shrink:0;
   display:flex;align-items:center;justify-content:center;}
 .month-nav-btn:hover{background:var(--light);}
-.month-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
 .mstat-card{background:#fff;border-radius:12px;padding:14px 14px 12px;
   border:1.5px solid var(--light);text-align:center;}
 .mstat-card.mstat-rev{background:#7A8C65;border-color:#7A8C65;}
@@ -3757,20 +3759,6 @@ function renderWeek(){
       <div class="tsec-body">${evBody}</div>
     </div>`;
 
-    const dm=getMenu(ds);
-    const menuHas=!!(dm.entree||dm.plat||dm.dessert);
-    const dThCount=S.bookings
-      .filter(b=>activeOn(b,ds)&&b.dinnerNights&&b.dinnerNights[ds])
-      .reduce((sum,b)=>sum+(b.nbPersons||2),0);
-    h+=`<div class="tsec-panel menu">
-      <div class="tsec-hd${menuHas?' has-items':''}">🍽 Menu du jour<span class="tsec-count"><span>${dThCount} repas</span></span></div>
-      <div class="tsec-body">
-        <div class="fg"><label class="fl">Entrée</label><input class="fi" id="wm-entree-${ds}" placeholder="—" onchange="setMenuField('${ds}','entree',this.value)"></div>
-        <div class="fg"><label class="fl">Plat</label><input class="fi" id="wm-plat-${ds}" placeholder="—" onchange="setMenuField('${ds}','plat',this.value)"></div>
-        <div class="fg" style="margin-bottom:0"><label class="fl">Dessert</label><input class="fi" id="wm-dessert-${ds}" placeholder="—" onchange="setMenuField('${ds}','dessert',this.value)"></div>
-      </div>
-    </div>`;
-
     h+=`<div class="wday-cols">
       ${wpanel('arr','↓','Arrivées',arrs,b=>wMiniChip(b,b.arrivalTime||null))}
       ${wpanel('dep','↑','Départs',deps,b=>wMiniChip(b,null))}
@@ -3796,6 +3784,21 @@ function renderWeek(){
     });
     h+=`</div>
     </div>`;
+
+    const dm=getMenu(ds);
+    const menuHas=!!(dm.entree||dm.plat||dm.dessert);
+    const dThCount=S.bookings
+      .filter(b=>activeOn(b,ds)&&b.dinnerNights&&b.dinnerNights[ds])
+      .reduce((sum,b)=>sum+(b.nbPersons||2),0);
+    h+=`<div class="tsec-panel menu">
+      <div class="tsec-hd${menuHas?' has-items':''}">🍽 Menu du jour<span class="tsec-count"><span>${dThCount} repas</span></span></div>
+      <div class="tsec-body">
+        <div class="fg"><label class="fl">Entrée</label><input class="fi" id="wm-entree-${ds}" placeholder="—" onchange="setMenuField('${ds}','entree',this.value)"></div>
+        <div class="fg"><label class="fl">Plat</label><input class="fi" id="wm-plat-${ds}" placeholder="—" onchange="setMenuField('${ds}','plat',this.value)"></div>
+        <div class="fg" style="margin-bottom:0"><label class="fl">Dessert</label><input class="fi" id="wm-dessert-${ds}" placeholder="—" onchange="setMenuField('${ds}','dessert',this.value)"></div>
+      </div>
+    </div>`;
+
     h+=`</div></div>`;
   }
   h+='</div>';
@@ -3904,23 +3907,9 @@ function renderMonth(){
     <button class="month-nav-btn" onclick="chMonth(1)">${chevR}</button>
   </div>`;
 
-  // Stat cards
-  h+=`<div class="month-stats">
-    <div class="mstat-card mstat-rev">
-      <div class="mstat-val">${totalNights}</div>
-      <div class="mstat-sub">nuits réservées</div>
-      <div class="mstat-detail">/ ${totalPossible} possibles</div>
-    </div>
-    <div class="mstat-card mstat-rev">
-      <div class="mstat-val">${occPct}%</div>
-      <div class="mstat-sub">remplissage</div>
-      <div class="mstat-detail">${ROOMS.length} chambres</div>
-    </div>
-  </div>`;
-
   // Revenue breakdown — total chapeau + détail par catégorie
   const mRevItems=[
-    `<div class="wsm-item"><div class="wsm-val">${totalNights}</div><div class="wsm-lbl">nuitées</div><div class="wsm-sub">${nightsRevenue>0?nightsRevenue.toLocaleString('fr-FR')+' €':'—'}</div></div>`,
+    `<div class="wsm-item"><div class="wsm-val">${totalNights}</div><div class="wsm-lbl">nuitées</div><div class="wsm-sub">${nightsRevenue>0?nightsRevenue.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-sub">/ ${totalPossible} possibles</div></div>`,
     `<div class="wsm-item"><div class="wsm-val">${totalRepas}</div><div class="wsm-lbl">repas / table d'hôtes</div><div class="wsm-sub">${repasRevenue>0?repasRevenue.toLocaleString('fr-FR')+' €':'—'}</div></div>`,
     `<div class="wsm-item"><div class="wsm-val">${totalExtras>0?totalExtras.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">extras</div></div>`
   ];
@@ -3928,7 +3917,10 @@ function renderMonth(){
     mRevItems.push(`<div class="wsm-item"><div class="wsm-val">${eventsRevenue.toLocaleString('fr-FR')} €</div><div class="wsm-lbl">événements</div></div>`);
   }
   h+=`<div class="week-summary" style="margin-top:14px">
-    <div class="wsm-total"><div class="wsm-val">${totalRev>0?totalRev.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">revenus totaux du mois</div></div>
+    <div class="wsm-toprow">
+      <div class="wsm-total"><div class="wsm-val">${totalRev>0?totalRev.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">revenus totaux du mois</div></div>
+      <div class="wsm-total wsm-occ"><div class="wsm-val">${occPct}%</div><div class="wsm-lbl">remplissage</div></div>
+    </div>
     <div class="wsm-row" style="grid-template-columns:repeat(${mRevItems.length},1fr)">${mRevItems.join('')}</div>
   </div>`;
 
