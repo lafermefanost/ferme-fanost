@@ -791,6 +791,20 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .yr-regl-chev{display:inline-block;transition:transform .2s;margin-left:4px;}
 .yr-regl-item{font-size:12px;color:var(--dark);padding:5px 0;border-bottom:1px solid var(--light);line-height:1.5;}
 .yr-regl-item:last-child{border-bottom:none;}
+
+/* ─── GUEST HISTORY ────────────────────────────────────────── */
+.geh-wrap{background:#F8F6F2;border-radius:10px;padding:12px 14px;border:1px solid var(--light);margin-bottom:8px;}
+.geh-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--earth);margin-bottom:10px;}
+.geh-sum{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.geh-sum-chip{background:#fff;border:1px solid var(--light);border-radius:14px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--dark);}
+.geh-row{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--light);font-size:11px;}
+.geh-row:last-child{border-bottom:none;}
+.geh-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.geh-dates{font-weight:600;color:var(--dark);white-space:nowrap;}
+.geh-room{flex:1;color:var(--gray);font-size:10px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.geh-src{font-size:10px;font-weight:600;flex-shrink:0;}
+.geh-rev{font-weight:700;color:var(--green);flex-shrink:0;}
+.geh-empty{font-size:12px;color:var(--gray);text-align:center;padding:4px 0;}
 </style>
 </head>
 <body>
@@ -1142,6 +1156,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
         <input type="text" class="fi" id="geNotes" placeholder="Préférences, infos utiles…">
       </div>
     </div>
+    <div id="geHistory"></div>
     <div class="macts">
       <button class="btn-d" id="gDelBtn" onclick="delGuest()">Supprimer</button>
       <button class="btn-s" onclick="closeM('modalGuestEdit')">Annuler</button>
@@ -2514,6 +2529,7 @@ function openGuestEdit(id){
   byId('geNotes').value=g?g.notes||'':'';
   byId('gDelBtn').style.display=g?'block':'none';
   renderGeContact();
+  renderGeHistory(id);
   closeM('modalGuests');byId('modalGuestEdit').style.display='flex';
 }
 
@@ -2521,6 +2537,50 @@ function renderGeContact(){
   const html=contactButtonsHTML(byId('gePhone').value,byId('geEmail').value);
   byId('geContact').innerHTML=html;
   byId('geContact').style.display=html?'flex':'none';
+}
+
+function renderGeHistory(id){
+  const el=byId('geHistory');
+  if(!el)return;
+  if(!id){el.innerHTML='';return;}
+  const yr=new Date().getFullYear();
+  const yrS=yr+'-01-01';
+  const yrE=(yr+1)+'-01-01';
+  const today=todayISO();
+  const bks=S.bookings
+    .filter(b=>b.guestId===id&&b.checkOut>yrS&&b.checkIn<yrE&&b.source!=='ghost'&&!b.ghost)
+    .sort((a,b)=>a.checkIn.localeCompare(b.checkIn));
+  if(!bks.length){
+    el.innerHTML=`<div class="geh-wrap"><div class="geh-title">Séjours ${yr}</div><p class="geh-empty">Aucun séjour en ${yr}</p></div>`;
+    return;
+  }
+  const totalNights=bks.reduce((s,b)=>s+Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000),0);
+  const totalRev=bks.reduce((s,b)=>s+getStayTotal(b),0);
+  const rowHTML=b=>{
+    const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
+    const rm=room(b.roomId);
+    const rev=getStayTotal(b);
+    const isPast=b.checkOut<=today;
+    const isOngoing=b.checkIn<today&&b.checkOut>today;
+    const col=isOngoing?'#7A8C65':isPast?'#C0B9B0':'#3D5C35';
+    const src=getSource(b.source);
+    return`<div class="geh-row">
+      <div class="geh-dot" style="background:${col}"></div>
+      <div class="geh-dates">${fmtDateShort(b.checkIn)} → ${fmtDateShort(b.checkOut)}</div>
+      <div class="geh-room">${rm?rm.name:''} · ${nights}n</div>
+      <div class="geh-src" style="color:${src.color}">${src.label}</div>
+      ${rev>0?`<div class="geh-rev">${Math.round(rev).toLocaleString('fr-FR')} €</div>`:''}
+    </div>`;
+  };
+  el.innerHTML=`<div class="geh-wrap">
+    <div class="geh-title">Séjours ${yr}</div>
+    <div class="geh-sum">
+      <div class="geh-sum-chip">${bks.length} séjour${bks.length>1?'s':''}</div>
+      <div class="geh-sum-chip">${totalNights} nuit${totalNights>1?'s':''}</div>
+      ${totalRev>0?`<div class="geh-sum-chip">${Math.round(totalRev).toLocaleString('fr-FR')} €</div>`:''}
+    </div>
+    ${bks.map(rowHTML).join('')}
+  </div>`;
 }
 
 function saveGuest(){
