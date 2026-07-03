@@ -1950,9 +1950,23 @@ function renderToday(){
         const tariff=getTariffForDate(b.checkIn||ds);
         let rows='';
         if(isCustom){
-          const autoTotal=nights*rate+dinCount*pax*tariff.th+extTotal+cribRev;
-          rows+=`<div class="ttd-line"><span>Prix personnalisé</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
-          if(autoTotal>0) rows+=`<div class="ttd-line" style="opacity:.5;font-style:italic"><span>Calcul auto : ${autoTotal.toLocaleString('fr-FR')} €</span><span></span></div>`;
+          const autoTotal=nights*rate+dinCount*pax*tariff.th+cribRev;
+          rows+=`<div class="ttd-line"><span>Prix personnalisé</span><span>${b.prixNet.toLocaleString('fr-FR')} €</span></div>`;
+          if(autoTotal>0) rows+=`<div class="ttd-line" style="opacity:.5;font-style:italic"><span>Calcul auto (hors extras) : ${autoTotal.toLocaleString('fr-FR')} €</span><span></span></div>`;
+          if(extTotal>0){
+            rows+=`<div class="ttd-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
+            rows+=Object.keys(b.extras).sort().map(eds=>{
+              const dayTotal=getExtrasDayTotal(b,eds);
+              if(dayTotal<=0)return'';
+              const itemLines=Object.entries(b.extras[eds]).filter(([,qty])=>qty).map(([id,qty])=>{
+                const item=S.catalog.find(c=>c.id===id);
+                if(!item)return'';
+                return `<div class="ttd-line ttd-subitem"><span>${qty}× ${item.emoji||''} ${item.name}</span><span>${(item.price*qty).toLocaleString('fr-FR')} €</span></div>`;
+              }).join('');
+              return `<div class="ttd-line ttd-subline"><span>${fmtDate(eds)}</span><span>${dayTotal.toLocaleString('fr-FR')} €</span></div>${itemLines}`;
+            }).join('');
+            rows+=`<div class="ttd-line ttd-sep"><span>Total séjour</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
+          }
         } else {
           rows+=`<div class="ttd-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
           if(dinCount>0) rows+=`<div class="ttd-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${(dinCount*pax*tariff.th).toLocaleString('fr-FR')} €</span></div>`;
@@ -1972,7 +1986,7 @@ function renderToday(){
           }
           rows+=`<div class="ttd-line ttd-sep"><span>Total séjour</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
         }
-        const lbl=isCustom?'Prix personnalisé':'Total séjour';
+        const lbl=isCustom&&extTotal<=0?'Prix personnalisé':'Total séjour';
         totalHtml=`<div class="tcard-total" onclick="event.stopPropagation();(function(el){var d=document.getElementById('${tid}');var show=d.style.display!=='block';d.style.display=show?'block':'none';var c=el.querySelector('.tcard-total-chev');if(c)c.style.transform=show?'rotate(180deg)':''})(this)">
           <span class="tcard-total-lbl">${lbl} — ${nights} nuit${nights>1?'s':''}</span>
           <span class="tcard-total-right"><span class="tcard-total-val">${total.toLocaleString('fr-FR')} €</span><span class="tcard-total-chev">▾</span></span>
@@ -3507,7 +3521,7 @@ function buildStayNoteText(bk){
   const total=getStayTotal(bk);
   const lines=[`Note de séjour — ${name}`,`Séjour du ${fmtDate(bk.checkIn)} au ${fmtDate(bk.checkOut)} — ${nights} nuit${nights>1?'s':''}`,''];
   if(isCustom){
-    lines.push(`Prix personnalisé : ${total.toLocaleString('fr-FR')} €`,'');
+    lines.push(`Prix personnalisé : ${bk.prixNet.toLocaleString('fr-FR')} €`,'');
   } else {
     if(rate>0)lines.push(`${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} € — ${(nights*rate).toLocaleString('fr-FR')} €`);
     if(dinCount>0)lines.push(`${dinCount} repas × ${pax} pers × ${tariff.th} € — ${thRevenue.toLocaleString('fr-FR')} €`);
@@ -3605,17 +3619,31 @@ function updateModalTotal(){
   const cribPrice=babyCribOn&&room&&room.babyCrib?nights*(room.babyCribPrice||15):0;
   const isCustom=prixNetVal&&prixNetVal>0;
   const autoTotal=nights*rate+dinCount*pax*tariff.th+extTotal+cribPrice;
-  const total=isCustom?prixNetVal:autoTotal;
+  const total=isCustom?(prixNetVal+extTotal):autoTotal;
+  const autoNoExtras=nights*rate+dinCount*pax*tariff.th+cribPrice;
   byId('prixNetHint').textContent=autoTotal>0&&!isCustom?`(auto : ${autoTotal.toLocaleString('fr-FR')} €)`:'';
   if(total<=0){el.style.display='none';return;}
   el.style.display='block';
-  byId('bTotLbl').textContent=(isCustom?'Prix personnalisé':'Total séjour')+' — '+nights+' nuit'+(nights>1?'s':'');
+  byId('bTotLbl').textContent=(isCustom&&extTotal<=0?'Prix personnalisé':'Total séjour')+' — '+nights+' nuit'+(nights>1?'s':'');
   byId('bTotVal').textContent=total.toLocaleString('fr-FR')+' €';
   let rows='';
   if(isCustom){
-    rows+=`<div class="btot-line"><span>Prix personnalisé</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
-    const auto=nights*rate+dinCount*pax*tariff.th+extTotal+cribPrice;
-    if(auto>0)rows+=`<div class="btot-line" style="opacity:.55;font-style:italic"><span>Calcul auto</span><span>${auto.toLocaleString('fr-FR')} €</span></div>`;
+    rows+=`<div class="btot-line"><span>Prix personnalisé</span><span>${prixNetVal.toLocaleString('fr-FR')} €</span></div>`;
+    if(autoNoExtras>0)rows+=`<div class="btot-line" style="opacity:.55;font-style:italic"><span>Calcul auto (hors extras)</span><span>${autoNoExtras.toLocaleString('fr-FR')} €</span></div>`;
+    if(extTotal>0){
+      rows+=`<div class="btot-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
+      rows+=Object.keys(bk.extras).sort().map(ds=>{
+        const dayTotal=getExtrasDayTotal(bk,ds);
+        if(dayTotal<=0)return'';
+        const itemLines=Object.entries(bk.extras[ds]).filter(([,qty])=>qty).map(([id,qty])=>{
+          const item=S.catalog.find(c=>c.id===id);
+          if(!item)return'';
+          return `<div class="btot-line btot-subitem"><span>${qty}× ${item.emoji||''} ${item.name}</span><span>${(item.price*qty).toLocaleString('fr-FR')} €</span></div>`;
+        }).join('');
+        return `<div class="btot-line btot-subline"><span>${fmtDate(ds)}</span><span>${dayTotal.toLocaleString('fr-FR')} €</span></div>${itemLines}`;
+      }).join('');
+      rows+=`<div class="btot-line sep"><span>Total</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
+    }
   } else {
     if(rate>0)rows+=`<div class="btot-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
     if(dinCount>0)rows+=`<div class="btot-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${(dinCount*pax*tariff.th).toLocaleString('fr-FR')} €</span></div>`;
@@ -3650,7 +3678,7 @@ function getExtrasTotal(bk){
   return Object.keys(bk.extras).reduce((s,ds)=>s+getExtrasDayTotal(bk,ds),0);
 }
 function getStayTotal(bk){
-  if(bk.prixNet!=null&&bk.prixNet>0) return bk.prixNet;
+  if(bk.prixNet!=null&&bk.prixNet>0) return bk.prixNet+getExtrasTotal(bk);
   const nights=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
   return nights*getNightlyRate(bk)+getThRevenue(bk,bk.checkIn,bk.checkOut)+getExtrasTotal(bk)+getBabyCribRevenue(bk);
 }
