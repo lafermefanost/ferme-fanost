@@ -1650,7 +1650,7 @@
 <body>
 
   <!-- ═══════════════════ BANDEAU CONGÉS ═══════════════════ -->
-  <div class="vacation-banner">
+  <div class="vacation-banner" id="vacationBanner">
     <span class="vb-dot">✦</span>
     <span>
       <span class="fr">Nous sommes en congés du 28 juillet au 28 août — Nous serons heureux de retrouver tous nos clients à la rentrée en septembre. Merci pour votre compréhension et à très vite !</span>
@@ -2470,6 +2470,20 @@
   window.addEventListener('scroll', () => {
     nav.classList.toggle('scrolled', window.scrollY > 10);
   });
+
+  // ══════════════════════════════════════════
+  // BANDEAU CONGÉS — hauteur réelle (texte multi-ligne en mobile)
+  // ══════════════════════════════════════════
+  const vacationBanner = document.getElementById('vacationBanner');
+  if (vacationBanner) {
+    const syncBannerHeight = () => {
+      document.documentElement.style.setProperty('--banner-h', vacationBanner.offsetHeight + 'px');
+    };
+    syncBannerHeight();
+    window.addEventListener('resize', syncBannerHeight);
+    window.addEventListener('load', syncBannerHeight);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncBannerHeight);
+  }
 
   // ══════════════════════════════════════════
   // BURGER MENU
