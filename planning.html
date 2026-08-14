@@ -1584,6 +1584,42 @@ function initFirebase(cfg){
   }catch(e){console.error('Firebase init error',e);}
 }
 
+function applyRemoteData(d){
+  S.bookings=d.bookings||[];
+  S.guests=d.guests||[];
+  S.events=d.events||[];
+  S.cleaning=d.cleaning||{};
+  migrateCleaning();
+  S.menus=d.menus||{};
+  S.extDiners=d.extDiners||{};
+  S.transactions=d.transactions||[];
+  if(d.catalog&&d.catalog.length){S.catalog=d.catalog;saveCatalog();}
+  if(d.settings){
+    S.settings={...JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),...d.settings};
+    if(!S.settings.chargeCategories||!S.settings.chargeCategories.length)S.settings.chargeCategories=JSON.parse(JSON.stringify(DEFAULT_SETTINGS.chargeCategories));
+    if(!S.settings.thresholds)S.settings.thresholds={...DEFAULT_SETTINGS.thresholds};
+    if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
+    if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
+    if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
+    migrateCleaners();
+    const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
+    if(ghostSrc)ghostSrc.noRevenue=false;
+    if(S.settings.rooms){
+      const defMap=new Map(DEFAULT_SETTINGS.rooms.map(r=>[r.id,r]));
+      S.settings.rooms.forEach(r=>{
+        if(r.group===undefined){const d=defMap.get(r.id);r.group=d?d.group||'sasu':'sasu';}
+      });
+    }
+    localStorage.setItem('ff2_settings',JSON.stringify(S.settings));
+    applySettings();
+  }
+  renderGrid();
+  if(S.view==='today') renderToday();
+  if(S.view==='week') renderWeek();
+  if(S.view==='month') renderMonth();
+  if(S.view==='year') renderYear();
+}
+
 function connectFirebase(cfg){
   try{
     if(!firebase.apps.length) firebase.initializeApp(cfg);
@@ -1591,41 +1627,7 @@ function connectFirebase(cfg){
     setSyncPip('busy','Connexion…');
     // Real-time listener
     db.collection('planning').doc('data').onSnapshot(snap=>{
-      if(snap.exists){
-        const d=snap.data();
-        S.bookings=d.bookings||[];
-        S.guests=d.guests||[];
-        S.events=d.events||[];
-        S.cleaning=d.cleaning||{};
-        migrateCleaning();
-        S.menus=d.menus||{};
-        S.extDiners=d.extDiners||{};
-        S.transactions=d.transactions||[];
-        if(d.catalog&&d.catalog.length){S.catalog=d.catalog;saveCatalog();}
-        if(d.settings){
-          S.settings={...JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),...d.settings};
-          if(!S.settings.chargeCategories||!S.settings.chargeCategories.length)S.settings.chargeCategories=JSON.parse(JSON.stringify(DEFAULT_SETTINGS.chargeCategories));
-          if(!S.settings.thresholds)S.settings.thresholds={...DEFAULT_SETTINGS.thresholds};
-          if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
-          if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
-          if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
-          migrateCleaners();
-          const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
-          if(ghostSrc)ghostSrc.noRevenue=false;
-          if(S.settings.rooms){
-            const defMap=new Map(DEFAULT_SETTINGS.rooms.map(r=>[r.id,r]));
-            S.settings.rooms.forEach(r=>{
-              if(r.group===undefined){const d=defMap.get(r.id);r.group=d?d.group||'sasu':'sasu';}
-            });
-          }
-          localStorage.setItem('ff2_settings',JSON.stringify(S.settings));
-          applySettings();
-        }
-        renderGrid();
-        if(S.view==='today') renderToday();
-        if(S.view==='week') renderWeek();
-        if(S.view==='month') renderMonth();
-      }
+      if(snap.exists) applyRemoteData(snap.data());
       setSyncPip('ok','Synchronisé ✓');
     },err=>{
       setSyncPip('err','Erreur sync');
@@ -1633,6 +1635,32 @@ function connectFirebase(cfg){
     });
   }catch(e){setSyncPip('err','Erreur Firebase');console.error(e);}
 }
+
+// Rafraîchissement forcé au retour au premier plan (écran d'accueil iOS/Android) :
+// une app "ajoutée à l'écran d'accueil" n'est pas rechargée en revenant au premier
+// plan, elle est juste "réveillée" — la connexion temps réel Firestore peut être
+// restée gelée/coupée pendant la mise en veille. On force ici une relecture
+// directe sur le serveur pour être sûr d'avoir les dernières données.
+let lastVisRefresh=0;
+function refreshFromServer(){
+  if(!db)return;
+  const now=Date.now();
+  if(now-lastVisRefresh<2000)return; // évite les doubles déclenchements
+  lastVisRefresh=now;
+  setSyncPip('busy','Actualisation…');
+  db.collection('planning').doc('data').get({source:'server'}).then(snap=>{
+    if(snap.exists) applyRemoteData(snap.data());
+    setSyncPip('ok','Synchronisé ✓');
+  }).catch(err=>{
+    setSyncPip('err','Erreur sync');
+    console.error(err);
+  });
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible') refreshFromServer();
+});
+window.addEventListener('pageshow',refreshFromServer);
+window.addEventListener('focus',refreshFromServer);
 
 function pushToFirebase(){
   if(!db)return;
