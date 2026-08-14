@@ -812,7 +812,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 <!-- ─── HEADER ─────────────────────────────────────────────── -->
 <header>
   <div class="logo" id="appName"><b>Fanost</b> — Planning</div>
-  <span class="sync-pip" id="syncPip" title="Synchronisation locale"></span>
+  <span class="sync-pip" id="syncPip" title="Synchronisation locale" onclick="showSyncDebug()" style="cursor:pointer"></span>
   <button class="hbtn" onclick="openSettings()" title="Paramètres">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
   </button>
@@ -1584,7 +1584,16 @@ function initFirebase(cfg){
   }catch(e){console.error('Firebase init error',e);}
 }
 
-function applyRemoteData(d){
+function applyRemoteData(d,meta){
+  // Diagnostic : mesure le délai réel entre l'écriture (d.updated) et la
+  // réception ici, pour savoir si un délai de synchro est réel ou perçu.
+  if(d.updated){
+    const delayMs=Date.now()-new Date(d.updated).getTime();
+    lastSyncDelayMs=delayMs;
+    lastReceiveAt=new Date().toLocaleTimeString('fr-FR');
+    const src=meta&&meta.fromCache?'cache locale':(meta&&meta.hasPendingWrites?'écriture locale en attente':'serveur');
+    console.log(`[sync] données reçues (${src}), écrites à ${d.updated}, délai=${Math.round(delayMs/1000)}s`);
+  }
   S.bookings=d.bookings||[];
   S.guests=d.guests||[];
   S.events=d.events||[];
@@ -1620,15 +1629,34 @@ function applyRemoteData(d){
   if(S.view==='year') renderYear();
 }
 
+let lastSyncDelayMs=null;
+let lastPayloadKB=null;
+let lastWriteMs=null;
+let lastReceiveAt=null;
+let unsubSnapshot=null;
+function showSyncDebug(){
+  const lines=[
+    db?'Firebase : connecté':'Firebase : NON connecté',
+    lastPayloadKB!=null?`Taille dernier envoi : ${lastPayloadKB} Ko`:'Aucun envoi effectué depuis ce chargement',
+    lastWriteMs!=null?`Temps d'écriture serveur : ${lastWriteMs} ms`:'',
+    lastSyncDelayMs!=null?`Délai dernière réception : ${Math.round(lastSyncDelayMs/1000)}s`:'Aucune donnée reçue depuis ce chargement',
+    lastReceiveAt?`Dernière réception à : ${lastReceiveAt}`:'',
+  ].filter(Boolean);
+  alert('Diagnostic sync\n\n'+lines.join('\n'));
+}
 function connectFirebase(cfg){
   try{
     if(!firebase.apps.length) firebase.initializeApp(cfg);
     db=firebase.firestore();
     setSyncPip('busy','Connexion…');
+    // Évite d'empiler plusieurs listeners si connectFirebase est rappelé
+    // (reconfiguration de la sync depuis les réglages).
+    if(unsubSnapshot){unsubSnapshot();unsubSnapshot=null;}
     // Real-time listener
-    db.collection('planning').doc('data').onSnapshot(snap=>{
-      if(snap.exists) applyRemoteData(snap.data());
-      setSyncPip('ok','Synchronisé ✓');
+    unsubSnapshot=db.collection('planning').doc('data').onSnapshot({includeMetadataChanges:true},snap=>{
+      if(snap.exists) applyRemoteData(snap.data(),snap.metadata);
+      const delayTxt=lastSyncDelayMs!=null?` (δ ${Math.round(lastSyncDelayMs/1000)}s)`:'';
+      setSyncPip('ok','Synchronisé ✓'+delayTxt);
     },err=>{
       setSyncPip('err','Erreur sync');
       console.error(err);
@@ -1649,8 +1677,9 @@ function refreshFromServer(){
   lastVisRefresh=now;
   setSyncPip('busy','Actualisation…');
   db.collection('planning').doc('data').get({source:'server'}).then(snap=>{
-    if(snap.exists) applyRemoteData(snap.data());
-    setSyncPip('ok','Synchronisé ✓');
+    if(snap.exists) applyRemoteData(snap.data(),snap.metadata);
+    const delayTxt=lastSyncDelayMs!=null?` (δ ${Math.round(lastSyncDelayMs/1000)}s)`:'';
+    setSyncPip('ok','Synchronisé ✓'+delayTxt);
   }).catch(err=>{
     setSyncPip('err','Erreur sync');
     console.error(err);
@@ -1665,12 +1694,24 @@ window.addEventListener('focus',refreshFromServer);
 function pushToFirebase(){
   if(!db)return;
   setSyncPip('busy','Envoi…');
-  db.collection('planning').doc('data').set({
+  const t0=Date.now();
+  const payload=JSON.stringify({
     bookings:S.bookings, guests:S.guests, events:S.events, cleaning:S.cleaning, menus:S.menus, extDiners:S.extDiners, transactions:S.transactions,
-    catalog:S.catalog, settings:S.settings,
+    catalog:S.catalog, settings:S.settings
+  });
+  lastPayloadKB=Math.round(payload.length/1024);
+  console.log(`[sync] envoi… (${lastPayloadKB} Ko)`);
+  db.collection('planning').doc('data').set({
+    ...JSON.parse(payload),
     updated:new Date().toISOString()
-  }).then(()=>setSyncPip('ok','Synchronisé ✓'))
-    .catch(()=>setSyncPip('err','Erreur envoi'));
+  }).then(()=>{
+    lastWriteMs=Date.now()-t0;
+    console.log(`[sync] écriture confirmée par le serveur en ${lastWriteMs}ms`);
+    setSyncPip('ok','Synchronisé ✓');
+  }).catch(err=>{
+    console.error('[sync] échec envoi',err);
+    setSyncPip('err','Erreur envoi');
+  });
 }
 
 function setSyncPip(state,title){
