@@ -1644,10 +1644,20 @@ function showSyncDebug(){
   ].filter(Boolean);
   alert('Diagnostic sync\n\n'+lines.join('\n'));
 }
+let firestoreSettingsApplied=false;
 function connectFirebase(cfg){
   try{
     if(!firebase.apps.length) firebase.initializeApp(cfg);
     db=firebase.firestore();
+    if(!firestoreSettingsApplied){
+      // Bascule automatiquement en long-polling sur les réseaux qui négocient mal
+      // le canal streaming natif (satellite type Starlink, VPN, proxy restrictif...).
+      // Sur un réseau normal, Firestore continue d'utiliser le canal natif le plus
+      // rapide — ce réglage ne fait qu'ajouter une détection, jamais un ralentissement.
+      // Doit être appelé une seule fois, avant toute autre opération Firestore.
+      db.settings({experimentalAutoDetectLongPolling:true});
+      firestoreSettingsApplied=true;
+    }
     setSyncPip('busy','Connexion…');
     // Évite d'empiler plusieurs listeners si connectFirebase est rappelé
     // (reconfiguration de la sync depuis les réglages).
