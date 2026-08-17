@@ -656,8 +656,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .btot-line.btot-subitem{padding-left:26px;font-size:10.5px;color:var(--gray);opacity:.75;}
 .btot-line.btot-subitem span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .conso-share-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
-.gcontact-btn.native{background:var(--green);border:none;cursor:pointer;font-family:'Jost',sans-serif;}
-.gcontact-btn.dl{background:var(--earth);border:none;cursor:pointer;font-family:'Jost',sans-serif;}
+.gcontact-btn.copy{background:var(--green);border:none;cursor:pointer;font-family:'Jost',sans-serif;transition:background .15s;}
 
 /* Guest list */
 .gline{display:flex;align-items:center;gap:10px;padding:9px 0;
@@ -1018,7 +1017,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
         <div class="pay-row">
           <button class="pay-chip" id="pay-pending" onclick="setPayment('pending')">En attente</button>
           <button class="pay-chip" id="pay-deposit" onclick="setPayment('deposit')">Acompte</button>
-          <button class="pay-chip" id="pay-paid" onclick="setPayment('paid')">Payé</button>
+          <button class="pay-chip" id="pay-paid" onclick="setPayment('paid')">Honoré</button>
         </div>
         <div id="depositAmtFg" style="display:none;margin-top:8px;">
           <input type="number" class="fi" id="depositAmt" placeholder="Montant de l'acompte (€)" min="0" step="1">
@@ -3659,54 +3658,37 @@ function buildStayNoteText(bk){
   return lines.join('\n');
 }
 function renderConsoShareRow(el,bk){
-  const g=guest(bk.guestId);
-  const icoWa=`<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.109.549 4.09 1.508 5.808L.057 24l6.304-1.654A11.93 11.93 0 0012 23.943C18.627 23.943 24 18.57 24 11.943S18.627 0 12 0zm0 21.87a9.882 9.882 0 01-5.032-1.373l-.361-.214-3.741.981.998-3.648-.235-.374A9.86 9.86 0 012.12 12c0-5.455 4.436-9.891 9.891-9.891S21.902 6.545 21.902 12c0 5.454-4.436 9.89-9.901 9.877z"/></svg>`;
-  const icoSms=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
-  const icoMail=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`;
-  const icoShare=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
-  const icoDl=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
-  const btns=[];
-  if(navigator.share)btns.push(`<button type="button" class="gcontact-btn native" onclick="shareConsoNote('${bk.id}','native')">${icoShare} Partager</button>`);
-  if(g&&g.phone){
-    btns.push(`<button type="button" class="gcontact-btn wa" onclick="shareConsoNote('${bk.id}','wa')">${icoWa} WA</button>`);
-    btns.push(`<button type="button" class="gcontact-btn sms" onclick="shareConsoNote('${bk.id}','sms')">${icoSms} SMS</button>`);
-  }
-  if(g&&g.email)btns.push(`<button type="button" class="gcontact-btn mail" onclick="shareConsoNote('${bk.id}','mail')">${icoMail} Mail</button>`);
-  btns.push(`<button type="button" class="gcontact-btn dl" onclick="shareConsoNote('${bk.id}','dl')">${icoDl} Télécharger</button>`);
-  el.innerHTML=btns.join('');
+  const icoCopy=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+  el.innerHTML=`<button type="button" class="gcontact-btn copy" onclick="copyStayNote('${bk.id}',this)">${icoCopy} Copier la note</button>`;
   el.style.display='flex';
 }
-function shareConsoNote(bid,method){
+// Copie intégrale de la note dans le presse-papiers uniquement — pas de partage
+// ni de téléchargement : la note ne doit pas sortir de l'app autrement (contrainte légale,
+// seul le logiciel de facturation fait foi).
+function copyStayNote(bid,btn){
   const bk=S.bookings.find(b=>b.id===bid);
   if(!bk)return;
-  const g=guest(bk.guestId);
   const txt=buildStayNoteText(bk);
-  if(method==='native'){
-    navigator.share({title:'Note de séjour',text:txt}).catch(()=>{});
-    return;
+  const done=ok=>{
+    if(!btn)return;
+    const orig=btn.innerHTML;
+    btn.innerHTML=ok?'✓ Copié':'Échec de la copie';
+    setTimeout(()=>{btn.innerHTML=orig;},1500);
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>done(true)).catch(()=>fallbackCopy(txt,done));
+  } else {
+    fallbackCopy(txt,done);
   }
-  if(method==='wa'){
-    if(!g||!g.phone)return;
-    window.open(`https://wa.me/${fmtIntlPhone(g.phone)}?text=${encodeURIComponent(txt)}`,'_blank');
-    return;
-  }
-  if(method==='sms'){
-    if(!g||!g.phone)return;
-    const sep=/iPhone|iPad|iPod/.test(navigator.userAgent)?'&':'?';
-    location.href=`sms:+${fmtIntlPhone(g.phone)}${sep}body=${encodeURIComponent(txt)}`;
-    return;
-  }
-  if(method==='mail'){
-    if(!g||!g.email)return;
-    location.href=`mailto:${g.email}?subject=${encodeURIComponent('Note de séjour')}&body=${encodeURIComponent(txt)}`;
-    return;
-  }
-  if(method==='dl'){
-    const name=g?g.name:'Client';
-    const safeName=name.normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'),'').replace(/[^a-zA-Z0-9]+/g,'-').toLowerCase();
-    const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'})),download:`note-sejour-${safeName}-${bk.checkIn}.txt`});
-    a.click();URL.revokeObjectURL(a.href);
-  }
+}
+function fallbackCopy(txt,done){
+  const ta=document.createElement('textarea');
+  ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  let ok=false;
+  try{ok=document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+  done(ok);
 }
 function updateModalTotal(){
   const el=byId('bTotalSejour');
