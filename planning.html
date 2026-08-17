@@ -177,10 +177,16 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
 .pt td.rc.empty:hover{background:#F0EDE7 !important;}
 .pt td.rc.dover{background:rgba(61,92,53,.15) !important;}
 
-.blk{height:25px;border-radius:3px;display:flex;align-items:center;
+.blk{height:25px;border-radius:0;display:flex;align-items:center;
   padding:0 5px;gap:3px;cursor:pointer;user-select:none;overflow:hidden;
   white-space:nowrap;transition:filter .1s;}
 .blk:hover{filter:brightness(.9);}
+/* Coins arrondis uniquement sur le pourtour extérieur du bloc de réservation :
+   1 nuit = "boudin" (4 coins), plusieurs nuits = coins arrondis en haut (arrivée)
+   et en bas (dernière nuit) seulement, jointures internes droites. */
+.blk.cin.cout{border-radius:12px;}
+.blk.cin:not(.cout){border-radius:12px 12px 0 0;}
+.blk.cout:not(.cin){border-radius:0 0 12px 12px;}
 .blk.cin{border-left:3px solid rgba(0,0,0,.22);}
 .blk.cout{border-right:3px solid rgba(0,0,0,.18);}
 .blk.cont{opacity:.72;}
