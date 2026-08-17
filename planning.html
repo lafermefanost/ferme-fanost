@@ -50,11 +50,11 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   display:flex;align-items:center;padding:0 10px;gap:7px;flex-shrink:0;z-index:99;}
 .yr-nav{display:flex;align-items:center;gap:3px;}
 .yr-nav button{width:26px;height:26px;border:1px solid var(--light);background:var(--white);
-  border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;cursor:pointer;color:var(--dark);display:flex;align-items:center;justify-content:center;
   transition:background .15s;}
 .yr-nav button:hover{background:var(--light);}
-.yr-nav span{font-weight:600;font-size:14px;min-width:42px;text-align:center;}
-.divh{width:1px;height:22px;background:var(--light);margin:0 2px;}
+.yr-nav span{font-weight:600;font-size:13px;color:var(--dark);min-width:38px;text-align:center;}
+.divh{width:1px;height:22px;background:var(--light);}
 .tbtn{padding:5px 14px;border:none;border-radius:20px;font-family:'Jost',sans-serif;
   font-size:12px;font-weight:500;cursor:pointer;}
 .tbtn-today{background:var(--green);color:var(--white);}
@@ -844,9 +844,9 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 <!-- ─── TOOLBAR ─────────────────────────────────────────────── -->
 <div class="toolbar">
   <div class="yr-nav">
-    <button onclick="chYear(-1)">‹</button>
+    <button onclick="chYear(-1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
     <span id="yrLabel">2026</span>
-    <button onclick="chYear(1)">›</button>
+    <button onclick="chYear(1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
   </div>
   <div class="divh"></div>
   <button class="tbtn tbtn-today" onclick="goToday()">Aujourd'hui</button>
