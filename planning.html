@@ -50,16 +50,18 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   display:flex;align-items:center;padding:0 10px;gap:7px;flex-shrink:0;z-index:99;}
 .yr-nav{display:flex;align-items:center;gap:3px;}
 .yr-nav button{width:26px;height:26px;border:1px solid var(--light);background:var(--white);
-  border-radius:4px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
+  border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;
+  transition:background .15s;}
+.yr-nav button:hover{background:var(--light);}
 .yr-nav span{font-weight:600;font-size:14px;min-width:42px;text-align:center;}
 .divh{width:1px;height:22px;background:var(--light);margin:0 2px;}
-.tbtn{padding:4px 11px;border:none;border-radius:4px;font-family:'Jost',sans-serif;
+.tbtn{padding:5px 14px;border:none;border-radius:20px;font-family:'Jost',sans-serif;
   font-size:12px;font-weight:500;cursor:pointer;}
 .tbtn-today{background:var(--green);color:var(--white);}
 .tbtn-add{background:#E07828;color:var(--white);margin-left:auto;}
-.vtabs{display:flex;gap:2px;}
-.vtab{padding:3px 9px;border:1px solid var(--light);background:var(--white);
-  border-radius:4px;font-family:'Jost',sans-serif;font-size:11px;cursor:pointer;color:var(--gray);}
+.vtabs{display:flex;gap:4px;}
+.vtab{padding:4px 12px;border:1px solid var(--light);background:var(--white);
+  border-radius:20px;font-family:'Jost',sans-serif;font-size:11px;cursor:pointer;color:var(--gray);}
 .vtab.on{background:#7A8C65;color:var(--white);border-color:#7A8C65;}
 
 /* ─── GRID WRAPPER ─────────────────────────────────────────── */
