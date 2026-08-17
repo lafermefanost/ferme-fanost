@@ -53,12 +53,11 @@ header{height:var(--hdr);background:#7A8C65;color:var(--cream);
   border-radius:50%;cursor:pointer;color:var(--dark);display:flex;align-items:center;justify-content:center;
   transition:background .15s;}
 .tb-yrnav button:hover{background:var(--light);}
-.tb-yrnav span{font-weight:600;font-size:13px;color:var(--dark);min-width:38px;text-align:center;}
-.divh{width:1px;height:22px;background:var(--light);}
+.tb-yrnav span{font-weight:600;font-size:16px;color:var(--dark);min-width:40px;text-align:center;}
 .tbtn{padding:5px 14px;border:none;border-radius:20px;font-family:'Jost',sans-serif;
   font-size:12px;font-weight:500;cursor:pointer;}
-.tbtn-today{background:var(--green);color:var(--white);}
-.tbtn-add{background:#E07828;color:var(--white);margin-left:auto;}
+.tbtn-today{background:var(--green);color:var(--white);margin-left:auto;}
+.tbtn-add{background:#E07828;color:var(--white);}
 .vtabs{display:flex;gap:4px;}
 .vtab{padding:4px 12px;border:1px solid var(--light);background:var(--white);
   border-radius:20px;font-family:'Jost',sans-serif;font-size:11px;cursor:pointer;color:var(--gray);}
@@ -848,9 +847,6 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
     <span id="yrLabel">2026</span>
     <button onclick="chYear(1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
   </div>
-  <div class="divh"></div>
-  <button class="tbtn tbtn-today" onclick="goToday()">Aujourd'hui</button>
-  <div class="divh"></div>
   <div class="vtabs">
     <button class="vtab on" id="vt-grid" onclick="setView('grid')">Grille</button>
     <button class="vtab" id="vt-today" onclick="setView('today')">Jour</button>
@@ -858,7 +854,8 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
     <button class="vtab" id="vt-month" onclick="setView('month')">Mois</button>
     <button class="vtab" id="vt-year" onclick="setView('year')">Année</button>
   </div>
-  <button class="tbtn tbtn-add" onclick="openAddModal()">+ Réservation</button>
+  <button class="tbtn tbtn-today" onclick="goToday()">Aujourd'hui</button>
+  <button class="tbtn tbtn-add" onclick="openAddModal()">+ Résa</button>
 </div>
 
 <!-- ─── GRID VIEW ─────────────────────────────────────────────── -->
@@ -1831,7 +1828,7 @@ function renderGrid(){
     if(mStart){
       const sep=document.createElement('tr');
       sep.className='r-msep';
-      const monthLabel=MON[m].toUpperCase()+' '+S.year;
+      const monthLabel=MON[m].toUpperCase();
       const sSticky=document.createElement('td');
       sSticky.className='msep-sticky';
       sSticky.colSpan=3;
