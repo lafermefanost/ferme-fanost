@@ -3923,26 +3923,33 @@ function renderWeek(){
       </div>`;
     };
 
+    const wEvDayBadge=(dds,col)=>{
+      const dd=new Date(dds+'T00:00:00');
+      const lc=light(col);
+      return`<div class="evdate-badge" style="background:${col};color:${lc?'#2C2C2C':'#fff'}">
+        <div class="evdate-day">${dd.getDate()}</div>
+        <div class="evdate-mon">${MON3[dd.getMonth()]}</div>
+      </div>`;
+    };
     const dayEvs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
-    const evBody=dayEvs.length
-      ? dayEvs.map(ev=>{
-          const isSingle=ev.startDate===ev.endDate;
-          const dateRange=isSingle?fmtDate(ev.startDate):`${fmtDate(ev.startDate)} → ${fmtDate(ev.endDate)}`;
-          const timeStr=ev.startTime?(ev.endTime?` · ${ev.startTime} – ${ev.endTime}`:(` · ${ev.startTime}`)):'';
-          return`<div class="tev-card" onclick="openEventEdit('${ev.id}')" style="border-left-color:${ev.color||'#A8C5A0'}">
-            <div class="tev-title">${ev.title}</div>
-            <div class="tev-dates">${dateRange}${timeStr}</div>
-          </div>`;
-        }).join('')+`<button class="tev-add-btn" onclick="openEventEdit(null,'${ds}')">+ Ajouter un événement</button>`
-      : `<div class="tsec-empty">Pas d'événement prévu</div>
-         <button class="tev-add-btn" onclick="openEventEdit(null,'${ds}')">+ Ajouter un événement</button>`;
-    h+=`<div class="tsec-panel ev${dayEvs.length===0?' collapsed':''}">
-      <div class="tsec-hd tev-hd${dayEvs.length>0?' has-items':''}" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Événements<span class="tsec-count"><span>${dayEvs.length}</span></span><span class="tsec-chev">▾</span>
-      </div>
-      <div class="tsec-body">${evBody}</div>
-    </div>`;
+    if(dayEvs.length){
+      h+=`<div class="tsec-panel"><div class="tsec-body">`+dayEvs.map(ev=>{
+        const col=ev.color||'#A8C5A0';
+        const isSingle=ev.startDate===ev.endDate;
+        const dateHtml=isSingle
+          ? wEvDayBadge(ev.startDate,col)
+          : `<div class="evdate-range">${wEvDayBadge(ev.startDate,col)}<span class="evdate-arrow">→</span>${wEvDayBadge(ev.endDate,col)}</div>`;
+        const timeStr=ev.startTime?(ev.endTime?`${ev.startTime} – ${ev.endTime}`:ev.startTime):'';
+        return`<div class="evcard" onclick="openEventEdit('${ev.id}')">
+          ${dateHtml}
+          <div class="evcard-info">
+            <div class="evcard-title">${ev.title}</div>
+            ${timeStr?`<div class="evcard-time">${timeStr}</div>`:''}
+            ${ev.revenue>0?`<div class="evcard-time">${ev.revenue.toLocaleString('fr-FR')} € générés</div>`:''}
+          </div>
+        </div>`;
+      }).join('')+`</div></div>`;
+    }
 
     h+=`<div class="wday-cols">
       ${wpanel('arr','↓','Arrivées',arrs,b=>wMiniChip(b,b.arrivalTime||null))}
