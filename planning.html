@@ -2161,7 +2161,7 @@ function renderToday(){
   };
   const dayEvs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
   if(dayEvs.length){
-    h+=`<div class="tsec-panel"><div class="tsec-body">`+dayEvs.map(ev=>{
+    h+=`<div class="tsec-panel"><div class="tsec-body" style="background:var(--white)">`+dayEvs.map(ev=>{
       const col=ev.color||'#A8C5A0';
       const isSingle=ev.startDate===ev.endDate;
       const dateHtml=isSingle
