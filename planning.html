@@ -535,6 +535,10 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 .mch-add:hover{border-color:var(--green);color:var(--green);}
 .mch-total-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--light);font-size:12px;color:var(--gray);}
 .mch-total-val{font-weight:600;color:var(--earth);}
+.mch-group-hd{display:flex;align-items:center;justify-content:space-between;margin:14px 0 4px;padding-top:10px;border-top:1px dashed var(--light);}
+.mch-group-hd:first-of-type{margin-top:0;padding-top:0;border-top:none;}
+.mch-group-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);}
+.mch-subtotal-row{display:flex;justify-content:space-between;font-size:11px;color:var(--gray);padding:4px 0 0;}
 /* Financial cards row */
 .month-fin{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .mfin-card{background:#fff;border-radius:12px;padding:14px 14px 12px;border:1.5px solid var(--light);}
@@ -3189,13 +3193,13 @@ function categorizeTransaction(t){
   }
   return '';
 }
-function handleBankFileChange(input){
+function handleBankFileChange(input,group){
   const file=input.files&&input.files[0];
   if(!file)return;
-  importBankCSV(file);
+  importBankCSV(file,group);
   input.value='';
 }
-function importBankCSV(file){
+function importBankCSV(file,group){
   const reader=new FileReader();
   reader.onload=e=>{
     const rows=parseCSV(e.target.result);
@@ -3205,9 +3209,11 @@ function importBankCSV(file){
     // Dedup by occurrence count (not just presence) — a CSV can legitimately contain
     // two distinct transactions with identical date/amount/counterparty/description
     // (e.g. a deposit split into two equal payments), which a simple Set would conflate.
+    // Le compte (group) fait partie de la clé : deux relevés différents peuvent
+    // légitimement contenir une ligne identique par coïncidence.
     const existingCounts=new Map();
     S.transactions.forEach(t=>{
-      const key=[t.date,t.amount,t.direction,t.counterparty,t.description].join('|');
+      const key=[t.date,t.amount,t.direction,t.counterparty,t.description,t.group||'sasu'].join('|');
       existingCounts.set(key,(existingCounts.get(key)||0)+1);
     });
     let added=0,skipped=0,uncategorized=0;
@@ -3220,10 +3226,10 @@ function importBankCSV(file){
       const counterparty=(r[idx.counterparty]||'').trim();
       const description=(r[idx.description]||'').trim();
       const type=(r[idx.type]||'').trim();
-      const key=[date,amount,direction,counterparty,description].join('|');
+      const key=[date,amount,direction,counterparty,description,group||'sasu'].join('|');
       const remaining=existingCounts.get(key)||0;
       if(remaining>0){existingCounts.set(key,remaining-1);skipped++;continue;}
-      const t={id:uid(),date,amount,direction,counterparty,description,type,categoryId:''};
+      const t={id:uid(),date,amount,direction,counterparty,description,type,categoryId:'',group:group||'sasu'};
       t.categoryId=categorizeTransaction(t);
       if(!t.categoryId&&direction==='Debit')uncategorized++;
       S.transactions.push(t);
@@ -3239,16 +3245,19 @@ function importBankCSV(file){
 function monthTransactions(mStart,mEndExact){
   return S.transactions.filter(t=>t.date>=mStart&&t.date<mEndExact);
 }
-function variableChargesForMonth(mStart,mEndExact){
+function variableChargesForMonth(mStart,mEndExact,group){
   const cats=S.settings.chargeCategories||[];
   const byCat={};
   cats.forEach(c=>{byCat[c.id]={label:c.label,total:0,excluded:!!c.excluded,count:0};});
-  byCat['']={label:'Non catégorisé',total:0,excluded:false,count:0};
+  // "Non catégorisé" n'est jamais une charge de l'entreprise tant qu'elle n'a pas
+  // été affectée à une vraie catégorie — exclue du total par défaut.
+  byCat['']={label:'Non catégorisé',total:0,excluded:true,count:0};
   let total=0;
   monthTransactions(mStart,mEndExact).forEach(t=>{
     if(t.direction!=='Debit')return;
+    if(group&&(t.group||'sasu')!==group)return;
     const cid=t.categoryId||'';
-    if(!byCat[cid])byCat[cid]={label:'Non catégorisé',total:0,excluded:false,count:0};
+    if(!byCat[cid])byCat[cid]={label:'Non catégorisé',total:0,excluded:true,count:0};
     byCat[cid].total+=t.amount;
     byCat[cid].count++;
     if(!byCat[cid].excluded)total+=t.amount;
@@ -3267,8 +3276,8 @@ function deleteTransaction(id){
   persist();
   if(S.view==='month')renderMonth();
 }
-function toggleBankCat(id){
-  bankExpandedCat=bankExpandedCat===id?null:id;
+function toggleBankCat(key){
+  bankExpandedCat=bankExpandedCat===key?null:key;
   if(S.view==='month')renderMonth();
 }
 function addChargeCategory(){
@@ -4222,30 +4231,42 @@ function renderMonth(){
     h+=`</div>`;
   }
 
-  // Charges réelles — relevé bancaire panel
+  // Charges réelles — relevé bancaire panel (un groupe par compte importé, ex. SASU / LMNP)
+  const gNames=S.settings?.groupNames||DEFAULT_SETTINGS.groupNames;
+  const cats=S.settings.chargeCategories||[];
   h+=`<div class="month-charges" style="margin-top:12px">
     <div class="mch-header">
       <div class="mch-title">Charges réelles — relevé bancaire</div>
+    </div>`;
+  let anyBankTx=false;
+  [['sasu',gNames.sasu||"Chambres d'hôtes"],['lmnp',gNames.lmnp||'Wissous']].forEach(([gid,label])=>{
+    const bc=variableChargesForMonth(mStart,mEndExact,gid);
+    const catRows=Object.entries(bc.byCat).filter(([id,v])=>v.count>0).sort((a,b)=>b[1].total-a[1].total);
+    if(catRows.length)anyBankTx=true;
+    h+=`<div class="mch-group-hd">
+      <span class="mch-group-name">${label}</span>
       <div>
-        <input type="file" id="bankCsvInput" accept=".csv" style="display:none" onchange="handleBankFileChange(this)">
-        <button class="btn-s" style="padding:4px 10px;font-size:11px" onclick="byId('bankCsvInput').click()">Importer CSV</button>
+        <input type="file" id="bankCsvInput-${gid}" accept=".csv" style="display:none" onchange="handleBankFileChange(this,'${gid}')">
+        <button class="btn-s" style="padding:4px 10px;font-size:11px" onclick="byId('bankCsvInput-${gid}').click()">Importer CSV</button>
       </div>
     </div>`;
-  const bankCatRows=Object.entries(bankCharges.byCat).filter(([id,v])=>v.count>0).sort((a,b)=>b[1].total-a[1].total);
-  if(bankCatRows.length){
+    if(!catRows.length){
+      h+=`<div style="font-size:12px;color:#bbb;padding:2px 0 6px">Aucune transaction importée pour ce mois.</div>`;
+      return;
+    }
     const txByCat={};
-    monthTransactions(mStart,mEndExact).filter(t=>t.direction==='Debit').forEach(t=>{
+    monthTransactions(mStart,mEndExact).filter(t=>t.direction==='Debit'&&(t.group||'sasu')===gid).forEach(t=>{
       const cid=t.categoryId||'';
       if(!txByCat[cid])txByCat[cid]=[];
       txByCat[cid].push(t);
     });
-    const cats=S.settings.chargeCategories||[];
-    bankCatRows.forEach(([id,v])=>{
-      h+=`<div class="mch-row" style="cursor:pointer" onclick="toggleBankCat('${id}')">
+    catRows.forEach(([id,v])=>{
+      const key=gid+':'+id;
+      h+=`<div class="mch-row" style="cursor:pointer" onclick="toggleBankCat('${key}')">
         <span style="flex:1;font-size:13px;color:var(--dark)">${v.label}${v.excluded?' <span style="color:#bbb;font-size:10px">(hors charges)</span>':''} <span style="color:var(--gray);font-size:11px">(${v.count})</span></span>
         <span style="font-size:13px;font-weight:600;color:${v.excluded?'#bbb':'var(--dark)'}">${Math.round(v.total).toLocaleString('fr-FR')} €</span>
       </div>`;
-      if(bankExpandedCat===id){
+      if(bankExpandedCat===key){
         (txByCat[id]||[]).sort((a,b)=>a.date<b.date?1:-1).forEach(t=>{
           h+=`<div class="mch-row" style="padding-left:10px;background:#FAFAF8">
             <span style="width:70px;font-size:11px;color:var(--gray);flex-shrink:0">${t.date.slice(8,10)}/${t.date.slice(5,7)}</span>
@@ -4259,12 +4280,13 @@ function renderMonth(){
         });
       }
     });
+    h+=`<div class="mch-subtotal-row"><span>Sous-total ${label}</span><span>${Math.round(bc.total).toLocaleString('fr-FR')} €</span></div>`;
+  });
+  if(anyBankTx){
     h+=`<div class="mch-total-row">
       <span>Total charges réelles</span>
       <span class="mch-total-val">${Math.round(bankCharges.total).toLocaleString('fr-FR')} € / mois</span>
     </div>`;
-  } else {
-    h+=`<div style="font-size:13px;color:#bbb;padding:4px 0 8px">Aucune transaction importée pour ce mois.</div>`;
   }
   h+=`</div>`;
 
