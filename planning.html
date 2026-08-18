@@ -198,7 +198,7 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 
 /* Payment / Ghost states */
 .blk.paid{background:#A0A0A0!important;}
-.blk.paid .bname,.blk.paid .bcont-init{color:#555!important;}
+.blk.paid .bname,.blk.paid .bcont-init{color:#FFF!important;}
 .blk.paid .sdot{background:#777!important;}
 .blk.ghost{background:#1A1A1A!important;}
 .blk.ghost,.blk.ghost *{color:#1A1A1A!important;}
@@ -214,7 +214,7 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 .day-chip .tbar{width:4px;}
 .day-chip-content{flex:1;min-width:0;display:flex;align-items:center;gap:5px;padding:10px 12px;
   overflow:hidden;white-space:nowrap;color:var(--dark);}
-.day-chip .bname{font-size:13px;}
+.day-chip .bname{font-size:13px;text-shadow:none;}
 .day-chip .sdot{width:6px;height:6px;}
 
 /* Payment modal UI */
@@ -232,12 +232,12 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
   color:var(--gray);background:#fff;cursor:pointer;transition:all .15s;}
 .src-chip:hover{border-color:#bbb;}
 
-.blk.lbg{color:#1A1A1A;}
+.blk.lbg{color:#FFF;}
 .blk.dbg{color:#FFF;}
 
-.bname{flex:1;overflow:hidden;text-overflow:ellipsis;font-size:11px;font-weight:500;}
-.bcont-init{font-size:9px;opacity:.55;flex:1;}
-.btime{font-size:9px;opacity:.7;flex-shrink:0;}
+.bname{flex:1;overflow:hidden;text-overflow:ellipsis;font-size:11px;font-weight:500;text-shadow:0 1px 1px rgba(0,0,0,.35);}
+.bcont-init{font-size:9px;opacity:.55;flex:1;text-shadow:0 1px 1px rgba(0,0,0,.35);}
+.btime{font-size:9px;opacity:.7;flex-shrink:0;text-shadow:0 1px 1px rgba(0,0,0,.35);}
 .sdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
 
 /* Half-checkout indicator */
