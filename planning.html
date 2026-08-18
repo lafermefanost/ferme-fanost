@@ -744,7 +744,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .yr-gauge-ghost-sw{width:10px;height:10px;border-radius:2px;flex-shrink:0;
   background:repeating-linear-gradient(45deg,#1A1A1A 0 2px,#bbb 2px 4px);}
 .yr-gauge.yr-gauge-warn .yr-gauge-lbl{color:#E07828;}
-.yr-gauge.yr-gauge-danger .yr-gauge-lbl{color:#C0392B;}
+.yr-gauge.yr-gauge-danger .yr-gauge-lbl{color:#E07828;}
 .yr-section{background:#fff;border-radius:12px;border:1.5px solid var(--light);padding:14px;}
 .yr-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray);margin-bottom:10px;}
 .yr-chart{display:flex;gap:3px;align-items:flex-end;height:96px;margin-bottom:6px;}
@@ -754,7 +754,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .yr-bar-stack{display:flex;flex-direction:column;width:100%;}
 .yr-bar-seg{width:100%;}
 .yr-bar-sasu{background:#3D5C35;border-radius:2px 2px 0 0;}
-.yr-bar-lmnp{background:#B5A07A;}
+.yr-bar-lmnp{background:#8B9D86;}
 .yr-bar-lmnp:first-child{border-radius:2px 2px 0 0;}
 .yr-bar-mon{font-size:8px;color:var(--gray);text-transform:uppercase;letter-spacing:.03em;width:100%;text-align:center;padding-top:2px;}
 .yr-bar-col.yr-cur .yr-bar-sasu{background:#5A8C4A;}
@@ -4378,7 +4378,7 @@ function renderYear(){
   function nightsGauge(nights,limit){
     const pct=Math.min(100,nights/limit*100);
     const cls=pct>=100?'yr-gauge-danger':pct>=80?'yr-gauge-warn':'';
-    const fillColor=cls==='yr-gauge-danger'?'#C0392B':cls==='yr-gauge-warn'?'#E07828':'#3D5C35';
+    const fillColor=cls?'#E07828':'#3D5C35';
     return`<div class="yr-gauge${cls?' '+cls:''}">
       <div class="yr-gauge-top">
         <span class="yr-gauge-lbl">Nuits plateformes${cls==='yr-gauge-danger'?' ⚠️':cls==='yr-gauge-warn'?' ⚡':''}</span>
@@ -4399,7 +4399,7 @@ function renderYear(){
     const realPct=Math.min(100,realCA/threshold*100);
     const ghostPct=Math.min(100,(ghostCA||0)/threshold*100);
     const cls=projPct>=100?'yr-gauge-danger':projPct>=80?'yr-gauge-warn':'';
-    const fillColor=cls==='yr-gauge-danger'?'#C0392B':cls==='yr-gauge-warn'?'#E07828':color;
+    const fillColor=cls?'#E07828':color;
     return`<div class="yr-gauge${cls?' '+cls:''}">
       <div class="yr-gauge-top">
         <span class="yr-gauge-lbl">${label}${cls==='yr-gauge-danger'?' ⚠️':cls==='yr-gauge-warn'?' ⚡':''}</span>
@@ -4459,7 +4459,7 @@ function renderYear(){
     {label:'Franchise TVA',val:thr.tva||91900,color:'#E07828'}
   ],false);
   const lmnpHTML=groupCard('lmnp',gNames.lmnp||'Wissous',[
-    {label:'Seuil LMP',val:thr.lmnp||23000,color:'#C0392B'}
+    {label:'Seuil LMP',val:thr.lmnp||23000,color:'#E07828'}
   ],true);
 
   // Vue d'ensemble : addition des deux activités (occupation = moyenne pondérée par capacité)
@@ -4544,7 +4544,7 @@ function renderYear(){
     </div>
     <div class="yr-chart-legend">
       <span><span class="yr-legend-dot" style="background:#3D5C35"></span>Chambres</span>
-      <span><span class="yr-legend-dot" style="background:#B5A07A"></span>Wissous</span>
+      <span><span class="yr-legend-dot" style="background:#8B9D86"></span>Wissous</span>
     </div>`:`<div class="yr-chart-nodata">Aucune donnée de revenu pour ${year}<br><span style="font-size:11px">Vérifiez que vos réservations ont un tarif configuré</span></div>`}
   </div>`;
 
