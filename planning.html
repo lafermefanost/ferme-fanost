@@ -289,19 +289,22 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 #todayWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
   -webkit-overflow-scrolling:touch;}
 .today-inner{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
-.today-nav{display:flex;align-items:center;justify-content:space-between;padding:4px 0;}
-.today-nav-btn{background:none;border:1.5px solid var(--light);border-radius:8px;
+/* Shared nav header — identical across Jour / Semaine / Mois / Année,
+   so switching views never shifts where the view's content starts. */
+.vnav{display:flex;align-items:center;justify-content:space-between;padding:4px 0;}
+.vnav-btn{background:none;border:1.5px solid var(--light);border-radius:8px;
   width:34px;height:34px;cursor:pointer;color:var(--dark);flex-shrink:0;
   display:flex;align-items:center;justify-content:center;}
-.today-nav-btn:hover{background:var(--light);}
-.today-nav-center{text-align:center;flex:1;}
-.tday-head{font-family:'Jost',sans-serif;font-size:24px;font-weight:500;}
-.tday-sub{font-size:11px;color:var(--gray);margin-top:2px;}
-.today-nav-rel{font-size:11px;color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
-.today-now-btn{background:none;border:1.5px solid var(--green);border-radius:20px;
+.vnav-btn:hover{background:var(--light);}
+.vnav-center{text-align:center;flex:1;padding:0 8px;}
+.vnav-rel{font-size:11px;color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
+.vnav-title{font-family:'Jost',sans-serif;font-size:24px;font-weight:500;color:var(--dark);}
+.vnav-sub{font-size:11px;color:var(--gray);margin-top:2px;}
+.vnav-now-row{min-height:28px;display:flex;align-items:center;justify-content:center;}
+.vnav-now-btn{background:none;border:1.5px solid var(--green);border-radius:20px;
   padding:5px 16px;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;color:var(--green);
-  cursor:pointer;display:block;margin:0 auto;}
-.today-now-btn:hover{background:var(--green);color:#fff;}
+  cursor:pointer;}
+.vnav-now-btn:hover{background:var(--green);color:#fff;}
 .tsec-panel{border-radius:10px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
 .tsec-hd{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;font-weight:700;font-size:12px;user-select:none;letter-spacing:.04em;text-transform:uppercase;}
 .tsec-hd:active{filter:brightness(.96);}
@@ -414,19 +417,6 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 #weekWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
   -webkit-overflow-scrolling:touch;}
 .week-inner{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
-.week-nav{display:flex;align-items:center;justify-content:space-between;padding:4px 0;}
-.week-nav-btn{background:none;border:1.5px solid var(--light);border-radius:8px;
-  width:34px;height:34px;cursor:pointer;color:var(--dark);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;}
-.week-nav-btn:hover{background:var(--light);}
-.week-nav-center{text-align:center;flex:1;padding:0 8px;}
-.week-nav-title{font-family:'Jost',sans-serif;font-size:24px;font-weight:500;color:var(--dark);}
-.week-nav-sub{font-size:11px;color:var(--gray);margin-top:2px;}
-.week-nav-rel{font-size:11px;color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
-.week-today-btn{background:none;border:1.5px solid var(--green);border-radius:20px;
-  padding:5px 16px;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;
-  color:var(--green);cursor:pointer;display:block;margin:0 auto;}
-.week-today-btn:hover{background:var(--green);color:#fff;}
 .week-summary{display:flex;flex-direction:column;gap:10px;}
 .wsm-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .wsm-item{background:var(--green);border-radius:12px;padding:14px 10px 12px;
@@ -490,14 +480,6 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 #monthWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
   -webkit-overflow-scrolling:touch;}
 .month-inner{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
-.month-nav{display:flex;align-items:center;justify-content:space-between;padding:4px 0;}
-.month-nav-center{text-align:center;flex:1;padding:0 8px;}
-.month-nav-title{font-family:'Jost',sans-serif;font-size:24px;font-weight:500;color:var(--dark);}
-.month-nav-rel{font-size:11px;color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
-.month-nav-btn{background:none;border:1.5px solid var(--light);border-radius:8px;
-  width:34px;height:34px;cursor:pointer;color:var(--dark);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;}
-.month-nav-btn:hover{background:var(--light);}
 .mstat-card{background:#fff;border-radius:12px;padding:14px 14px 12px;
   border:1.5px solid var(--light);text-align:center;}
 .mstat-card.mstat-rev{background:var(--green);border-color:var(--green);}
@@ -742,9 +724,6 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 #yearWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
   -webkit-overflow-scrolling:touch;}
 .yr-inner{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
-.yr-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:4px;}
-.yr-nav-btn{background:none;border:1.5px solid var(--light);border-radius:8px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--dark);}
-.yr-nav-title{font-size:22px;font-weight:700;color:var(--dark);}
 .yr-group{background:#fff;border-radius:12px;padding:12px 14px;border:1.5px solid var(--light);}
 .yr-group-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .yr-group-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray);}
@@ -2139,15 +2118,16 @@ function renderToday(){
     .sort((x,y)=>(guest(x.b.guestId)?.name||'').localeCompare(guest(y.b.guestId)?.name||''));
 
   let h=`<div class="today-inner">
-  <div class="today-nav">
-    <button class="today-nav-btn" onclick="chDay(-1)">${chevL}</button>
-    <div class="today-nav-center">
-      ${relLabel?`<div class="today-nav-rel">${relLabel}</div>`:''}
-      <div class="tday-head">${DAY_NAMES[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}</div>
+  <div class="vnav">
+    <button class="vnav-btn" onclick="chDay(-1)">${chevL}</button>
+    <div class="vnav-center">
+      <div class="vnav-rel">${relLabel||'&nbsp;'}</div>
+      <div class="vnav-title">${DAY_NAMES[d.getDay()].toLowerCase()} ${d.getDate()} ${MON[d.getMonth()].toLowerCase()}</div>
+      <div class="vnav-sub">&nbsp;</div>
     </div>
-    <button class="today-nav-btn" onclick="chDay(1)">${chevR}</button>
+    <button class="vnav-btn" onclick="chDay(1)">${chevR}</button>
   </div>
-  ${!isToday?`<button class="today-now-btn" onclick="goTodayView()">Aujourd'hui</button>`:''}
+  <div class="vnav-now-row">${!isToday?`<button class="vnav-now-btn" onclick="goTodayView()">Aujourd'hui</button>`:''}</div>
   <div class="today-summary">
     <div class="tsm-item"><div class="tsm-val">${arrs.length}</div><div class="tsm-lbl">Arrivées</div></div>
     <div class="tsm-item"><div class="tsm-val">${deps.length}</div><div class="tsm-lbl">Départs</div></div>
@@ -3830,7 +3810,7 @@ function renderWeek(){
   const mondayDate=new Date(S.wStart+'T00:00:00');
   const sundayDate=new Date(addDays(S.wStart,6)+'T00:00:00');
   const wn=weekNum(mondayDate);
-  const fmtD=d=>d.getDate()+' '+MON[d.getMonth()];
+  const fmtD=d=>d.getDate()+' '+MON[d.getMonth()].toLowerCase();
 
   let totalNights=0,periodRevTotal=0,totalExtras=0,totalRepas=0,repasRevenueFromBookings=0;
   S.bookings.forEach(bk=>{
@@ -3875,19 +3855,17 @@ function renderWeek(){
 
   let h='<div class="week-inner">';
 
-  h+=`<div class="week-nav">
-    <button class="week-nav-btn" onclick="chWeek(-1)">${chevL}</button>
-    <div class="week-nav-center">
-      ${weekRelLabel?`<div class="week-nav-rel">${weekRelLabel}</div>`:''}
-      <div class="week-nav-title">Semaine ${wn}</div>
-      <div class="week-nav-sub">${fmtD(mondayDate)} – ${fmtD(sundayDate)}</div>
+  h+=`<div class="vnav">
+    <button class="vnav-btn" onclick="chWeek(-1)">${chevL}</button>
+    <div class="vnav-center">
+      <div class="vnav-rel">${weekRelLabel||'&nbsp;'}</div>
+      <div class="vnav-title">semaine ${wn}</div>
+      <div class="vnav-sub">${fmtD(mondayDate)} – ${fmtD(sundayDate)}</div>
     </div>
-    <button class="week-nav-btn" onclick="chWeek(1)">${chevR}</button>
+    <button class="vnav-btn" onclick="chWeek(1)">${chevR}</button>
   </div>`;
 
-  if(!isCurrentWeek){
-    h+=`<button class="week-today-btn" onclick="thisWeek()">Cette semaine</button>`;
-  }
+  h+=`<div class="vnav-now-row">${!isCurrentWeek?`<button class="vnav-now-btn" onclick="thisWeek()">Cette semaine</button>`:''}</div>`;
 
   h+=`<div class="week-summary">
     <div class="wsm-total"><div class="wsm-val">${totalRevAll>0?totalRevAll.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">revenus totaux de la semaine</div></div>
@@ -4099,14 +4077,16 @@ function renderMonth(){
   const now=new Date();
   const monthDiff=(y-now.getFullYear())*12+(m-now.getMonth());
   const monthRelLabel=monthDiff===0?'Ce mois-ci':monthDiff===-1?'Mois dernier':monthDiff===1?'Mois prochain':'';
-  h+=`<div class="month-nav">
-    <button class="month-nav-btn" onclick="chMonth(-1)">${chevL}</button>
-    <div class="month-nav-center">
-      ${monthRelLabel?`<div class="month-nav-rel">${monthRelLabel}</div>`:''}
-      <div class="month-nav-title">${MONTH_NAMES[m]} ${y}</div>
+  h+=`<div class="vnav">
+    <button class="vnav-btn" onclick="chMonth(-1)">${chevL}</button>
+    <div class="vnav-center">
+      <div class="vnav-rel">${monthRelLabel||'&nbsp;'}</div>
+      <div class="vnav-title">${MONTH_NAMES[m].toLowerCase()} ${y}</div>
+      <div class="vnav-sub">&nbsp;</div>
     </div>
-    <button class="month-nav-btn" onclick="chMonth(1)">${chevR}</button>
+    <button class="vnav-btn" onclick="chMonth(1)">${chevR}</button>
   </div>`;
+  h+=`<div class="vnav-now-row"></div>`;
 
   // Revenue breakdown — total chapeau + détail par catégorie
   const mRevItems=[
@@ -4117,7 +4097,7 @@ function renderMonth(){
   if(eventsRevenue>0){
     mRevItems.push(`<div class="wsm-item"><div class="wsm-val">${eventsRevenue.toLocaleString('fr-FR')} €</div><div class="wsm-lbl">événements</div></div>`);
   }
-  h+=`<div class="week-summary" style="margin-top:14px">
+  h+=`<div class="week-summary">
     <div class="wsm-toprow">
       <div class="wsm-total"><div class="wsm-val">${totalRev>0?totalRev.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">revenus totaux du mois</div></div>
       <div class="wsm-total wsm-occ"><div class="wsm-val">${occPct}%</div><div class="wsm-lbl">remplissage</div></div>
@@ -4558,13 +4538,20 @@ function renderYear(){
 
   const chevL=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`;
   const chevR=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+  const todayYear=parseInt(today.slice(0,4));
+  const yearRelLabel=year===todayYear?'Cette année':year<todayYear?'Année précédente':'Année suivante';
 
   byId('yearWrap').innerHTML=`<div class="yr-inner">
-    <div class="yr-nav">
-      <button class="yr-nav-btn" onclick="S.year--;renderYear()">${chevL}</button>
-      <div class="yr-nav-title">${year}</div>
-      <button class="yr-nav-btn" onclick="S.year++;renderYear()">${chevR}</button>
+    <div class="vnav">
+      <button class="vnav-btn" onclick="S.year--;renderYear()">${chevL}</button>
+      <div class="vnav-center">
+        <div class="vnav-rel">${yearRelLabel}</div>
+        <div class="vnav-title">${year}</div>
+        <div class="vnav-sub">&nbsp;</div>
+      </div>
+      <button class="vnav-btn" onclick="S.year++;renderYear()">${chevR}</button>
     </div>
+    <div class="vnav-now-row"></div>
     ${sasuHTML}
     ${lmnpHTML}
     ${chartHTML}
