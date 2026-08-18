@@ -2173,25 +2173,27 @@ function renderToday(){
       </div>`;
     }).join('')+`</div></div>`;
   }
-  h+=`<div class="wday-cols">
-    ${panel('arr','↓','Arrivées',arrs,b=>miniChip(b,b.arrivalTime||null))}
-    ${panel('dep','↑','Départs',deps,b=>miniChip(b,null))}
-  </div>`;
-  h+=panel('stay','●','En séjour',inHouse,({b,sub})=>card(b,sub,true));
-  if(tArrs.length) h+=panel('tom','⏰','Demain',tArrs,b=>card(b,b.arrivalTime?`Demain ${b.arrivalTime}`:'Demain'));
   const dm=getMenu(ds);
   const menuHas=!!(dm.entree||dm.plat||dm.dessert);
   const thCount=S.bookings
     .filter(b=>activeOn(b,ds)&&b.dinnerNights&&b.dinnerNights[ds])
     .reduce((sum,b)=>sum+(b.nbPersons||2),0);
-  h+=`<div class="tsec-panel menu">
-    <div class="tsec-hd${menuHas?' has-items':''}">${MEAL_ICON} Menu du jour<span class="tsec-count"><span>${thCount} repas</span></span></div>
+  h+=`<div class="tsec-panel menu collapsed">
+    <div class="tsec-hd${menuHas?' has-items':''}" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
+      ${MEAL_ICON} Menu du jour<span class="tsec-count"><span>${thCount} repas</span></span><span class="tsec-chev">▾</span>
+    </div>
     <div class="tsec-body">
       <div class="fg"><label class="fl">Entrée</label><input class="fi" id="menu-entree" placeholder="—" onchange="setMenuField('${ds}','entree',this.value)"></div>
       <div class="fg"><label class="fl">Plat</label><input class="fi" id="menu-plat" placeholder="—" onchange="setMenuField('${ds}','plat',this.value)"></div>
       <div class="fg" style="margin-bottom:0"><label class="fl">Dessert</label><input class="fi" id="menu-dessert" placeholder="—" onchange="setMenuField('${ds}','dessert',this.value)"></div>
     </div>
   </div>`;
+  h+=`<div class="wday-cols">
+    ${panel('arr','↓','Arrivées',arrs,b=>miniChip(b,b.arrivalTime||null))}
+    ${panel('dep','↑','Départs',deps,b=>miniChip(b,null))}
+  </div>`;
+  h+=panel('stay','●','En séjour',inHouse,({b,sub})=>card(b,sub,true));
+  if(tArrs.length) h+=panel('tom','⏰','Demain',tArrs,b=>card(b,b.arrivalTime?`Demain ${b.arrivalTime}`:'Demain'));
   h+='</div>';
   byId('todayWrap').innerHTML=h;
   byId('menu-entree').value=dm.entree||'';
@@ -2928,7 +2930,18 @@ function renderTHBody(ds){
     <button type="button" class="btn-s" style="padding:6px 12px;font-size:12px" onclick="addExtDiner('${ds}')">Ajouter</button>
   </div></div>`;
 
+  const dm=getMenu(ds);
+  bodyHtml+=`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--light)">
+    <div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Menu du jour</div>
+    <div class="fg"><label class="fl">Entrée</label><input class="fi" id="th-menu-entree" placeholder="—" onchange="setMenuField('${ds}','entree',this.value)"></div>
+    <div class="fg"><label class="fl">Plat</label><input class="fi" id="th-menu-plat" placeholder="—" onchange="setMenuField('${ds}','plat',this.value)"></div>
+    <div class="fg" style="margin-bottom:0"><label class="fl">Dessert</label><input class="fi" id="th-menu-dessert" placeholder="—" onchange="setMenuField('${ds}','dessert',this.value)"></div>
+  </div>`;
+
   byId('thModalBody').innerHTML=bodyHtml;
+  byId('th-menu-entree').value=dm.entree||'';
+  byId('th-menu-plat').value=dm.plat||'';
+  byId('th-menu-dessert').value=dm.dessert||'';
   const tot=active.filter(b=>b.dinnerNights&&b.dinnerNights[ds]).reduce((s,b)=>s+(b.nbPersons||2),0)
     + extDinersCount(ds);
   byId('thTotal').textContent=tot>0?`Total : ${tot} couvert${tot>1?'s':''}`:' ';
