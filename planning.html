@@ -725,6 +725,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
   -webkit-overflow-scrolling:touch;}
 .yr-inner{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
 .yr-group{background:#fff;border-radius:12px;padding:12px 14px;border:1.5px solid var(--light);}
+.yr-total .yr-stats{margin-bottom:0;}
 .yr-group-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .yr-group-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray);}
 .yr-group-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);}
@@ -4847,7 +4848,7 @@ function renderYear(){
     const elapsedEnd=today<yEnd?today:yEnd;
     const elapsedCap=totalRooms*daysBetween(yStart,elapsedEnd);
     const occRate=elapsedCap>0?Math.round(realNights/elapsedCap*100):0;
-    return`<div class="yr-group">
+    return`<div class="yr-total">
       <div class="yr-group-hd">
         <div class="yr-group-name">Vue d'ensemble</div>
         <span class="yr-group-tag">Total</span>
@@ -4971,6 +4972,14 @@ function renderYear(){
     <div class="yr-fiscal">${fiscalItems}</div>
   </div>`;
 
+  // Charges réelles de l'année, issues du relevé bancaire (même source que la vue Mois)
+  const yearCharges=variableChargesForMonth(yStart,yEnd).total;
+  const chargesHTML=`<div class="yr-section">
+    <div class="yr-section-title">Charges réelles — ${year}</div>
+    <div class="mfin-val charges" style="font-size:28px">${Math.round(yearCharges).toLocaleString('fr-FR')} €</div>
+    <div class="mfin-detail" style="margin-top:4px">relevé bancaire, ${year}</div>
+  </div>`;
+
   const chevL=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`;
   const chevR=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
   const todayYear=parseInt(today.slice(0,4));
@@ -4991,6 +5000,7 @@ function renderYear(){
     ${sasuHTML}
     ${lmnpHTML}
     ${chartHTML}
+    ${chargesHTML}
     ${fiscalHTML}
     ${reglHTML}
   </div>`;
