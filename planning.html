@@ -33,7 +33,7 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
   display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;z-index:100;}
 .app-icon{flex-shrink:0;opacity:.92;}
 .logo{font-family:'Jost',sans-serif;font-size:17px;font-weight:500;
-  letter-spacing:.05em;flex:1;}
+  letter-spacing:.05em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .logo b{color:#fff;}
 .hbtn{width:34px;height:34px;border:none;border-radius:50%;
   background:rgba(255,255,255,.1);color:var(--cream);cursor:pointer;
@@ -822,7 +822,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 
 <!-- ─── HEADER ─────────────────────────────────────────────── -->
 <header>
-  <svg class="app-icon" width="24" height="24" viewBox="0 0 100 100" aria-hidden="true">
+  <svg class="app-icon" width="28" height="28" viewBox="0 0 100 100" aria-hidden="true">
     <rect x="21.14" y="14.81" width="14.49" height="68.89" rx="7.25" fill="#fff"/>
     <rect x="42.75" y="14.81" width="38.75" height="12.42" rx="6.21" fill="#fff"/>
     <circle cx="48.96" cy="38.0" r="6.96" fill="#fff"/>
