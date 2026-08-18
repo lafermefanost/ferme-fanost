@@ -3997,10 +3997,27 @@ function renderWeek(){
 const MONTH_NAMES=['Janvier','Février','Mars','Avril','Mai','Juin',
   'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
+function thisMonth(){
+  const now=new Date();
+  S.mYear=now.getFullYear();S.mMonth=now.getMonth();
+  if(S.mYear!==S.year){
+    S.year=S.mYear;
+    byId('yrLabel').textContent=S.year;
+    renderGrid();
+  }
+  renderMonth();
+}
 function chMonth(d){
   S.mMonth+=d;
   if(S.mMonth>11){S.mMonth=0;S.mYear++;}
   if(S.mMonth<0){S.mMonth=11;S.mYear--;}
+  // Garde l'année de la grille (et du bandeau) synchronisée quand la
+  // navigation par mois franchit une année.
+  if(S.mYear!==S.year){
+    S.year=S.mYear;
+    byId('yrLabel').textContent=S.year;
+    renderGrid();
+  }
   renderMonth();
 }
 
@@ -4081,12 +4098,12 @@ function renderMonth(){
     <button class="vnav-btn" onclick="chMonth(-1)">${chevL}</button>
     <div class="vnav-center">
       <div class="vnav-rel">${monthRelLabel||'&nbsp;'}</div>
-      <div class="vnav-title">${MONTH_NAMES[m].toLowerCase()} ${y}</div>
-      <div class="vnav-sub">&nbsp;</div>
+      <div class="vnav-title">${MONTH_NAMES[m].toLowerCase()}</div>
+      <div class="vnav-sub">${y}</div>
     </div>
     <button class="vnav-btn" onclick="chMonth(1)">${chevR}</button>
   </div>`;
-  h+=`<div class="vnav-now-row"></div>`;
+  h+=`<div class="vnav-now-row">${monthDiff!==0?`<button class="vnav-now-btn" onclick="thisMonth()">Ce mois-ci</button>`:''}</div>`;
 
   // Revenue breakdown — total chapeau + détail par catégorie
   const mRevItems=[
@@ -4262,6 +4279,12 @@ function setView(v){
 function chYear(d){
   S.year+=d;byId('yrLabel').textContent=S.year;
   renderGrid();
+}
+function thisYear(){
+  S.year=new Date().getFullYear();
+  byId('yrLabel').textContent=S.year;
+  renderGrid();
+  renderYear();
 }
 
 function goToday(){
@@ -4917,15 +4940,15 @@ function renderYear(){
 
   byId('yearWrap').innerHTML=`<div class="yr-inner">
     <div class="vnav">
-      <button class="vnav-btn" onclick="S.year--;renderYear()">${chevL}</button>
+      <button class="vnav-btn" onclick="chYear(-1);renderYear()">${chevL}</button>
       <div class="vnav-center">
         <div class="vnav-rel">${yearRelLabel}</div>
         <div class="vnav-title">${year}</div>
         <div class="vnav-sub">&nbsp;</div>
       </div>
-      <button class="vnav-btn" onclick="S.year++;renderYear()">${chevR}</button>
+      <button class="vnav-btn" onclick="chYear(1);renderYear()">${chevR}</button>
     </div>
-    <div class="vnav-now-row"></div>
+    <div class="vnav-now-row">${year!==todayYear?`<button class="vnav-now-btn" onclick="thisYear()">Cette année</button>`:''}</div>
     ${sasuHTML}
     ${lmnpHTML}
     ${chartHTML}
