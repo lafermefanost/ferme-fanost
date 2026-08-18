@@ -4835,6 +4835,44 @@ function renderYear(){
     {label:'Seuil LMP',val:thr.lmnp||23000,color:'#C0392B'}
   ],true);
 
+  // Vue d'ensemble : addition des deux activités (occupation = moyenne pondérée par capacité)
+  function globalCard(){
+    const s1=groupStats('sasu');
+    const s2=groupStats('lmnp');
+    const realCA=s1.realCA+s2.realCA;
+    const projCA=s1.projCA+s2.projCA;
+    const realNights=s1.realNights+s2.realNights;
+    const projNights=s1.projNights+s2.projNights;
+    const totalRooms=s1.rooms.length+s2.rooms.length;
+    const elapsedEnd=today<yEnd?today:yEnd;
+    const elapsedCap=totalRooms*daysBetween(yStart,elapsedEnd);
+    const occRate=elapsedCap>0?Math.round(realNights/elapsedCap*100):0;
+    return`<div class="yr-group">
+      <div class="yr-group-hd">
+        <div class="yr-group-name">Vue d'ensemble</div>
+        <span class="yr-group-tag">Total</span>
+      </div>
+      <div class="yr-stats">
+        <div class="mstat-card mstat-rev">
+          <div class="mstat-val">${Math.round(realCA).toLocaleString('fr-FR')} €</div>
+          <div class="mstat-sub">CA réalisé</div>
+          <div class="mstat-detail">${realNights} nuits passées</div>
+        </div>
+        <div class="mstat-card mstat-rev">
+          <div class="mstat-val">${Math.round(projCA).toLocaleString('fr-FR')} €</div>
+          <div class="mstat-sub">CA projeté</div>
+          <div class="mstat-detail">${projNights} nuits totales</div>
+        </div>
+        <div class="mstat-card mstat-rev" style="grid-column:1/-1">
+          <div class="mstat-val">${occRate}%</div>
+          <div class="mstat-sub">occupation</div>
+          <div class="mstat-detail">${totalRooms} chambres</div>
+        </div>
+      </div>
+    </div>`;
+  }
+  const globalHTML=globalCard();
+
   // Monthly chart
   const monthRevs=Array.from({length:12},(_,m)=>{
     const mStart=`${year}-${p(m+1)}-01`;
@@ -4949,6 +4987,7 @@ function renderYear(){
       <button class="vnav-btn" onclick="chYear(1);renderYear()">${chevR}</button>
     </div>
     <div class="vnav-now-row">${year!==todayYear?`<button class="vnav-now-btn" onclick="thisYear()">Cette année</button>`:''}</div>
+    ${globalHTML}
     ${sasuHTML}
     ${lmnpHTML}
     ${chartHTML}
