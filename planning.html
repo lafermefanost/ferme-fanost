@@ -4848,11 +4848,8 @@ function renderYear(){
     const elapsedEnd=today<yEnd?today:yEnd;
     const elapsedCap=totalRooms*daysBetween(yStart,elapsedEnd);
     const occRate=elapsedCap>0?Math.round(realNights/elapsedCap*100):0;
+    const yearCharges=variableChargesForMonth(yStart,yEnd).total;
     return`<div class="yr-total">
-      <div class="yr-group-hd">
-        <div class="yr-group-name">Vue d'ensemble</div>
-        <span class="yr-group-tag">Total</span>
-      </div>
       <div class="yr-stats">
         <div class="mstat-card mstat-rev">
           <div class="mstat-val">${Math.round(realCA).toLocaleString('fr-FR')} €</div>
@@ -4864,10 +4861,15 @@ function renderYear(){
           <div class="mstat-sub">CA projeté</div>
           <div class="mstat-detail">${projNights} nuits totales</div>
         </div>
-        <div class="mstat-card mstat-rev" style="grid-column:1/-1">
+        <div class="mstat-card mstat-rev">
           <div class="mstat-val">${occRate}%</div>
           <div class="mstat-sub">occupation</div>
           <div class="mstat-detail">${totalRooms} chambres</div>
+        </div>
+        <div class="mstat-card mstat-rev">
+          <div class="mstat-val">${Math.round(yearCharges).toLocaleString('fr-FR')} €</div>
+          <div class="mstat-sub">charges réelles</div>
+          <div class="mstat-detail">relevé bancaire</div>
         </div>
       </div>
     </div>`;
@@ -4972,14 +4974,6 @@ function renderYear(){
     <div class="yr-fiscal">${fiscalItems}</div>
   </div>`;
 
-  // Charges réelles de l'année, issues du relevé bancaire (même source que la vue Mois)
-  const yearCharges=variableChargesForMonth(yStart,yEnd).total;
-  const chargesHTML=`<div class="yr-section">
-    <div class="yr-section-title">Charges réelles — ${year}</div>
-    <div class="mfin-val charges" style="font-size:28px">${Math.round(yearCharges).toLocaleString('fr-FR')} €</div>
-    <div class="mfin-detail" style="margin-top:4px">relevé bancaire, ${year}</div>
-  </div>`;
-
   const chevL=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`;
   const chevR=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
   const todayYear=parseInt(today.slice(0,4));
@@ -5000,7 +4994,6 @@ function renderYear(){
     ${sasuHTML}
     ${lmnpHTML}
     ${chartHTML}
-    ${chargesHTML}
     ${fiscalHTML}
     ${reglHTML}
   </div>`;
