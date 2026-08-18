@@ -4805,7 +4805,7 @@ function renderYear(){
         <div class="yr-group-name">${name.replace(/\s*\([^)]*\)\s*$/,'')}</div>
         <span class="yr-group-tag">${gid.toUpperCase()}</span>
       </div>
-      <div class="yr-stats" style="grid-template-columns:repeat(${showPlatform?2:3},1fr)">
+      <div class="yr-stats">
         <div class="mstat-card mstat-rev">
           <div class="mstat-val">${Math.round(st.realCA).toLocaleString('fr-FR')} €</div>
           <div class="mstat-sub">CA réalisé</div>
@@ -4816,7 +4816,7 @@ function renderYear(){
           <div class="mstat-sub">CA projeté</div>
           <div class="mstat-detail">${st.projNights} nuits totales</div>
         </div>
-        <div class="mstat-card mstat-rev">
+        <div class="mstat-card mstat-rev"${showPlatform?'':' style="grid-column:1/-1"'}>
           <div class="mstat-val">${st.occRate}%</div>
           <div class="mstat-sub">occupation</div>
           <div class="mstat-detail">${st.rooms.length} chambre${st.rooms.length>1?'s':''}</div>
