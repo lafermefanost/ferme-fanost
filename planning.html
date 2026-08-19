@@ -4970,7 +4970,7 @@ function renderYear(){
 
   // Regulatory
   const reglHTML=`<div class="yr-section yr-regl" onclick="this.classList.toggle('open')">
-    <div class="yr-section-title" style="cursor:pointer;margin-bottom:0">Réglementation — rappels <span class="yr-regl-chev">▾</span></div>
+    <div class="yr-section-title" style="cursor:pointer;margin-bottom:0;display:flex;justify-content:space-between;align-items:center">Réglementation — rappels<span class="yr-regl-chev">▾</span></div>
     <div class="yr-regl-body" style="margin-top:10px">
       <div class="yr-regl-item">📋 <b>Déclaration meublé de tourisme</b> — numéro d'enregistrement obligatoire en mairie avant mise en location.</div>
       <div class="yr-regl-item">💶 <b>Taxe de séjour</b> — à collecter et reverser à la commune (souvent automatisée par Airbnb/Booking).</div>
@@ -5016,7 +5016,7 @@ function renderYear(){
     </div>`;
   }).join('');
   const fiscalHTML=`<div class="yr-section yr-regl" onclick="this.classList.toggle('open')">
-    <div class="yr-section-title" style="cursor:pointer;margin-bottom:0">Calendrier fiscal <span class="yr-regl-chev">▾</span></div>
+    <div class="yr-section-title" style="cursor:pointer;margin-bottom:0;display:flex;justify-content:space-between;align-items:center">Calendrier fiscal<span class="yr-regl-chev">▾</span></div>
     <div class="yr-regl-body" style="margin-top:10px">
       <div class="yr-fiscal">${fiscalItems}</div>
     </div>
