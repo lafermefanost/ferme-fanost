@@ -1324,6 +1324,8 @@ const PALETTE = [
 // ═══════════════════════════════════════════════════════════════
 const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, menus:{}, extDiners:{}, transactions:[], view:'grid', mYear:new Date().getFullYear(), mMonth:new Date().getMonth(), wStart:null, todayDate:null, catalog:[], charges:[], settings:null};
 let bankExpandedCat=null;
+let monthBklistOpen=false;
+let monthChargesOpen=false;
 let weekOpenDays=new Set();
 let weekOpenDaysFor=null;
 
@@ -3276,6 +3278,11 @@ function deleteTransaction(id){
   persist();
   if(S.view==='month')renderMonth();
 }
+function toggleMonthPanel(which){
+  if(which==='bklist')monthBklistOpen=!monthBklistOpen;
+  else monthChargesOpen=!monthChargesOpen;
+  if(S.view==='month')renderMonth();
+}
 function toggleBankCat(key){
   bankExpandedCat=bankExpandedCat===key?null:key;
   if(S.view==='month')renderMonth();
@@ -4204,7 +4211,9 @@ function renderMonth(){
     const srcActive=srcDef.filter(s=>srcMap[s.id]&&srcMap[s.id].n>0);
     const maxN=Math.max(1,...srcActive.map(s=>srcMap[s.id].n));
 
-    h+=`<div class="month-bklist"><div class="mbk-title">${bks.length} réservation${bks.length>1?'s':''}</div>
+    h+=`<div class="month-bklist yr-regl${monthBklistOpen?' open':''}" onclick="toggleMonthPanel('bklist')">
+    <div class="mbk-title" style="cursor:pointer;margin-bottom:0;display:flex;justify-content:space-between;align-items:center">${bks.length} réservation${bks.length>1?'s':''}<span class="yr-regl-chev">▾</span></div>
+    <div class="yr-regl-body" style="margin-top:10px">
     <div class="src-breakdown">`;
     srcActive.forEach(s=>{
       const d=srcMap[s.id];
@@ -4221,23 +4230,25 @@ function renderMonth(){
     h+=`</div>`;
     clientRows.forEach(row=>{
       const g=guest(row.gid);
-      h+=`<div class="mbk-row" onclick="openGuestEdit('${row.gid}')">
+      h+=`<div class="mbk-row" onclick="event.stopPropagation();openGuestEdit('${row.gid}')">
         <div class="mbk-dot" style="background:${g?g.color:'#999'}"></div>
         <div class="mbk-name">${g?g.name:'?'}</div>
         <div class="mbk-meta">${row.bkCount > 1 ? row.bkCount+' rés · ' : ''}${row.nights}n</div>
         ${row.rev>0?`<div class="mbk-rev">${row.rev.toLocaleString('fr-FR')} €</div>`:''}
       </div>`;
     });
-    h+=`</div>`;
+    h+=`</div></div>`;
   }
 
   // Charges réelles — relevé bancaire panel (un groupe par compte importé, ex. SASU / LMNP)
   const gNames=S.settings?.groupNames||DEFAULT_SETTINGS.groupNames;
   const cats=S.settings.chargeCategories||[];
-  h+=`<div class="month-charges" style="margin-top:12px">
-    <div class="mch-header">
+  h+=`<div class="month-charges yr-regl${monthChargesOpen?' open':''}" style="margin-top:12px" onclick="toggleMonthPanel('charges')">
+    <div class="mch-header" style="margin-bottom:0;cursor:pointer">
       <div class="mch-title">Charges réelles — relevé bancaire</div>
-    </div>`;
+      <span class="yr-regl-chev">▾</span>
+    </div>
+    <div class="yr-regl-body" style="margin-top:10px">`;
   let anyBankTx=false;
   [['sasu',gNames.sasu||"Chambres d'hôtes"],['lmnp',gNames.lmnp||'Wissous']].forEach(([gid,label])=>{
     const bc=variableChargesForMonth(mStart,mEndExact,gid);
@@ -4246,8 +4257,8 @@ function renderMonth(){
     h+=`<div class="mch-group-hd">
       <span class="mch-group-name">${label}</span>
       <div>
-        <input type="file" id="bankCsvInput-${gid}" accept=".csv" style="display:none" onchange="handleBankFileChange(this,'${gid}')">
-        <button class="btn-s" style="padding:4px 10px;font-size:11px" onclick="byId('bankCsvInput-${gid}').click()">Importer CSV</button>
+        <input type="file" id="bankCsvInput-${gid}" accept=".csv" style="display:none" onchange="handleBankFileChange(this,'${gid}')" onclick="event.stopPropagation()">
+        <button class="btn-s" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation();byId('bankCsvInput-${gid}').click()">Importer CSV</button>
       </div>
     </div>`;
     if(!catRows.length){
@@ -4262,17 +4273,17 @@ function renderMonth(){
     });
     catRows.forEach(([id,v])=>{
       const key=gid+':'+id;
-      h+=`<div class="mch-row" style="cursor:pointer" onclick="toggleBankCat('${key}')">
+      h+=`<div class="mch-row" style="cursor:pointer" onclick="event.stopPropagation();toggleBankCat('${key}')">
         <span style="flex:1;font-size:13px;color:var(--dark)">${v.label}${v.excluded?' <span style="color:#bbb;font-size:10px">(hors charges)</span>':''} <span style="color:var(--gray);font-size:11px">(${v.count})</span></span>
         <span style="font-size:13px;font-weight:600;color:${v.excluded?'#bbb':'var(--dark)'}">${Math.round(v.total).toLocaleString('fr-FR')} €</span>
       </div>`;
       if(bankExpandedCat===key){
         (txByCat[id]||[]).sort((a,b)=>a.date<b.date?1:-1).forEach(t=>{
-          h+=`<div class="mch-row" style="padding-left:10px;background:#FAFAF8">
+          h+=`<div class="mch-row" style="padding-left:10px;background:#FAFAF8" onclick="event.stopPropagation()">
             <span style="width:70px;font-size:11px;color:var(--gray);flex-shrink:0">${t.date.slice(8,10)}/${t.date.slice(5,7)}</span>
             <span style="flex:1;font-size:12px;color:var(--dark);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.counterparty}${t.description?' — '+t.description:''}</span>
             <span style="font-size:12px;font-weight:600;color:var(--dark);flex-shrink:0">${t.amount.toLocaleString('fr-FR')} €</span>
-            <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;flex-shrink:0" onchange="setTransactionCategory('${t.id}',this.value)">
+            <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;flex-shrink:0" onchange="setTransactionCategory('${t.id}',this.value)" onclick="event.stopPropagation()">
               <option value="">Non catégorisé</option>
               ${cats.map(c=>`<option value="${c.id}" ${c.id===t.categoryId?'selected':''}>${c.label}</option>`).join('')}
             </select>
@@ -4288,7 +4299,7 @@ function renderMonth(){
       <span class="mch-total-val">${Math.round(bankCharges.total).toLocaleString('fr-FR')} € / mois</span>
     </div>`;
   }
-  h+=`</div>`;
+  h+=`</div></div>`;
 
   h+='</div>';
   byId('monthWrap').innerHTML=h;
