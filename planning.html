@@ -5015,9 +5015,11 @@ function renderYear(){
       </div>
     </div>`;
   }).join('');
-  const fiscalHTML=`<div class="yr-section">
-    <div class="yr-section-title">Calendrier fiscal</div>
-    <div class="yr-fiscal">${fiscalItems}</div>
+  const fiscalHTML=`<div class="yr-section yr-regl" onclick="this.classList.toggle('open')">
+    <div class="yr-section-title" style="cursor:pointer;margin-bottom:0">Calendrier fiscal <span class="yr-regl-chev">▾</span></div>
+    <div class="yr-regl-body" style="margin-top:10px">
+      <div class="yr-fiscal">${fiscalItems}</div>
+    </div>
   </div>`;
 
   const chevL=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`;
