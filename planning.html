@@ -4321,6 +4321,7 @@ function setView(v){
   if(v==='month')renderMonth();
   if(v==='year')renderYear();
   if(v==='grid')setTimeout(()=>byId('row-today')?.scrollIntoView({block:'center'}),60);
+  else byId(v+'Wrap').scrollTop=0;
 }
 
 function chYear(d){
