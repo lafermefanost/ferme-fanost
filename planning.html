@@ -718,9 +718,10 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
   font-family:'Jost',sans-serif;font-size:12px;color:var(--gray);cursor:pointer;
   padding:6px 12px;width:100%;margin-top:6px;transition:all .15s;}
 .set-add:hover{border-color:var(--green);color:var(--green);}
-.set-tariff-row{display:grid;grid-template-columns:1fr 60px 60px 60px 28px;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--light);}
+.set-tariff-row{display:grid;grid-template-columns:1fr 48px 48px 48px 48px 24px;gap:5px;align-items:center;padding:5px 0;border-bottom:1px solid var(--light);}
 .set-tariff-row:last-child{border-bottom:none;}
-.set-tariff-hd{display:grid;grid-template-columns:1fr 60px 60px 60px 28px;gap:6px;padding:0 0 4px;}
+.set-tariff-hd{display:grid;grid-template-columns:1fr 48px 48px 48px 48px 24px;gap:5px;padding:0 0 4px;}
+.set-tariff-row .set-fi-sm{width:100%;}
 .set-tariff-hd span{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);text-align:right;}
 .set-tariff-hd span:first-child{text-align:left;}
 .set-color{width:28px;height:28px;border:none;padding:2px;border-radius:6px;cursor:pointer;flex-shrink:0;}
@@ -954,11 +955,11 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
       </div>
       <div class="fg">
         <label class="fl">Arrivée</label>
-        <input type="date" class="fi" id="bIn" onchange="chkConflict();renderDinnerList();updateModalTotal()">
+        <input type="date" class="fi" id="bIn" onchange="chkConflict();renderBreakfastList();renderDinnerList();updateModalTotal()">
       </div>
       <div class="fg">
         <label class="fl">Départ</label>
-        <input type="date" class="fi" id="bOut" onchange="chkConflict();renderDinnerList();updateModalTotal()">
+        <input type="date" class="fi" id="bOut" onchange="chkConflict();renderBreakfastList();renderDinnerList();updateModalTotal()">
       </div>
       <div class="frow">
         <div class="fg">
@@ -990,6 +991,10 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
         <label class="fl">Nb personnes</label>
         <div class="pax-picker" id="paxPicker"></div>
         <input type="hidden" id="bPersons" value="1">
+      </div>
+      <div class="fg" id="breakfastListFg" style="display:none">
+        <label class="fl">Petit-déjeuner — nuits du séjour <span style="color:var(--gray);font-weight:400">(inclus par défaut)</span></label>
+        <div id="breakfastList" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
       </div>
       <div class="fg" id="dinnerListFg" style="display:none">
         <label class="fl">Table d'hôtes — soirs du séjour</label>
@@ -1312,6 +1317,8 @@ const MON3 = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov
 // Pictogramme repas (fourchette + couteau), épuré comme les autres icônes du planning
 const MEAL_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>';
 const MEAL_ICON_SM='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;flex-shrink:0"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>';
+// Pictogramme petit-déjeuner (tasse), même famille visuelle que les autres icônes du planning
+const BREAKFAST_ICON_SM='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;flex-shrink:0"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>';
 
 const PALETTE = [
   '#5B8DB5','#6B9E60','#A8956A','#8B7DB0','#C09A4A','#5B9E94',
@@ -1329,7 +1336,7 @@ let monthChargesOpen=false;
 let weekOpenDays=new Set();
 let weekOpenDaysFor=null;
 
-const DEFAULT_PRICES={solo:100, double:125, th:25};
+const DEFAULT_PRICES={solo:100, double:125, th:25, bf:5};
 const DEFAULT_SETTINGS={
   name:'Fanost — Planning',
   rooms:[
@@ -1343,7 +1350,7 @@ const DEFAULT_SETTINGS={
     {id:'wis',name:'Wissous',short:'WIS',color:'#B57A7A',maxPersons:4,babyCrib:false,babyCribPrice:15,group:'lmnp'},
   ],
   cleaners:[{name:'Rosa',rate:15},{name:'Svetlana',rate:15},{name:'Tatiana',rate:15}],
-  tariffHistory:[{id:'t0',from:'2000-01-01',solo:100,double:125,th:25}],
+  tariffHistory:[{id:'t0',from:'2000-01-01',solo:100,double:125,th:25,bf:5}],
   chargeCategories:[
     {id:'depot',label:'Dépôt / Caution',keywords:['depot de garantie','dépôt de garantie'],excluded:true},
     {id:'notesfrais',label:'Notes de frais',keywords:['note de frais','achat pro'],excluded:false},
@@ -1376,7 +1383,7 @@ const DEFAULT_SETTINGS={
 };
 
 function getTariffForDate(ds){
-  const hist=(S.settings&&S.settings.tariffHistory)||[{from:'2000-01-01',solo:100,double:125,th:25}];
+  const hist=(S.settings&&S.settings.tariffHistory)||[{from:'2000-01-01',solo:100,double:125,th:25,bf:5}];
   const sorted=[...hist].sort((a,b)=>a.from.localeCompare(b.from));
   let t=sorted[0];
   for(const h of sorted){if(h.from<=ds)t=h;}
@@ -1402,6 +1409,19 @@ function getNightlyRate(bk){
   if(g&&g.price)return g.price;
   const t=getTariffForDate(bk.checkIn||todayISO());
   return(bk.nbPersons||2)===1?t.solo:t.double;
+}
+// Le petit-déjeuner est inclus par défaut dans le tarif nuitée (1/2+ pers).
+// bk.noBreakfast liste les nuits où il a été décoché — chacune déduit le prix
+// du petit-déjeuner (tarif "bf") du total, plutôt que de suivre les nuits
+// où il est inclus (qui serait la majorité des cas).
+function getBreakfastDeduction(bk,fromDate,toDate){
+  if(isSourceNoRevenue(bk.source)) return 0;
+  if(!bk.noBreakfast)return 0;
+  const t=getTariffForDate(bk.checkIn||fromDate);
+  const bfPrice=t.bf!=null?t.bf:5;
+  return Object.keys(bk.noBreakfast)
+    .filter(ds=>ds>=fromDate&&ds<toDate&&bk.noBreakfast[ds])
+    .length*bfPrice;
 }
 function getThRevenue(bk,fromDate,toDate){
   if(isSourceNoRevenue(bk.source)) return 0;
@@ -2025,6 +2045,8 @@ function renderToday(){
       const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
       const rate=getNightlyRate(b);
       const dinCount=b.dinnerNights?Object.keys(b.dinnerNights).filter(d=>b.dinnerNights[d]&&d>=b.checkIn&&d<b.checkOut).length:0;
+      const noBfCount=b.noBreakfast?Object.keys(b.noBreakfast).filter(d=>b.noBreakfast[d]&&d>=b.checkIn&&d<b.checkOut).length:0;
+      const bfDeduction=getBreakfastDeduction(b,b.checkIn,b.checkOut);
       const pax=b.nbPersons||2;
       const extTotal=getExtrasTotal(b);
       const cribRev=getBabyCribRevenue(b);
@@ -2035,7 +2057,7 @@ function renderToday(){
         const tariff=getTariffForDate(b.checkIn||ds);
         let rows='';
         if(isCustom){
-          const autoTotal=nights*rate+dinCount*pax*tariff.th+cribRev;
+          const autoTotal=nights*rate-bfDeduction+dinCount*pax*tariff.th+cribRev;
           rows+=`<div class="ttd-line"><span>Prix personnalisé</span><span>${b.prixNet.toLocaleString('fr-FR')} €</span></div>`;
           if(autoTotal>0) rows+=`<div class="ttd-line" style="opacity:.5;font-style:italic"><span>Calcul auto (hors extras) : ${autoTotal.toLocaleString('fr-FR')} €</span><span></span></div>`;
           if(extTotal>0){
@@ -2054,6 +2076,7 @@ function renderToday(){
           }
         } else {
           rows+=`<div class="ttd-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
+          if(noBfCount>0) rows+=`<div class="ttd-line"><span>${noBfCount} nuit${noBfCount>1?'s':''} sans petit-déj</span><span>-${bfDeduction.toLocaleString('fr-FR')} €</span></div>`;
           if(dinCount>0) rows+=`<div class="ttd-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${(dinCount*pax*tariff.th).toLocaleString('fr-FR')} €</span></div>`;
           if(cribRev>0) rows+=`<div class="ttd-line"><span>Lit bébé × ${nights} nuit${nights>1?'s':''}</span><span>${cribRev.toLocaleString('fr-FR')} €</span></div>`;
           if(extTotal>0){
@@ -2263,6 +2286,7 @@ function openAddModal(roomId,ds,dsOut){
   if(byId('babyCribToggle'))byId('babyCribToggle').checked=false;
 
   renderGPicker();
+  renderBreakfastList();
   renderDinnerList();
   updateModalTotal();
   byId('modalBooking').style.display='flex';
@@ -2291,12 +2315,13 @@ function openEditModal(id){
   updateBabyCribUI();
   if(byId('babyCribToggle'))byId('babyCribToggle').checked=!!b.babyCrib;
   const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
-  const autoP=nights*getNightlyRate(b)+getThRevenue(b,b.checkIn,b.checkOut)+getExtrasTotal(b);
+  const autoP=nights*getNightlyRate(b)-getBreakfastDeduction(b,b.checkIn,b.checkOut)+getThRevenue(b,b.checkIn,b.checkOut)+getExtrasTotal(b);
   byId('prixNetHint').textContent=autoP>0?`(auto : ${autoP.toLocaleString('fr-FR')} €)`:'';
   refreshBExtrasTotal(b);
   modalExtrasDay=null;
   renderModalExtras();
   renderGPicker();
+  renderBreakfastList();
   renderDinnerList();
   updateModalTotal();
   byId('modalBooking').style.display='flex';
@@ -2335,7 +2360,7 @@ let gChanging=false;
 function setPax(n){
   byId('bPersons').value=n;
   byId('paxPicker').innerHTML=[1,2,3,4,5].map(i=>
-    `<button type="button" class="pax-btn${i===n?' on':''}" onclick="setPax(${i});renderDinnerList()">${i}</button>`
+    `<button type="button" class="pax-btn${i===n?' on':''}" onclick="setPax(${i});renderBreakfastList();renderDinnerList()">${i}</button>`
   ).join('');
   updateModalTotal();
 }
@@ -2489,8 +2514,9 @@ function doModalSwap(){
   const np=parseInt(byId('bPersons').value)||2;
   const nt=byId('bNotes').value.trim();
   const dn=getDinnerNights();
+  const nbf=getNoBreakfastNights();
   const i=S.bookings.findIndex(b=>b.id===editBid);
-  if(i!==-1)S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,notes:nt,guestId:selGid||bk.guestId};
+  if(i!==-1)S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,noBreakfast:nbf,notes:nt,guestId:selGid||bk.guestId};
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
   if(S.view==='week')renderWeek();
@@ -2531,9 +2557,14 @@ function saveBooking(){
   if(editBid){
     const i=S.bookings.findIndex(b=>b.id===editBid);
     const dn=getDinnerNights();
-    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,babyCrib};
+    const nbf=getNoBreakfastNights();
+    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,babyCrib};
   }else{
-    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,babyCrib});
+    // Le petit-déjeuner est inclus par défaut (checkboxes cochées à la création) :
+    // on lit quand même les cases de la modale au cas où l'utilisateur en aurait
+    // décoché avant même la première sauvegarde.
+    const nbf=getNoBreakfastNights();
+    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,babyCrib});
   }
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
@@ -2549,6 +2580,54 @@ function delBooking(){
   if(S.view==='today')renderToday();
   if(S.view==='week')renderWeek();
   if(S.view==='month')renderMonth();
+}
+
+function renderBreakfastList(){
+  const ci=byId('bIn').value;
+  const co=byId('bOut').value;
+  const fg=byId('breakfastListFg');
+  const container=byId('breakfastList');
+  if(!ci||!co||ci>=co){fg.style.display='none';return;}
+  fg.style.display='block';
+
+  // Petit-déjeuner inclus par défaut : on ne stocke que les nuits où il a été décoché.
+  const existing=editBid?S.bookings.find(b=>b.id===editBid)?.noBreakfast||{}:{};
+
+  const days=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  let html='';
+  let cur=ci;
+  while(cur<co){
+    const d=new Date(cur+'T00:00:00');
+    const checked=!existing[cur];
+    const label=`${days[d.getDay()]} ${d.getDate()}`;
+    html+=`<label class="dn-chip${checked?' checked':''}" id="bfc-${cur}">
+      <input type="checkbox" id="bf-${cur}" value="${cur}" ${checked?'checked':''}
+             onchange="updateBreakfastChip('${cur}',this.checked)">
+      <span class="dn-icon">${BREAKFAST_ICON_SM}</span>${label}
+    </label>`;
+    cur=addDays(cur,1);
+  }
+  container.innerHTML=html;
+}
+
+function updateBreakfastChip(ds,checked){
+  const chip=document.getElementById('bfc-'+ds);
+  if(chip)chip.className='dn-chip'+(checked?' checked':'');
+  updateModalTotal();
+}
+
+function getNoBreakfastNights(){
+  const ci=byId('bIn').value;
+  const co=byId('bOut').value;
+  if(!ci||!co)return{};
+  const nights={};
+  let cur=ci;
+  while(cur<co){
+    const cb=document.getElementById('bf-'+cur);
+    if(cb&&!cb.checked)nights[cur]=true;
+    cur=addDays(cur,1);
+  }
+  return nights;
 }
 
 function renderDinnerList(){
@@ -3334,9 +3413,9 @@ function renderSettings(){
   // — Tarifs —
   h+=`<div class="set-sec">
     <div class="set-sec-title">Tarifs nuitée &amp; repas</div>
-    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Appliqués aux réservations sans prix personnalisé, selon la date de début.</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Appliqués aux réservations sans prix personnalisé, selon la date de début. Le tarif « 1 pers / 2+ pers » inclut le petit-déjeuner ; « P-déj € » est le montant déduit par nuit lorsqu'il est décoché.</div>
     <div class="set-tariff-hd">
-      <span>À partir du</span><span>1 pers €</span><span>2+ pers €</span><span>Repas €</span><span></span>
+      <span>À partir du</span><span>1 pers €</span><span>2+ pers €</span><span>Repas €</span><span>P-déj €</span><span></span>
     </div>`;
   const tariffs=[...(st.tariffHistory||[])].sort((a,b)=>a.from.localeCompare(b.from));
   tariffs.forEach((t,i)=>{
@@ -3350,6 +3429,8 @@ function renderSettings(){
         onblur="updateTariff('${t.id}','double',+this.value)">
       <input class="set-fi-sm" type="number" value="${t.th}"
         onblur="updateTariff('${t.id}','th',+this.value)">
+      <input class="set-fi-sm" type="number" value="${t.bf!=null?t.bf:5}"
+        onblur="updateTariff('${t.id}','bf',+this.value)">
       <button class="set-del" ${canDel?'':'disabled style="opacity:.3"'} onclick="delTariff('${t.id}')">×</button>
     </div>`;
   });
@@ -3461,7 +3542,7 @@ function renderSettings(){
 
 // Tariff CRUD
 function addTariff(){
-  S.settings.tariffHistory.push({id:uid(),from:todayISO(),solo:100,double:125,th:25});
+  S.settings.tariffHistory.push({id:uid(),from:todayISO(),solo:100,double:125,th:25,bf:5});
   saveSettings();renderSettings();
 }
 function delTariff(id){
@@ -3645,6 +3726,8 @@ function buildStayNoteText(bk){
   const pax=bk.nbPersons||2;
   const dinCount=Object.keys(bk.dinnerNights||{}).filter(ds=>bk.dinnerNights[ds]).length;
   const thRevenue=getThRevenue(bk,bk.checkIn,bk.checkOut);
+  const bfDeduction=getBreakfastDeduction(bk,bk.checkIn,bk.checkOut);
+  const noBfCount=Object.keys(bk.noBreakfast||{}).filter(ds=>bk.noBreakfast[ds]).length;
   const cribRevenue=getBabyCribRevenue(bk);
   const extTotal=getExtrasTotal(bk);
   const isCustom=bk.prixNet!=null&&bk.prixNet>0;
@@ -3653,7 +3736,8 @@ function buildStayNoteText(bk){
   if(isCustom){
     lines.push(`Prix personnalisé : ${bk.prixNet.toLocaleString('fr-FR')} €`,'');
   } else {
-    if(rate>0)lines.push(`${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} € — ${(nights*rate).toLocaleString('fr-FR')} €`);
+    if(rate>0)lines.push(`${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} € (petit-déj inclus) — ${(nights*rate).toLocaleString('fr-FR')} €`);
+    if(noBfCount>0)lines.push(`${noBfCount} nuit${noBfCount>1?'s':''} sans petit-déj — -${bfDeduction.toLocaleString('fr-FR')} €`);
     if(dinCount>0)lines.push(`${dinCount} repas × ${pax} pers × ${tariff.th} € — ${thRevenue.toLocaleString('fr-FR')} €`);
     if(cribRevenue>0)lines.push(`Lit bébé × ${nights} nuit${nights>1?'s':''} — ${cribRevenue.toLocaleString('fr-FR')} €`);
   }
@@ -3728,12 +3812,16 @@ function updateModalTotal(){
   const rate=getNightlyRate(tempBk);
   const dinnerNights=getDinnerNights(); // read from DOM checkboxes, not saved booking
   const dinCount=Object.keys(dinnerNights).length;
+  const noBreakfastNights=getNoBreakfastNights(); // idem, petit-déj inclus par défaut
+  const noBfCount=Object.keys(noBreakfastNights).length;
+  const bfPrice=tariff.bf!=null?tariff.bf:5;
+  const bfDeduction=noBfCount*bfPrice;
   const extTotal=bk?getExtrasTotal(bk):0;
   const cribPrice=babyCribOn&&room&&room.babyCrib?nights*(room.babyCribPrice||15):0;
   const isCustom=prixNetVal&&prixNetVal>0;
-  const autoTotal=nights*rate+dinCount*pax*tariff.th+extTotal+cribPrice;
+  const autoTotal=nights*rate-bfDeduction+dinCount*pax*tariff.th+extTotal+cribPrice;
   const total=isCustom?(prixNetVal+extTotal):autoTotal;
-  const autoNoExtras=nights*rate+dinCount*pax*tariff.th+cribPrice;
+  const autoNoExtras=nights*rate-bfDeduction+dinCount*pax*tariff.th+cribPrice;
   byId('prixNetHint').textContent=autoTotal>0&&!isCustom?`(auto : ${autoTotal.toLocaleString('fr-FR')} €)`:'';
   if(total<=0){el.style.display='none';return;}
   el.style.display='block';
@@ -3758,7 +3846,8 @@ function updateModalTotal(){
       rows+=`<div class="btot-line sep"><span>Total</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
     }
   } else {
-    if(rate>0)rows+=`<div class="btot-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
+    if(rate>0)rows+=`<div class="btot-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} € <span style="opacity:.6">(petit-déj inclus)</span></span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
+    if(noBfCount>0)rows+=`<div class="btot-line"><span>${noBfCount} nuit${noBfCount>1?'s':''} sans petit-déj</span><span>-${bfDeduction.toLocaleString('fr-FR')} €</span></div>`;
     if(dinCount>0)rows+=`<div class="btot-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${(dinCount*pax*tariff.th).toLocaleString('fr-FR')} €</span></div>`;
     if(cribPrice>0)rows+=`<div class="btot-line"><span>Lit bébé × ${nights} nuit${nights>1?'s':''}</span><span>${cribPrice.toLocaleString('fr-FR')} €</span></div>`;
     if(extTotal>0){
@@ -3793,7 +3882,7 @@ function getExtrasTotal(bk){
 function getStayTotal(bk){
   if(bk.prixNet!=null&&bk.prixNet>0) return bk.prixNet+getExtrasTotal(bk);
   const nights=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
-  return nights*getNightlyRate(bk)+getThRevenue(bk,bk.checkIn,bk.checkOut)+getExtrasTotal(bk)+getBabyCribRevenue(bk);
+  return nights*getNightlyRate(bk)-getBreakfastDeduction(bk,bk.checkIn,bk.checkOut)+getThRevenue(bk,bk.checkIn,bk.checkOut)+getExtrasTotal(bk)+getBabyCribRevenue(bk);
 }
 function getBookingRevForPeriod(bk,pStart,pEnd){
   const oStart=bk.checkIn>pStart?bk.checkIn:pStart;
@@ -3804,7 +3893,7 @@ function getBookingRevForPeriod(bk,pStart,pEnd){
     const total=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
     return total>0?Math.round(bk.prixNet*n/total):0;
   }
-  return n*getNightlyRate(bk)+getThRevenue(bk,pStart,pEnd);
+  return n*getNightlyRate(bk)-getBreakfastDeduction(bk,pStart,pEnd)+getThRevenue(bk,pStart,pEnd);
 }
 
 function chDay(n){S.todayDate=addDays(S.todayDate||todayISO(),n);renderToday();}
