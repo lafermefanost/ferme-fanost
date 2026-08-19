@@ -4243,7 +4243,7 @@ function renderMonth(){
   // Charges réelles — relevé bancaire panel (un groupe par compte importé, ex. SASU / LMNP)
   const gNames=S.settings?.groupNames||DEFAULT_SETTINGS.groupNames;
   const cats=S.settings.chargeCategories||[];
-  h+=`<div class="month-charges yr-regl${monthChargesOpen?' open':''}" style="margin-top:12px" onclick="toggleMonthPanel('charges')">
+  h+=`<div class="month-charges yr-regl${monthChargesOpen?' open':''}" onclick="toggleMonthPanel('charges')">
     <div class="mch-header" style="margin-bottom:0;cursor:pointer">
       <div class="mch-title">Charges réelles — relevé bancaire</div>
       <span class="yr-regl-chev">▾</span>
