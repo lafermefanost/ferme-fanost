@@ -2109,7 +2109,7 @@ function renderToday(){
     const xd=getExtrasDayTotal(b,ds);
     const extLabel=xd>0?`<span class="extbtn-total">${xd.toLocaleString('fr-FR')} €</span>`:`<span class="extbtn-add">+</span>`;
     let totalHtml='';
-    const isCustomPrice=b.prixNet!=null&&b.prixNet>0;
+    const isCustomPrice=b.prixNet!=null;
     if(showTotal&&(!isSourceNoRevenue(b.source)||isCustomPrice)){
       const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
       const rate=getNightlyRate(b);
@@ -2378,7 +2378,7 @@ function openEditModal(id){
   setPax(b.nbPersons||2);
   byId('bNotes').value=b.notes||'';
   resetPaymentUI(b.payment,b.ghost,b.depositAmount,b.source);
-  byId('prixNet').value=b.prixNet||'';
+  byId('prixNet').value=b.prixNet!=null?b.prixNet:'';
   const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
   const autoP=nights*getNightlyRate(b)-getBreakfastDeduction(b,b.checkIn,b.checkOut)+getThRevenue(b,b.checkIn,b.checkOut)+getExtrasTotal(b);
   byId('prixNetHint').textContent=autoP>0?`(auto : ${autoP.toLocaleString('fr-FR')} €)`:'';
@@ -2605,7 +2605,10 @@ function saveBooking(){
   const depositAmt=pay==='deposit'?(parseFloat(byId('depositAmt').value)||0):0;
   const source=bkSource;
   const ghost=source==='ghost';
-  const prixNet=parseFloat(byId('prixNet').value)||null;
+  // "" = calcul automatique ; "0" est un prix personnalisé valide (séjour offert)
+  // et ne doit pas être confondu avec une valeur vide.
+  const prixNetRaw=byId('prixNet').value;
+  const prixNet=prixNetRaw===''?null:(parseFloat(prixNetRaw)||0);
 
   if(!ci||!co){alert('Remplissez les dates');return;}
   if(ci>=co){alert('La date de départ doit être après l\'arrivée');return;}
@@ -4021,7 +4024,7 @@ function buildStayNoteText(bk){
   const noBfCount=Object.keys(bk.noBreakfast||{}).filter(ds=>bk.noBreakfast[ds]).length;
   const cribRevenue=getBabyCribRevenue(bk);
   const extTotal=getExtrasTotal(bk);
-  const isCustom=bk.prixNet!=null&&bk.prixNet>0;
+  const isCustom=bk.prixNet!=null;
   const total=getStayTotal(bk);
   const lines=[`Note de séjour — ${name}`,`Séjour du ${fmtDate(bk.checkIn)} au ${fmtDate(bk.checkOut)} — ${nights} nuit${nights>1?'s':''}`,''];
   if(isCustom){
@@ -4093,7 +4096,8 @@ function updateModalTotal(){
   if(isSourceNoRevenue(bkSource)){el.style.display='none';return;}
   const nights=Math.round((new Date(co)-new Date(ci))/86400000);
   const bk=editBid?S.bookings.find(b=>b.id===editBid):null;
-  const prixNetVal=parseFloat(byId('prixNet').value)||null;
+  const prixNetRaw=byId('prixNet').value;
+  const prixNetVal=prixNetRaw===''?null:(parseFloat(prixNetRaw)||0);
   const rid=byId('bRoom')?.value;
   const tariff=getTariffForDate(ci);
   const pax=parseInt(document.querySelector('.pax-btn.on')?.textContent)||2;
@@ -4108,12 +4112,12 @@ function updateModalTotal(){
   // Le lit bébé passe par le catalogue d'extras (getExtrasTotal), plus par un supplément dédié.
   const cribPrice=tempBk.babyCrib?getBabyCribRevenue(tempBk):0;
   const extTotal=bk?getExtrasTotal(bk):0;
-  const isCustom=prixNetVal&&prixNetVal>0;
+  const isCustom=prixNetVal!=null;
   const autoTotal=nights*rate-bfDeduction+dinCount*pax*tariff.th+extTotal+cribPrice;
   const total=isCustom?(prixNetVal+extTotal):autoTotal;
   const autoNoExtras=nights*rate-bfDeduction+dinCount*pax*tariff.th+cribPrice;
   byId('prixNetHint').textContent=autoTotal>0&&!isCustom?`(auto : ${autoTotal.toLocaleString('fr-FR')} €)`:'';
-  if(total<=0){el.style.display='none';return;}
+  if(total<=0&&!isCustom){el.style.display='none';return;}
   el.style.display='block';
   byId('bTotLbl').textContent=(isCustom&&extTotal<=0?'Prix personnalisé':'Total séjour')+' — '+nights+' nuit'+(nights>1?'s':'');
   byId('bTotVal').textContent=total.toLocaleString('fr-FR')+' €';
@@ -4170,7 +4174,7 @@ function getExtrasTotal(bk){
   return Object.keys(bk.extras).reduce((s,ds)=>s+getExtrasDayTotal(bk,ds),0);
 }
 function getStayTotal(bk){
-  if(bk.prixNet!=null&&bk.prixNet>0) return bk.prixNet+getExtrasTotal(bk);
+  if(bk.prixNet!=null) return bk.prixNet+getExtrasTotal(bk);
   const nights=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
   return nights*getNightlyRate(bk)-getBreakfastDeduction(bk,bk.checkIn,bk.checkOut)+getThRevenue(bk,bk.checkIn,bk.checkOut)+getExtrasTotal(bk)+getBabyCribRevenue(bk);
 }
@@ -4179,7 +4183,7 @@ function getBookingRevForPeriod(bk,pStart,pEnd){
   const oEnd=bk.checkOut<pEnd?bk.checkOut:pEnd;
   const n=daysBetween(oStart,oEnd);
   if(n<=0) return 0;
-  if(bk.prixNet!=null&&bk.prixNet>0){
+  if(bk.prixNet!=null){
     const total=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
     return total>0?Math.round(bk.prixNet*n/total):0;
   }
@@ -4243,7 +4247,7 @@ function renderWeek(){
           const pax=bk.nbPersons||2;
           totalRepas+=pax;
           // Custom-price (prixNet) bookings already fold their meal share into periodRevTotal above.
-          if(!isSourceNoRevenue(bk.source)&&!(bk.prixNet>0)) repasRevenueFromBookings+=pax*getTariffForDate(ds).th;
+          if(!isSourceNoRevenue(bk.source)&&bk.prixNet==null) repasRevenueFromBookings+=pax*getTariffForDate(ds).th;
         }
       }
     }
@@ -4468,7 +4472,7 @@ function renderMonth(){
         if(bk.dinnerNights[ds]){
           const pax=bk.nbPersons||2;
           totalRepas+=pax;
-          if(!isSourceNoRevenue(bk.source)&&!(bk.prixNet>0)) repasRevenueFromBookings+=pax*getTariffForDate(ds).th;
+          if(!isSourceNoRevenue(bk.source)&&bk.prixNet==null) repasRevenueFromBookings+=pax*getTariffForDate(ds).th;
         }
       }
     }
