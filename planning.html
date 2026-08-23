@@ -1456,6 +1456,11 @@ function getSource(id){
   const sources=S.settings?.sources||DEFAULT_SETTINGS.sources;
   return sources.find(s=>s.id===id)||{id,label:id,color:'#888',noRevenue:false};
 }
+// "Sans CA" ne pilote plus aucun calcul de tarif : une réservation à prix
+// personnalisé (y compris 0€, pour un échange/une gratuité) fait ça très bien
+// elle-même, quelle que soit sa source. Ce flag ne sert plus qu'à exclure une
+// source du décompte fiscal "nuits plateformes" (une source d'échange n'est
+// pas une plateforme commerciale).
 function isSourceNoRevenue(src){
   return getSource(src).noRevenue;
 }
@@ -1479,7 +1484,6 @@ function getBabyCribRevenue(bk){
   return nights*(room.babyCribPrice||15);
 }
 function getNightlyRate(bk){
-  if(isSourceNoRevenue(bk.source)) return 0;
   const g=guest(bk.guestId);
   if(g&&g.price)return g.price;
   return getRoomPriceForDate(bk.roomId,bk.checkIn||todayISO(),bk.nbPersons||2);
@@ -1489,7 +1493,6 @@ function getNightlyRate(bk){
 // du petit-déjeuner (tarif "bf") du total, plutôt que de suivre les nuits
 // où il est inclus (qui serait la majorité des cas).
 function getBreakfastDeduction(bk,fromDate,toDate){
-  if(isSourceNoRevenue(bk.source)) return 0;
   if(!bk.noBreakfast)return 0;
   const t=getTariffForDate(bk.checkIn||fromDate);
   const bfPrice=t.bf!=null?t.bf:5;
@@ -1498,7 +1501,6 @@ function getBreakfastDeduction(bk,fromDate,toDate){
     .length*bfPrice;
 }
 function getThRevenue(bk,fromDate,toDate){
-  if(isSourceNoRevenue(bk.source)) return 0;
   if(!bk.dinnerNights)return 0;
   const t=getTariffForDate(bk.checkIn||fromDate);
   return Object.keys(bk.dinnerNights)
@@ -1650,6 +1652,19 @@ function loadLocal(){
       delete b.tableDhotes;
     }
   });
+  if(migrateHomeExchangePrix())persist();
+}
+// HomeExchange n'a plus de traitement de tarif spécifique au niveau de la source
+// (voir isSourceNoRevenue) : chaque réservation gère ça elle-même via un prix
+// personnalisé, y compris à 0€. Une seule fois, on fixe ce prix à 0€ pour les
+// réservations HomeExchange existantes qui n'en avaient pas encore. Renvoie true
+// si au moins une réservation a été corrigée (pour savoir s'il faut re-persister).
+function migrateHomeExchangePrix(){
+  let changed=false;
+  S.bookings.forEach(b=>{
+    if(b.source==='homexchange'&&b.prixNet==null){b.prixNet=0;changed=true;}
+  });
+  return changed;
 }
 
 // Firebase integration
@@ -1683,6 +1698,7 @@ function applyRemoteData(d,meta){
     console.log(`[sync] données reçues (${src}), écrites à ${d.updated}, délai=${Math.round(delayMs/1000)}s`);
   }
   S.bookings=d.bookings||[];
+  const bookingsFixed=migrateHomeExchangePrix();
   S.guests=d.guests||[];
   S.events=d.events||[];
   S.cleaning=d.cleaning||{};
@@ -1722,6 +1738,9 @@ function applyRemoteData(d,meta){
   if(S.view==='week') renderWeek();
   if(S.view==='month') renderMonth();
   if(S.view==='year') renderYear();
+  // Repoussé une fois tout le reste (guests/events/settings…) bien réappliqué,
+  // pour ne jamais envoyer un état partiellement à jour vers Firebase.
+  if(bookingsFixed)pushToFirebase();
 }
 
 let lastSyncDelayMs=null;
@@ -2110,7 +2129,7 @@ function renderToday(){
     const extLabel=xd>0?`<span class="extbtn-total">${xd.toLocaleString('fr-FR')} €</span>`:`<span class="extbtn-add">+</span>`;
     let totalHtml='';
     const isCustomPrice=b.prixNet!=null;
-    if(showTotal&&(!isSourceNoRevenue(b.source)||isCustomPrice)){
+    if(showTotal){
       const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
       const rate=getNightlyRate(b);
       const dinCount=b.dinnerNights?Object.keys(b.dinnerNights).filter(d=>b.dinnerNights[d]&&d>=b.checkIn&&d<b.checkOut).length:0;
@@ -2121,7 +2140,7 @@ function renderToday(){
       const cribRev=getBabyCribRevenue(b);
       const isCustom=isCustomPrice;
       const total=getStayTotal(b);
-      if(total>0){
+      if(total>0||isCustom){
         const tid='tt-'+b.id;
         const tariff=getTariffForDate(b.checkIn||ds);
         let rows='';
@@ -4093,7 +4112,6 @@ function updateModalTotal(){
   const ci=byId('bIn').value;
   const co=byId('bOut').value;
   if(!ci||!co||ci>=co){el.style.display='none';return;}
-  if(isSourceNoRevenue(bkSource)){el.style.display='none';return;}
   const nights=Math.round((new Date(co)-new Date(ci))/86400000);
   const bk=editBid?S.bookings.find(b=>b.id===editBid):null;
   const prixNetRaw=byId('prixNet').value;
@@ -4247,7 +4265,7 @@ function renderWeek(){
           const pax=bk.nbPersons||2;
           totalRepas+=pax;
           // Custom-price (prixNet) bookings already fold their meal share into periodRevTotal above.
-          if(!isSourceNoRevenue(bk.source)&&bk.prixNet==null) repasRevenueFromBookings+=pax*getTariffForDate(ds).th;
+          if(bk.prixNet==null) repasRevenueFromBookings+=pax*getTariffForDate(ds).th;
         }
       }
     }
@@ -4472,7 +4490,7 @@ function renderMonth(){
         if(bk.dinnerNights[ds]){
           const pax=bk.nbPersons||2;
           totalRepas+=pax;
-          if(!isSourceNoRevenue(bk.source)&&bk.prixNet==null) repasRevenueFromBookings+=pax*getTariffForDate(ds).th;
+          if(bk.prixNet==null) repasRevenueFromBookings+=pax*getTariffForDate(ds).th;
         }
       }
     }
@@ -4778,8 +4796,10 @@ function renderYear(){
   function groupStats(g){
     const rooms=getGroupRooms(g);
     const roomIds=new Set(rooms.map(r=>r.id));
+    // Les nuits comptent pour l'occupation même sans revenu (échange, gratuit…) —
+    // seul le CA en dépend, via getBookingRevForPeriod (prixNet=0 le reflète déjà).
     const bks=S.bookings.filter(bk=>
-      roomIds.has(bk.roomId)&&bk.checkIn<yEnd&&bk.checkOut>yStart&&!isSourceNoRevenue(bk.source)
+      roomIds.has(bk.roomId)&&bk.checkIn<yEnd&&bk.checkOut>yStart
     );
     const realBks=bks.filter(bk=>bk.checkOut<=today);
     const realCA=realBks.reduce((s,bk)=>s+getBookingRevForPeriod(bk,yStart,yEnd),0);
@@ -4948,7 +4968,7 @@ function renderYear(){
       const rooms=getGroupRooms(s.id);
       const roomIds=new Set(rooms.map(r=>r.id));
       rev[s.id]=S.bookings
-        .filter(bk=>roomIds.has(bk.roomId)&&bk.checkIn<mEnd&&bk.checkOut>mStart&&!isSourceNoRevenue(bk.source))
+        .filter(bk=>roomIds.has(bk.roomId)&&bk.checkIn<mEnd&&bk.checkOut>mStart)
         .reduce((s2,bk)=>s2+getBookingRevForPeriod(bk,mStart,mEnd),0);
     });
     const total=structs.reduce((s2,s)=>s2+rev[s.id],0);
