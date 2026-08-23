@@ -950,7 +950,7 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
       </div>
       <div class="fg">
         <label class="fl">Chambre / Logement</label>
-        <select class="fsel" id="bRoom" onchange="chkConflict();updateBabyCribUI();updateModalTotal()">
+        <select class="fsel" id="bRoom" onchange="chkConflict();updateModalTotal()">
         </select>
       </div>
       <div class="fg">
@@ -1022,13 +1022,6 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
       <div class="fg">
         <label class="fl">Source</label>
         <div class="src-row" id="srcBtns"></div>
-      </div>
-      <div id="babyCribRow" class="fg" style="display:none">
-        <label class="fl">Options</label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:4px 0">
-          <input type="checkbox" id="babyCribToggle" onchange="updateModalTotal()">
-          <span id="babyCribLabel">Lit bébé (+15 €/nuit)</span>
-        </label>
       </div>
       <div class="fg">
         <label class="fl">Prix personnalisé <span id="prixNetHint" style="color:var(--gray);font-weight:400;font-size:11px;"></span></label>
@@ -1481,6 +1474,7 @@ const DEFAULT_CATALOG=[
   {id:'pdj-oeufs',name:'Option salée — œufs',    price:4,   cat:'Petit-déj', emoji:'🍳'},
   {id:'pdj-jam',  name:'Option salée — jambon',   price:4,   cat:'Petit-déj', emoji:'🥩'},
   {id:'pdj-fro',  name:'Option salée — fromage',  price:4,   cat:'Petit-déj', emoji:'🧀'},
+  {id:'lit-bebe', name:'Lit bébé (séjour)',       price:15,  cat:'Confort',   emoji:'🛏'},
 ];
 let editBid = null, editGid = null, editEvid = null;
 let selGid = null, newGMode = false;
@@ -1500,19 +1494,6 @@ function renderSourceBtns(){
     `<button class="src-chip" data-src="${s.id}" data-color="${s.color}" data-norev="${!!s.noRevenue}" onclick="setSource('${s.id}')">${s.label}</button>`
   ).join('');
   setSource(bkSource);
-}
-function updateBabyCribUI(){
-  const rid=byId('bRoom')?.value;
-  const row=byId('babyCribRow');
-  if(!row)return;
-  const room=ROOMS.find(r=>r.id===rid);
-  if(room&&room.babyCrib){
-    byId('babyCribLabel').textContent=`Lit bébé (+${room.babyCribPrice||15} €/nuit)`;
-    row.style.display='block';
-  } else {
-    row.style.display='none';
-    if(byId('babyCribToggle'))byId('babyCribToggle').checked=false;
-  }
 }
 function setSource(v){
   bkSource=v;
@@ -2318,8 +2299,6 @@ function openAddModal(roomId,ds,dsOut){
   byId('bExtrasTotal').style.display='none';
   byId('bTotalSejour').style.display='none';
   byId('bExtrasSec').style.display='none';
-  updateBabyCribUI();
-  if(byId('babyCribToggle'))byId('babyCribToggle').checked=false;
 
   renderGPicker();
   renderBreakfastList();
@@ -2348,8 +2327,6 @@ function openEditModal(id){
   byId('bNotes').value=b.notes||'';
   resetPaymentUI(b.payment,b.ghost,b.depositAmount,b.source);
   byId('prixNet').value=b.prixNet||'';
-  updateBabyCribUI();
-  if(byId('babyCribToggle'))byId('babyCribToggle').checked=!!b.babyCrib;
   const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
   const autoP=nights*getNightlyRate(b)-getBreakfastDeduction(b,b.checkIn,b.checkOut)+getThRevenue(b,b.checkIn,b.checkOut)+getExtrasTotal(b);
   byId('prixNetHint').textContent=autoP>0?`(auto : ${autoP.toLocaleString('fr-FR')} €)`:'';
@@ -2574,7 +2551,6 @@ function saveBooking(){
   const source=bkSource;
   const ghost=source==='ghost';
   const prixNet=parseFloat(byId('prixNet').value)||null;
-  const babyCrib=byId('babyCribToggle')?.checked||false;
 
   if(!ci||!co){alert('Remplissez les dates');return;}
   if(ci>=co){alert('La date de départ doit être après l\'arrivée');return;}
@@ -2594,13 +2570,13 @@ function saveBooking(){
     const i=S.bookings.findIndex(b=>b.id===editBid);
     const dn=getDinnerNights();
     const nbf=getNoBreakfastNights();
-    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,babyCrib};
+    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet};
   }else{
     // Le petit-déjeuner est inclus par défaut (checkboxes cochées à la création) :
     // on lit quand même les cases de la modale au cas où l'utilisateur en aurait
     // décoché avant même la première sauvegarde.
     const nbf=getNoBreakfastNights();
-    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,babyCrib});
+    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet});
   }
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
@@ -3224,6 +3200,11 @@ function daysBetween(d1,d2){
 function loadCatalog(){
   const raw=localStorage.getItem('ff2_catalog');
   S.catalog=raw?JSON.parse(raw):[...DEFAULT_CATALOG];
+  // Migration : ajoute au catalogue existant les nouveaux articles par défaut absents
+  // (ex: "Lit bébé", qui remplace l'ancien réglage par chambre) sans toucher au reste.
+  DEFAULT_CATALOG.forEach(d=>{
+    if(!S.catalog.some(c=>c.id===d.id))S.catalog.push({...d});
+  });
 }
 function saveCatalog(){localStorage.setItem('ff2_catalog',JSON.stringify(S.catalog));}
 
@@ -3549,10 +3530,6 @@ function renderSettings(){
       <input class="set-fi" value="${r.name.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateRoom('${r.id}','name',this.value)">
       <input class="set-fi" style="width:52px;flex:none;" value="${r.short.replace(/"/g,'&quot;')}" placeholder="Court" onblur="updateRoom('${r.id}','short',this.value)">
       <span style="font-size:11px;color:var(--gray);flex-shrink:0;white-space:nowrap">max <input type="number" class="set-fi-sm" value="${r.maxPersons||2}" min="1" max="20" title="Capacité max" onblur="updateRoom('${r.id}','maxPersons',parseInt(this.value)||2)"> pers</span>
-      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--gray);flex-shrink:0;cursor:pointer" title="Propose un lit bébé, en supplément payant, pour cette chambre">
-        <input type="checkbox" ${r.babyCrib?'checked':''} onchange="updateRoom('${r.id}','babyCrib',this.checked)"> 🛏 Lit bébé
-      </label>
-      ${r.babyCrib?`<input type="number" class="set-fi-sm" value="${r.babyCribPrice||15}" min="0" title="Prix lit bébé/nuit (€)" onblur="updateRoom('${r.id}','babyCribPrice',parseFloat(this.value)||15)"> <span style="font-size:11px;color:var(--gray)">€/nuit</span>`:''}
       <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;padding:2px 4px;background:#fff;color:var(--dark);flex-shrink:0" title="Structure juridique de rattachement" onchange="updateRoom('${r.id}','group',this.value)">
         ${structs.map(s=>`<option value="${s.id}"${(r.group||structs[0].id)===s.id?' selected':''}>${s.name.replace(/"/g,'&quot;')}</option>`).join('')}
       </select>
@@ -3677,7 +3654,7 @@ function updateTariff(id,field,val){
 function addRoom(){
   const n=S.settings.rooms.length+1;
   const structs=S.settings.structures&&S.settings.structures.length?S.settings.structures:DEFAULT_SETTINGS.structures;
-  S.settings.rooms.push({id:uid(),name:'Chambre '+n,short:'C'+n,maxPersons:2,babyCrib:false,babyCribPrice:15,group:structs[0].id,tariffHistory:[{id:uid(),from:'2000-01-01',prices:defaultRoomPrices(2)}]});
+  S.settings.rooms.push({id:uid(),name:'Chambre '+n,short:'C'+n,maxPersons:2,group:structs[0].id,tariffHistory:[{id:uid(),from:'2000-01-01',prices:defaultRoomPrices(2)}]});
   saveSettings();applySettings();renderSettings();renderGrid();
 }
 function delRoom(id){
@@ -3691,7 +3668,7 @@ function updateRoom(id,field,val){
   r[field]=val;
   saveSettings();applySettings();
   if(field==='name'||field==='short')renderGrid();
-  if(field==='babyCrib'||field==='maxPersons')renderSettings();
+  if(field==='maxPersons')renderSettings();
 }
 
 // Tarif nuitée par chambre — CRUD
@@ -3994,12 +3971,10 @@ function updateModalTotal(){
   const nights=Math.round((new Date(co)-new Date(ci))/86400000);
   const bk=editBid?S.bookings.find(b=>b.id===editBid):null;
   const prixNetVal=parseFloat(byId('prixNet').value)||null;
-  const babyCribOn=byId('babyCribToggle')?.checked||false;
   const rid=byId('bRoom')?.value;
-  const room=ROOMS.find(r=>r.id===rid);
   const tariff=getTariffForDate(ci);
   const pax=parseInt(document.querySelector('.pax-btn.on')?.textContent)||2;
-  const tempBk={...(bk||{}),checkIn:ci,checkOut:co,guestId:selGid,source:bkSource,prixNet:prixNetVal,babyCrib:babyCribOn,roomId:rid,nbPersons:pax};
+  const tempBk={...(bk||{}),checkIn:ci,checkOut:co,guestId:selGid,source:bkSource,prixNet:prixNetVal,roomId:rid,nbPersons:pax};
   const rate=getNightlyRate(tempBk);
   const dinnerNights=getDinnerNights(); // read from DOM checkboxes, not saved booking
   const dinCount=Object.keys(dinnerNights).length;
@@ -4007,8 +3982,9 @@ function updateModalTotal(){
   const noBfCount=Object.keys(noBreakfastNights).length;
   const bfPrice=tariff.bf!=null?tariff.bf:5;
   const bfDeduction=noBfCount*bfPrice;
+  // Le lit bébé passe par le catalogue d'extras (getExtrasTotal), plus par un supplément dédié.
+  const cribPrice=tempBk.babyCrib?getBabyCribRevenue(tempBk):0;
   const extTotal=bk?getExtrasTotal(bk):0;
-  const cribPrice=babyCribOn&&room&&room.babyCrib?nights*(room.babyCribPrice||15):0;
   const isCustom=prixNetVal&&prixNetVal>0;
   const autoTotal=nights*rate-bfDeduction+dinCount*pax*tariff.th+extTotal+cribPrice;
   const total=isCustom?(prixNetVal+extTotal):autoTotal;
