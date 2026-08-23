@@ -673,6 +673,12 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
   /* Keep TH visible on mobile — it's the key column */
 }
 
+/* Interrupteur "table d'hôte" (réglages → Services) : masque partout la colonne
+   de couverts de la grille, les badges repas, et le panneau "Menu du jour". */
+body.no-dinner .pt td.c-th,body.no-dinner .pt thead th.th-th,
+body.no-dinner .bth,body.no-dinner .dinner-badge,
+body.no-dinner .tsec-panel.menu{display:none;}
+
 /* On desktop, let the grid stretch and widen its columns to fill the available width */
 @media(min-width:600px){
   .pt{width:100%;}
@@ -1362,6 +1368,7 @@ function defaultRoomPrices(max){
 }
 const DEFAULT_SETTINGS={
   name:'Fanost — Planning',
+  dinnerEnabled:true,
   rooms:[
     {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
     {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
@@ -1450,6 +1457,12 @@ function getSource(id){
 }
 function isSourceNoRevenue(src){
   return getSource(src).noRevenue;
+}
+// Interrupteur global "table d'hôte" (réglages → Services). Désactivé, il masque
+// toutes les options/compteurs liés dans l'app, sans toucher aux données déjà
+// enregistrées (dinnerNights des réservations existantes reste intact).
+function dinnerEnabled(){
+  return S.settings.dinnerEnabled!==false;
 }
 function getBabyCribRevenue(bk){
   if(!bk.babyCrib)return 0;
@@ -2077,7 +2090,7 @@ function renderToday(){
   const card=(b,sub,showTotal=false)=>{
     const g=guest(b.guestId);const col=g?g.color:'#999';const rm=room(b.roomId);
     const hasDin=b.dinnerNights&&b.dinnerNights[ds];
-    const thBadge=hasDin?`<span style="font-size:11px;color:var(--green);font-weight:600;flex-shrink:0;display:inline-flex;align-items:center;gap:3px">${MEAL_ICON_SM}${b.nbPersons||2}</span>`:'';
+    const thBadge=hasDin?`<span class="dinner-badge" style="font-size:11px;color:var(--green);font-weight:600;flex-shrink:0;display:inline-flex;align-items:center;gap:3px">${MEAL_ICON_SM}${b.nbPersons||2}</span>`:'';
     const xd=getExtrasDayTotal(b,ds);
     const extLabel=xd>0?`<span class="extbtn-total">${xd.toLocaleString('fr-FR')} €</span>`:`<span class="extbtn-add">+</span>`;
     let totalHtml='';
@@ -2199,11 +2212,11 @@ function renderToday(){
     <button class="vnav-btn" onclick="chDay(1)">${chevR}</button>
   </div>
   <div class="vnav-now-row">${!isToday?`<button class="vnav-now-btn" onclick="goTodayView()">Aujourd'hui</button>`:''}</div>
-  <div class="today-summary">
+  <div class="today-summary" style="grid-template-columns:repeat(${dinnerEnabled()?4:3},1fr)">
     <div class="tsm-item"><div class="tsm-val">${arrs.length}</div><div class="tsm-lbl">Arrivées</div></div>
     <div class="tsm-item"><div class="tsm-val">${deps.length}</div><div class="tsm-lbl">Départs</div></div>
     <div class="tsm-item"><div class="tsm-val">${inHouse.length}</div><div class="tsm-lbl">En séjour</div></div>
-    <div class="tsm-item"><div class="tsm-val">${couverts||'—'}</div><div class="tsm-lbl">Repas</div></div>
+    ${dinnerEnabled()?`<div class="tsm-item"><div class="tsm-val">${couverts||'—'}</div><div class="tsm-lbl">Repas</div></div>`:''}
   </div>`;
 
   const panel=(cls,icon,title,items,cardFn)=>{
@@ -2550,7 +2563,9 @@ function doModalSwap(){
   const st=byId('bStatus').value;
   const np=parseInt(byId('bPersons').value)||2;
   const nt=byId('bNotes').value.trim();
-  const dn=getDinnerNights();
+  // Si la table d'hôte est désactivée, les cases ne sont pas affichées : on
+  // garde les données existantes plutôt que de les écraser par une lecture vide.
+  const dn=dinnerEnabled()?getDinnerNights():bk.dinnerNights;
   const nbf=getNoBreakfastNights();
   const i=S.bookings.findIndex(b=>b.id===editBid);
   if(i!==-1)S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,noBreakfast:nbf,notes:nt,guestId:selGid||bk.guestId};
@@ -2592,7 +2607,9 @@ function saveBooking(){
 
   if(editBid){
     const i=S.bookings.findIndex(b=>b.id===editBid);
-    const dn=getDinnerNights();
+    // Si la table d'hôte est désactivée, les cases ne sont pas affichées : on
+    // garde les données existantes plutôt que de les écraser par une lecture vide.
+    const dn=dinnerEnabled()?getDinnerNights():(i!==-1?S.bookings[i].dinnerNights:{});
     const nbf=getNoBreakfastNights();
     if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet};
   }else{
@@ -2671,6 +2688,7 @@ function renderDinnerList(){
   const co=byId('bOut').value;
   const fg=byId('dinnerListFg');
   const container=byId('dinnerList');
+  if(!dinnerEnabled()){fg.style.display='none';return;}
   if(!ci||!co||ci>=co){fg.style.display='none';return;}
   fg.style.display='block';
 
@@ -3316,6 +3334,7 @@ function applySettings(){
   CLEANERS=S.settings.cleaners||CLEANERS;
   const logoEl=byId('appName');
   if(logoEl)logoEl.textContent=S.settings.name||'Fanost — Planning';
+  document.body.classList.toggle('no-dinner',!dinnerEnabled());
   // Update room select in booking modal
   const bRoomEl=byId('bRoom');
   if(bRoomEl){
@@ -3539,7 +3558,7 @@ function renderSettings(){
 
   // — Structures juridiques, chacune avec ses propres seuils —
   const structsForThr=st.structures&&st.structures.length?st.structures:DEFAULT_SETTINGS.structures;
-  let structBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Chaque chambre/gîte est rattaché(e) à l'une de ces structures (réglage dans "Chambres &amp; gîtes" ci-dessous). Dans la vue Année, le total global est toujours affiché en premier, puis chaque structure est calculée indépendamment. Les seuils sont optionnels et propres à chaque structure — laissez-en zéro si non pertinent.</div>`;
+  let structBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Chaque chambre/gîte est rattaché(e) à l'une de ces structures (réglage dans "Locations" ci-dessous). Dans la vue Année, le total global est toujours affiché en premier, puis chaque structure est calculée indépendamment. Les seuils sont optionnels et propres à chaque structure — laissez-en zéro si non pertinent.</div>`;
   structsForThr.forEach(s=>{
     const thr=(st.structureThresholds&&st.structureThresholds[s.id])||[];
     const canDelS=structsForThr.length>1;
@@ -3599,10 +3618,17 @@ function renderSettings(){
     </div>`;
   });
   roomsBody+=`<button class="set-add" onclick="addRoom()">+ Ajouter une chambre</button>`;
-  h+=settingsPanel('chambres','Chambres &amp; gîtes',roomsBody);
+  h+=settingsPanel('chambres','Locations',roomsBody);
 
-  // — Tarifs repas & petit-déjeuner (globaux, identiques pour toutes les chambres) —
-  let tarifsBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Communs à toutes les chambres, appliqués selon la date de début du séjour. « P-déj € » est le montant déduit par nuit lorsqu'il est décoché (voir tarif nuitée dans chaque chambre ci-dessus).</div>
+  // — Services : table d'hôte (interrupteur global) + tarifs repas & petit-déjeuner —
+  let tarifsBody=`<div class="set-card set-card-row">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1">
+        <input type="checkbox" ${dinnerEnabled()?'checked':''} onchange="toggleDinnerEnabled(this.checked)">
+        <span style="font-weight:500">Table d'hôte</span>
+      </label>
+    </div>
+    <div style="font-size:11px;color:var(--gray);margin:-2px 0 12px 2px">Décochez si vous ne proposez pas de repas en table d'hôte : masque la colonne dédiée dans la grille, l'option dans les réservations, le menu du jour (vues Jour &amp; Semaine) et les compteurs correspondants dans les autres vues. Les données déjà enregistrées ne sont pas supprimées.</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Tarifs communs à toutes les chambres, appliqués selon la date de début du séjour. « Repas € » n'est utilisé que si la table d'hôte est activée ci-dessus. « P-déj € » est le montant déduit par nuit lorsqu'il est décoché (voir tarif nuitée dans chaque chambre).</div>
     <div class="set-card">
     <div class="set-tariff-hd" style="grid-template-columns:1fr 60px 60px 24px">
       <span>À partir du</span><span>Repas €</span><span>P-déj €</span><span></span>
@@ -3622,7 +3648,7 @@ function renderSettings(){
   });
   tarifsBody+=`<button class="set-add" onclick="addTariff()">+ Nouveau tarif à partir d'aujourd'hui</button>
     </div>`;
-  h+=settingsPanel('tarifs','Tarifs repas &amp; petit-déjeuner',tarifsBody);
+  h+=settingsPanel('tarifs','Services',tarifsBody);
 
   // — Sources de réservation —
   let sourcesBody='';
@@ -3678,6 +3704,17 @@ function renderSettings(){
   h+=settingsPanel('charges','Catégories — relevé bancaire',chargesBody);
 
   byId('settingsBody').innerHTML=h;
+}
+
+// Interrupteur global "table d'hôte" (réglages → Services)
+function toggleDinnerEnabled(checked){
+  S.settings.dinnerEnabled=checked;
+  saveSettings();
+  applySettings();
+  renderGrid();
+  if(S.view==='today')renderToday();
+  if(S.view==='week')renderWeek();
+  if(S.view==='month')renderMonth();
 }
 
 // Tariff CRUD
@@ -4178,9 +4215,11 @@ function renderWeek(){
     totalRepas+=extDinersCount(ds);
     extDinersRevenueTotal+=extDinersRevenueForDate(ds);
   }
-  const nightsRevenue=periodRevTotal-repasRevenueFromBookings;
+  // Table d'hôte désactivée : le CA repas est simplement replié dans "nuitées"
+  // (le total général reste identique), et sa carte dédiée est masquée.
+  const nightsRevenue=dinnerEnabled()?periodRevTotal-repasRevenueFromBookings:periodRevTotal+extDinersRevenueTotal;
   const repasRevenue=repasRevenueFromBookings+extDinersRevenueTotal;
-  const totalRevAll=nightsRevenue+repasRevenue+totalExtras;
+  const totalRevAll=nightsRevenue+(dinnerEnabled()?repasRevenue:0)+totalExtras;
 
   const DAY_NAMES=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   const chevL=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`;
@@ -4204,7 +4243,7 @@ function renderWeek(){
     <div class="wsm-total"><div class="wsm-val">${totalRevAll>0?totalRevAll.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">revenus totaux de la semaine</div></div>
     <div class="wsm-row">
       <div class="wsm-item"><div class="wsm-val">${totalNights}</div><div class="wsm-lbl">nuitées</div><div class="wsm-sub">${nightsRevenue>0?nightsRevenue.toLocaleString('fr-FR')+' €':'—'}</div></div>
-      <div class="wsm-item"><div class="wsm-val">${totalRepas}</div><div class="wsm-lbl">repas</div><div class="wsm-sub">${repasRevenue>0?repasRevenue.toLocaleString('fr-FR')+' €':'—'}</div></div>
+      ${dinnerEnabled()?`<div class="wsm-item"><div class="wsm-val">${totalRepas}</div><div class="wsm-lbl">repas</div><div class="wsm-sub">${repasRevenue>0?repasRevenue.toLocaleString('fr-FR')+' €':'—'}</div></div>`:''}
       <div class="wsm-item"><div class="wsm-val">${totalExtras>0?totalExtras.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">extras</div></div>
     </div>
   </div>`;
@@ -4401,10 +4440,12 @@ function renderMonth(){
     totalRepas+=extDinersCount(ds);
     extDinersRevenueTotal+=extDinersRevenueForDate(ds);
   }
-  const nightsRevenue=periodRevTotal-repasRevenueFromBookings;
+  // Table d'hôte désactivée : le CA repas est simplement replié dans "nuitées"
+  // (le total général reste identique), et sa carte dédiée est masquée.
+  const nightsRevenue=dinnerEnabled()?periodRevTotal-repasRevenueFromBookings:periodRevTotal+extDinersRevenueTotal;
   const repasRevenue=repasRevenueFromBookings+extDinersRevenueTotal;
   const eventsRevenue=S.events.filter(ev=>ev.revenue>0&&ev.startDate>=mStart&&ev.startDate<mEndExact).reduce((s,ev)=>s+ev.revenue,0);
-  const totalRev=nightsRevenue+repasRevenue+totalExtras+eventsRevenue;
+  const totalRev=nightsRevenue+(dinnerEnabled()?repasRevenue:0)+totalExtras+eventsRevenue;
   const occPct=totalPossible>0?Math.round(totalNights/totalPossible*100):0;
 
   // Per-room occupancy
@@ -4441,9 +4482,11 @@ function renderMonth(){
   // Revenue breakdown — total chapeau + détail par catégorie
   const mRevItems=[
     `<div class="wsm-item"><div class="wsm-val">${totalNights}</div><div class="wsm-lbl">nuitées</div><div class="wsm-sub">${nightsRevenue>0?nightsRevenue.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-sub">/ ${totalPossible} possibles</div></div>`,
-    `<div class="wsm-item"><div class="wsm-val">${totalRepas}</div><div class="wsm-lbl">repas / table d'hôtes</div><div class="wsm-sub">${repasRevenue>0?repasRevenue.toLocaleString('fr-FR')+' €':'—'}</div></div>`,
     `<div class="wsm-item"><div class="wsm-val">${totalExtras>0?totalExtras.toLocaleString('fr-FR')+' €':'—'}</div><div class="wsm-lbl">extras</div></div>`
   ];
+  if(dinnerEnabled()){
+    mRevItems.splice(1,0,`<div class="wsm-item"><div class="wsm-val">${totalRepas}</div><div class="wsm-lbl">repas / table d'hôtes</div><div class="wsm-sub">${repasRevenue>0?repasRevenue.toLocaleString('fr-FR')+' €':'—'}</div></div>`);
+  }
   if(eventsRevenue>0){
     mRevItems.push(`<div class="wsm-item"><div class="wsm-val">${eventsRevenue.toLocaleString('fr-FR')} €</div><div class="wsm-lbl">événements</div></div>`);
   }
