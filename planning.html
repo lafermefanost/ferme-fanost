@@ -725,6 +725,22 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .set-tariff-hd span{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);text-align:right;}
 .set-tariff-hd span:first-child{text-align:left;}
 .set-color{width:28px;height:28px;border:none;padding:2px;border-radius:6px;cursor:pointer;flex-shrink:0;}
+/* Une chambre = un bloc bien dissocié : nom en tête, champs secondaires étiquetés,
+   tarif nuitée en bas — le tout dans un même encadré beige. */
+.room-card{background:#F7F5F1;border-radius:10px;padding:12px;margin-bottom:10px;}
+.room-card:last-of-type{margin-bottom:0;}
+.room-card-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.room-card-top .set-fi{background:#fff;border-radius:6px;padding:7px 9px;font-weight:500;}
+.room-card-grid{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px;margin-bottom:10px;}
+.rcg-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:3px;}
+.rcg-field .rcg-input-wrap{display:flex;align-items:center;gap:4px;background:#fff;border-radius:6px;padding:2px 8px;}
+.rcg-field .set-fi-sm{padding:5px 0;text-align:left;width:32px;}
+.rcg-field .rcg-unit{font-size:11px;color:var(--gray);flex-shrink:0;}
+.rcg-field select{width:100%;border:none;background:#fff;border-radius:6px;padding:7px 8px;
+  font-family:'Jost',sans-serif;font-size:13px;color:var(--dark);outline:none;}
+.room-card-tariff{padding-top:10px;border-top:1px solid #E8E4DC;}
+.room-card-tariff-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:6px;}
+.room-card-tariff .set-tariff-row,.room-card-tariff .set-tariff-hd{background:transparent;}
 /* ── Year view ── */
 #yearWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
   -webkit-overflow-scrolling:touch;}
@@ -3482,8 +3498,8 @@ function roomTariffHTML(r){
   const cols=Array.from({length:max},(_,i)=>i+1);
   const hist=[...(r.tariffHistory||[])].sort((a,b)=>a.from.localeCompare(b.from));
   const gridCols=`1fr ${cols.map(()=>'44px').join(' ')} 22px`;
-  let h=`<div style="margin:4px 0 8px 0;padding:8px 10px;background:#F7F5F1;border-radius:8px">
-    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:4px">Tarif nuitée — ${r.name.replace(/"/g,'&quot;')}</div>
+  let h=`<div class="room-card-tariff">
+    <div class="room-card-tariff-title">Tarif nuitée</div>
     <div class="set-tariff-hd" style="grid-template-columns:${gridCols}">
       <span>À partir du</span>${cols.map(p=>`<span>${p} pers</span>`).join('')}<span></span>
     </div>`;
@@ -3546,16 +3562,29 @@ function renderSettings(){
   const structs=st.structures&&st.structures.length?st.structures:DEFAULT_SETTINGS.structures;
   let roomsBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Chaque chambre a son propre tarif nuitée par nombre de personnes, versionné par date : les réservations déjà enregistrées gardent le tarif en vigueur à leur date d'arrivée, seules les nouvelles réservations utilisent un tarif modifié.</div>`;
   (st.rooms||[]).forEach(r=>{
-    roomsBody+=`<div class="set-row" style="flex-wrap:wrap;gap:6px;">
-      <input class="set-fi" value="${r.name.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateRoom('${r.id}','name',this.value)">
-      <input class="set-fi" style="width:52px;flex:none;" value="${r.short.replace(/"/g,'&quot;')}" placeholder="Court" onblur="updateRoom('${r.id}','short',this.value)">
-      <span style="font-size:11px;color:var(--gray);flex-shrink:0;white-space:nowrap">max <input type="number" class="set-fi-sm" value="${r.maxPersons||2}" min="1" max="20" title="Capacité max" onblur="updateRoom('${r.id}','maxPersons',parseInt(this.value)||2)"> pers</span>
-      <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;padding:2px 4px;background:#fff;color:var(--dark);flex-shrink:0" title="Structure juridique de rattachement" onchange="updateRoom('${r.id}','group',this.value)">
-        ${structs.map(s=>`<option value="${s.id}"${(r.group||structs[0].id)===s.id?' selected':''}>${s.name.replace(/"/g,'&quot;')}</option>`).join('')}
-      </select>
-      <button class="set-del" onclick="delRoom('${r.id}')">×</button>
+    roomsBody+=`<div class="room-card">
+      <div class="room-card-top">
+        <input class="set-fi" value="${r.name.replace(/"/g,'&quot;')}" placeholder="Nom de la chambre" onblur="updateRoom('${r.id}','name',this.value)">
+        <button class="set-del" onclick="delRoom('${r.id}')">×</button>
+      </div>
+      <div class="room-card-grid">
+        <div class="rcg-field">
+          <label title="Nom abrégé affiché dans les en-têtes de la grille">Code court</label>
+          <div class="rcg-input-wrap"><input class="set-fi" style="padding:5px 0" value="${r.short.replace(/"/g,'&quot;')}" placeholder="Ch.1" title="Nom abrégé affiché dans les en-têtes de la grille" onblur="updateRoom('${r.id}','short',this.value)"></div>
+        </div>
+        <div class="rcg-field">
+          <label>Capacité max</label>
+          <div class="rcg-input-wrap"><input type="number" class="set-fi-sm" value="${r.maxPersons||2}" min="1" max="20" onblur="updateRoom('${r.id}','maxPersons',parseInt(this.value)||2)"><span class="rcg-unit">pers</span></div>
+        </div>
+        <div class="rcg-field">
+          <label>Structure</label>
+          <select onchange="updateRoom('${r.id}','group',this.value)">
+            ${structs.map(s=>`<option value="${s.id}"${(r.group||structs[0].id)===s.id?' selected':''}>${s.name.replace(/"/g,'&quot;')}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      ${roomTariffHTML(r)}
     </div>`;
-    roomsBody+=roomTariffHTML(r);
   });
   roomsBody+=`<button class="set-add" onclick="addRoom()">+ Ajouter une chambre</button>`;
   h+=settingsPanel('chambres','Chambres &amp; gîtes',roomsBody);
