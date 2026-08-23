@@ -1337,20 +1337,26 @@ let weekOpenDays=new Set();
 let weekOpenDaysFor=null;
 
 const DEFAULT_PRICES={solo:100, double:125, th:25, bf:5};
+// Prix par défaut d'une chambre selon sa capacité : 100€ pour 1 pers, 125€ à partir de 2.
+function defaultRoomPrices(max){
+  const prices={};
+  for(let p=1;p<=(max||2);p++) prices[p]=p===1?100:125;
+  return prices;
+}
 const DEFAULT_SETTINGS={
   name:'Fanost — Planning',
   rooms:[
-    {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
-    {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
-    {id:'ch3',name:'Chambre 3',short:'Ch.3',color:'#B57A8C',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
-    {id:'ch4',name:'Chambre 4',short:'Ch.4',color:'#8CB57A',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
-    {id:'vip',name:'VIP',short:'VIP',color:'#B5A07A',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
-    {id:'fam',name:'Famille',short:'FAM',color:'#7AB5A0',maxPersons:4,babyCrib:true,babyCribPrice:15,group:'sasu'},
-    {id:'jdn',name:'Jardin',short:'JDN',color:'#A07AB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu'},
-    {id:'wis',name:'Wissous',short:'WIS',color:'#B57A7A',maxPersons:4,babyCrib:false,babyCribPrice:15,group:'lmnp'},
+    {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
+    {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
+    {id:'ch3',name:'Chambre 3',short:'Ch.3',color:'#B57A8C',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
+    {id:'ch4',name:'Chambre 4',short:'Ch.4',color:'#8CB57A',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
+    {id:'vip',name:'VIP',short:'VIP',color:'#B5A07A',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
+    {id:'fam',name:'Famille',short:'FAM',color:'#7AB5A0',maxPersons:4,babyCrib:true,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(4)}]},
+    {id:'jdn',name:'Jardin',short:'JDN',color:'#A07AB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
+    {id:'wis',name:'Wissous',short:'WIS',color:'#B57A7A',maxPersons:4,babyCrib:false,babyCribPrice:15,group:'lmnp',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(4)}]},
   ],
   cleaners:[{name:'Rosa',rate:15},{name:'Svetlana',rate:15},{name:'Tatiana',rate:15}],
-  tariffHistory:[{id:'t0',from:'2000-01-01',solo:100,double:125,th:25,bf:5}],
+  tariffHistory:[{id:'t0',from:'2000-01-01',th:25,bf:5}],
   chargeCategories:[
     {id:'depot',label:'Dépôt / Caution',keywords:['depot de garantie','dépôt de garantie'],excluded:true},
     {id:'notesfrais',label:'Notes de frais',keywords:['note de frais','achat pro'],excluded:false},
@@ -1382,12 +1388,34 @@ const DEFAULT_SETTINGS={
   ]
 };
 
+// Tarif global repas / petit-déjeuner (identique pour toutes les chambres), versionné par date.
 function getTariffForDate(ds){
-  const hist=(S.settings&&S.settings.tariffHistory)||[{from:'2000-01-01',solo:100,double:125,th:25,bf:5}];
+  const hist=(S.settings&&S.settings.tariffHistory)||[{from:'2000-01-01',th:25,bf:5}];
   const sorted=[...hist].sort((a,b)=>a.from.localeCompare(b.from));
   let t=sorted[0];
   for(const h of sorted){if(h.from<=ds)t=h;}
   return t;
+}
+// Tarif nuitée, propre à chaque chambre/gîte et versionné par date : {id,from,prices:{1:.., 2:.., ...}}.
+function getRoomTariffForDate(roomId,ds){
+  const room=ROOMS.find(r=>r.id===roomId);
+  const hist=(room&&room.tariffHistory&&room.tariffHistory.length)?room.tariffHistory:[{from:'2000-01-01',prices:defaultRoomPrices(2)}];
+  const sorted=[...hist].sort((a,b)=>a.from.localeCompare(b.from));
+  let t=sorted[0];
+  for(const h of sorted){if(h.from<=ds)t=h;}
+  return t;
+}
+// Prix de la nuitée pour un nombre de personnes donné, au tarif en vigueur à la date ds.
+// Si le palier exact (ex: 3 pers) n'est pas défini, utilise le palier défini le plus proche
+// en-dessous (ou le premier palier si aucun n'est ≤ pax).
+function getRoomPriceForDate(roomId,ds,pax){
+  const t=getRoomTariffForDate(roomId,ds);
+  const prices=t.prices||{};
+  const keys=Object.keys(prices).map(Number).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
+  if(!keys.length)return 0;
+  let price=prices[keys[0]];
+  for(const k of keys){if(k<=pax)price=prices[k];}
+  return price;
 }
 function getSource(id){
   const sources=S.settings?.sources||DEFAULT_SETTINGS.sources;
@@ -1407,8 +1435,7 @@ function getNightlyRate(bk){
   if(isSourceNoRevenue(bk.source)) return 0;
   const g=guest(bk.guestId);
   if(g&&g.price)return g.price;
-  const t=getTariffForDate(bk.checkIn||todayISO());
-  return(bk.nbPersons||2)===1?t.solo:t.double;
+  return getRoomPriceForDate(bk.roomId,bk.checkIn||todayISO(),bk.nbPersons||2);
 }
 // Le petit-déjeuner est inclus par défaut dans le tarif nuitée (1/2+ pers).
 // bk.noBreakfast liste les nuits où il a été décoché — chacune déduit le prix
@@ -1639,12 +1666,7 @@ function applyRemoteData(d,meta){
     migrateCleaners();
     const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
     if(ghostSrc)ghostSrc.noRevenue=false;
-    if(S.settings.rooms){
-      const defMap=new Map(DEFAULT_SETTINGS.rooms.map(r=>[r.id,r]));
-      S.settings.rooms.forEach(r=>{
-        if(r.group===undefined){const d=defMap.get(r.id);r.group=d?d.group||'sasu':'sasu';}
-      });
-    }
+    migrateRoomFields();
     localStorage.setItem('ff2_settings',JSON.stringify(S.settings));
     applySettings();
   }
@@ -3205,13 +3227,31 @@ function loadSettings(){
   migrateCleaners();
   const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
   if(ghostSrc)ghostSrc.noRevenue=false;
-  // Migrate missing room fields (group, babyCrib, etc.) from DEFAULT_SETTINGS
-  if(S.settings.rooms){
-    const defMap=new Map(DEFAULT_SETTINGS.rooms.map(r=>[r.id,r]));
-    S.settings.rooms.forEach(r=>{
-      if(r.group===undefined){const d=defMap.get(r.id);r.group=d?d.group||'sasu':'sasu';}
-    });
-  }
+  migrateRoomFields();
+}
+// Migrate missing room fields (group, babyCrib, etc.) from DEFAULT_SETTINGS, and the
+// old global tariff (solo/double, unique pour toutes les chambres) vers un tarif par
+// chambre : chaque chambre reçoit son propre historique, initialisé avec les valeurs
+// globales existantes, pour que les réservations déjà enregistrées ne changent pas de
+// prix après la mise à jour. Appelée à la fois au chargement local et à la réception
+// de réglages synchronisés (Firebase), qui peuvent provenir d'un ancien format.
+function migrateRoomFields(){
+  if(!S.settings.rooms)return;
+  const defMap=new Map(DEFAULT_SETTINGS.rooms.map(r=>[r.id,r]));
+  S.settings.rooms.forEach(r=>{
+    if(r.group===undefined){const d=defMap.get(r.id);r.group=d?d.group||'sasu':'sasu';}
+  });
+  const legacyHist=(S.settings.tariffHistory&&S.settings.tariffHistory.length)?S.settings.tariffHistory:DEFAULT_SETTINGS.tariffHistory;
+  S.settings.rooms.forEach(r=>{
+    if(!r.tariffHistory||!r.tariffHistory.length){
+      const max=r.maxPersons||2;
+      r.tariffHistory=legacyHist.map(t=>{
+        const prices={};
+        for(let p=1;p<=max;p++)prices[p]=p===1?(t.solo??100):(t.double??125);
+        return{id:uid(),from:t.from,prices};
+      });
+    }
+  });
 }
 // Migrate old format S.settings.cleaners=[name,...] (strings) → [{name,rate}]
 function migrateCleaners(){
@@ -3397,6 +3437,31 @@ function openSettings(){
   byId('modalSettings').style.display='flex';
 }
 
+// Petit tableau de tarifs nuitée (1 pers, 2 pers, ... jusqu'à la capacité de la
+// chambre), versionné par date, affiché sous chaque chambre dans les réglages.
+function roomTariffHTML(r){
+  const max=r.maxPersons||2;
+  const cols=Array.from({length:max},(_,i)=>i+1);
+  const hist=[...(r.tariffHistory||[])].sort((a,b)=>a.from.localeCompare(b.from));
+  const gridCols=`1fr ${cols.map(()=>'44px').join(' ')} 22px`;
+  let h=`<div style="margin:4px 0 8px 0;padding:8px 10px;background:#F7F5F1;border-radius:8px">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:4px">Tarif nuitée — ${r.name.replace(/"/g,'&quot;')}</div>
+    <div class="set-tariff-hd" style="grid-template-columns:${gridCols}">
+      <span>À partir du</span>${cols.map(p=>`<span>${p} pers</span>`).join('')}<span></span>
+    </div>`;
+  hist.forEach(t=>{
+    const canDel=hist.length>1;
+    h+=`<div class="set-tariff-row" style="grid-template-columns:${gridCols}">
+      <input class="set-fi" type="date" value="${t.from}" onblur="updateRoomTariff('${r.id}','${t.id}','from',this.value)">
+      ${cols.map(p=>`<input class="set-fi-sm" type="number" value="${t.prices&&t.prices[p]!=null?t.prices[p]:''}" onblur="updateRoomTariffPrice('${r.id}','${t.id}',${p},+this.value)">`).join('')}
+      <button class="set-del" ${canDel?'':'disabled style="opacity:.3"'} onclick="delRoomTariff('${r.id}','${t.id}')">×</button>
+    </div>`;
+  });
+  h+=`<button class="set-add" onclick="addRoomTariff('${r.id}')">+ Nouveau tarif pour cette chambre</button>
+  </div>`;
+  return h;
+}
+
 function renderSettings(){
   const st=S.settings;
   let h='';
@@ -3410,23 +3475,19 @@ function renderSettings(){
     </div>
   </div>`;
 
-  // — Tarifs —
+  // — Tarifs repas & petit-déjeuner (globaux, identiques pour toutes les chambres) —
   h+=`<div class="set-sec">
-    <div class="set-sec-title">Tarifs nuitée &amp; repas</div>
-    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Appliqués aux réservations sans prix personnalisé, selon la date de début. Le tarif « 1 pers / 2+ pers » inclut le petit-déjeuner ; « P-déj € » est le montant déduit par nuit lorsqu'il est décoché.</div>
-    <div class="set-tariff-hd">
-      <span>À partir du</span><span>1 pers €</span><span>2+ pers €</span><span>Repas €</span><span>P-déj €</span><span></span>
+    <div class="set-sec-title">Tarifs repas &amp; petit-déjeuner</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Communs à toutes les chambres, appliqués selon la date de début du séjour. « P-déj € » est le montant déduit par nuit lorsqu'il est décoché (voir tarif nuitée dans chaque chambre ci-dessous).</div>
+    <div class="set-tariff-hd" style="grid-template-columns:1fr 60px 60px 24px">
+      <span>À partir du</span><span>Repas €</span><span>P-déj €</span><span></span>
     </div>`;
   const tariffs=[...(st.tariffHistory||[])].sort((a,b)=>a.from.localeCompare(b.from));
   tariffs.forEach((t,i)=>{
     const canDel=tariffs.length>1;
-    h+=`<div class="set-tariff-row">
+    h+=`<div class="set-tariff-row" style="grid-template-columns:1fr 60px 60px 24px">
       <input class="set-fi" type="date" value="${t.from}"
         onblur="updateTariff('${t.id}','from',this.value)">
-      <input class="set-fi-sm" type="number" value="${t.solo}"
-        onblur="updateTariff('${t.id}','solo',+this.value)">
-      <input class="set-fi-sm" type="number" value="${t.double}"
-        onblur="updateTariff('${t.id}','double',+this.value)">
       <input class="set-fi-sm" type="number" value="${t.th}"
         onblur="updateTariff('${t.id}','th',+this.value)">
       <input class="set-fi-sm" type="number" value="${t.bf!=null?t.bf:5}"
@@ -3437,9 +3498,10 @@ function renderSettings(){
   h+=`<button class="set-add" onclick="addTariff()">+ Nouveau tarif à partir d'aujourd'hui</button>
   </div>`;
 
-  // — Chambres —
+  // — Chambres / gîtes, avec tarif nuitée propre à chacun(e) —
   h+=`<div class="set-sec">
-    <div class="set-sec-title">Chambres</div>`;
+    <div class="set-sec-title">Chambres &amp; gîtes</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Chaque chambre a son propre tarif nuitée par nombre de personnes, versionné par date : les réservations déjà enregistrées gardent le tarif en vigueur à leur date d'arrivée, seules les nouvelles réservations utilisent un tarif modifié.</div>`;
   (st.rooms||[]).forEach(r=>{
     h+=`<div class="set-row" style="flex-wrap:wrap;gap:6px;">
       <input class="set-fi" value="${r.name.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateRoom('${r.id}','name',this.value)">
@@ -3456,6 +3518,7 @@ function renderSettings(){
       </select>
       <button class="set-del" onclick="delRoom('${r.id}')">×</button>
     </div>`;
+    h+=roomTariffHTML(r);
   });
   h+=`<button class="set-add" onclick="addRoom()">+ Ajouter une chambre</button>
   </div>`;
@@ -3542,7 +3605,7 @@ function renderSettings(){
 
 // Tariff CRUD
 function addTariff(){
-  S.settings.tariffHistory.push({id:uid(),from:todayISO(),solo:100,double:125,th:25,bf:5});
+  S.settings.tariffHistory.push({id:uid(),from:todayISO(),th:25,bf:5});
   saveSettings();renderSettings();
 }
 function delTariff(id){
@@ -3562,7 +3625,7 @@ function addRoom(){
   const colors=['#7A8C65','#7A8CB5','#B57A8C','#8CB57A','#B5A07A','#7AB5A0'];
   const color=colors[S.settings.rooms.length%colors.length];
   const n=S.settings.rooms.length+1;
-  S.settings.rooms.push({id:uid(),name:'Chambre '+n,short:'C'+n,color,maxPersons:2,babyCrib:false,babyCribPrice:15});
+  S.settings.rooms.push({id:uid(),name:'Chambre '+n,short:'C'+n,color,maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:uid(),from:'2000-01-01',prices:defaultRoomPrices(2)}]});
   saveSettings();applySettings();renderSettings();renderGrid();
 }
 function delRoom(id){
@@ -3576,7 +3639,41 @@ function updateRoom(id,field,val){
   r[field]=val;
   saveSettings();applySettings();
   if(field==='name'||field==='short')renderGrid();
-  if(field==='babyCrib')renderSettings();
+  if(field==='babyCrib'||field==='maxPersons')renderSettings();
+}
+
+// Tarif nuitée par chambre — CRUD
+function addRoomTariff(roomId){
+  const r=S.settings.rooms.find(x=>x.id===roomId);
+  if(!r)return;
+  if(!r.tariffHistory)r.tariffHistory=[];
+  const max=r.maxPersons||2;
+  const last=[...r.tariffHistory].sort((a,b)=>a.from.localeCompare(b.from)).pop();
+  const prices={};
+  for(let p=1;p<=max;p++)prices[p]=last&&last.prices&&last.prices[p]!=null?last.prices[p]:(p===1?100:125);
+  r.tariffHistory.push({id:uid(),from:todayISO(),prices});
+  saveSettings();renderSettings();
+}
+function delRoomTariff(roomId,tid){
+  const r=S.settings.rooms.find(x=>x.id===roomId);
+  if(!r||!r.tariffHistory||r.tariffHistory.length<=1)return;
+  r.tariffHistory=r.tariffHistory.filter(t=>t.id!==tid);
+  saveSettings();renderSettings();
+}
+function updateRoomTariff(roomId,tid,field,val){
+  const r=S.settings.rooms.find(x=>x.id===roomId);
+  const t=r&&r.tariffHistory.find(x=>x.id===tid);
+  if(!t)return;
+  t[field]=val;
+  saveSettings();
+}
+function updateRoomTariffPrice(roomId,tid,pax,val){
+  const r=S.settings.rooms.find(x=>x.id===roomId);
+  const t=r&&r.tariffHistory.find(x=>x.id===tid);
+  if(!t)return;
+  if(!t.prices)t.prices={};
+  t.prices[pax]=val;
+  saveSettings();
 }
 
 function updateThreshold(field,val){
