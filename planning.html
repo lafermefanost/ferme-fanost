@@ -1377,8 +1377,18 @@ const DEFAULT_SETTINGS={
     {id:'conciergerie',label:'Conciergerie',keywords:['conciergerie','marine dubois'],excluded:false},
     {id:'linge',label:'Linge / Pressing',keywords:['saifwad','tissco'],excluded:false},
   ],
-  groupNames:{sasu:"Chambres d'hôtes", lmnp:'Wissous'},
-  thresholds:{tva:91900, lmnp:23000, platformNights:120},
+  // Structures juridiques : liste libre, une chambre/gîte est rattaché(e) à l'une d'elles (room.group).
+  structures:[{id:'sasu',name:"Chambres d'hôtes"},{id:'lmnp',name:'Wissous'}],
+  // Seuils par structure — plusieurs possibles, de type 'revenue' (CA réalisé/projeté vs montant)
+  // ou 'nights' (nuits via plateformes vs limite). Purement informatif/déclaratif, aucun par défaut
+  // n'est imposé à une structure ajoutée par l'utilisateur.
+  structureThresholds:{
+    sasu:[{id:'th-tva',type:'revenue',label:'Franchise TVA',amount:91900,color:'#E07828'}],
+    lmnp:[
+      {id:'th-lmp',type:'revenue',label:'Seuil LMP',amount:23000,color:'#E07828'},
+      {id:'th-plat',type:'nights',label:'Nuits plateformes',amount:120,color:'#3D5C35'},
+    ],
+  },
   sources:[
     {id:'direct',      label:'Direct',      color:'#7ABF6A',noRevenue:false},
     {id:'airbnb',      label:'Airbnb',      color:'#F1948A',noRevenue:false},
@@ -1658,14 +1668,18 @@ function applyRemoteData(d,meta){
   if(d.catalog&&d.catalog.length){S.catalog=d.catalog;saveCatalog();}
   if(d.settings){
     S.settings={...JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),...d.settings};
+    // Le spread ci-dessus comble structures/structureThresholds avec les valeurs par
+    // défaut si absentes de d.settings — on les efface d'abord pour que la migration
+    // ci-dessous reconstruise bien depuis l'ancien groupNames/thresholds synchronisé,
+    // au lieu d'écraser silencieusement des structures renommées par l'utilisateur.
+    if(!d.settings.structures)S.settings.structures=null;
+    if(!d.settings.structureThresholds)S.settings.structureThresholds=null;
     if(!S.settings.chargeCategories||!S.settings.chargeCategories.length)S.settings.chargeCategories=JSON.parse(JSON.stringify(DEFAULT_SETTINGS.chargeCategories));
-    if(!S.settings.thresholds)S.settings.thresholds={...DEFAULT_SETTINGS.thresholds};
-    if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
-    if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
     if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
     migrateCleaners();
     const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
     if(ghostSrc)ghostSrc.noRevenue=false;
+    migrateStructures();
     migrateRoomFields();
     localStorage.setItem('ff2_settings',JSON.stringify(S.settings));
     applySettings();
@@ -3219,15 +3233,42 @@ function saveCatalog(){localStorage.setItem('ff2_catalog',JSON.stringify(S.catal
 function loadSettings(){
   const raw=localStorage.getItem('ff2_settings');
   S.settings=raw?JSON.parse(raw):JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
-  if(!S.settings.thresholds)S.settings.thresholds={...DEFAULT_SETTINGS.thresholds};
-  if(S.settings.thresholds.platformNights===undefined)S.settings.thresholds.platformNights=120;
-  if(!S.settings.groupNames)S.settings.groupNames={...DEFAULT_SETTINGS.groupNames};
   if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
   if(!S.settings.chargeCategories||!S.settings.chargeCategories.length)S.settings.chargeCategories=JSON.parse(JSON.stringify(DEFAULT_SETTINGS.chargeCategories));
   migrateCleaners();
   const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
   if(ghostSrc)ghostSrc.noRevenue=false;
+  migrateStructures();
   migrateRoomFields();
+}
+// Migration : ancien format groupNames{sasu,lmnp} + thresholds{tva,lmnp,platformNights}
+// (fixe, 2 structures imposées) → liste libre de structures, chacune avec sa propre liste
+// de seuils (0, 1 ou plusieurs, de type 'revenue' ou 'nights'). Les structures ajoutées
+// par l'utilisateur n'ont aucun seuil par défaut — à lui de les configurer si pertinent.
+function migrateStructures(){
+  if(!S.settings.structures||!S.settings.structures.length){
+    const gn=S.settings.groupNames;
+    S.settings.structures=gn&&Object.keys(gn).length
+      ?Object.keys(gn).map(id=>({id,name:gn[id]}))
+      :JSON.parse(JSON.stringify(DEFAULT_SETTINGS.structures));
+  }
+  if(!S.settings.structureThresholds){
+    const th=S.settings.thresholds||{};
+    S.settings.structureThresholds={};
+    S.settings.structures.forEach(s=>{
+      if(s.id==='sasu'){
+        S.settings.structureThresholds.sasu=[{id:uid(),type:'revenue',label:'Franchise TVA',amount:th.tva||91900,color:'#E07828'}];
+      } else if(s.id==='lmnp'){
+        S.settings.structureThresholds.lmnp=[
+          {id:uid(),type:'revenue',label:'Seuil LMP',amount:th.lmnp||23000,color:'#E07828'},
+          {id:uid(),type:'nights',label:'Nuits plateformes',amount:th.platformNights||120,color:'#3D5C35'},
+        ];
+      }
+    });
+  }
+  S.settings.structures.forEach(s=>{
+    if(!S.settings.structureThresholds[s.id])S.settings.structureThresholds[s.id]=[];
+  });
 }
 // Migrate missing room fields (group, babyCrib, etc.) from DEFAULT_SETTINGS, and the
 // old global tariff (solo/double, unique pour toutes les chambres) vers un tarif par
@@ -3502,19 +3543,18 @@ function renderSettings(){
   h+=`<div class="set-sec">
     <div class="set-sec-title">Chambres &amp; gîtes</div>
     <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Chaque chambre a son propre tarif nuitée par nombre de personnes, versionné par date : les réservations déjà enregistrées gardent le tarif en vigueur à leur date d'arrivée, seules les nouvelles réservations utilisent un tarif modifié.</div>`;
+  const structs=st.structures&&st.structures.length?st.structures:DEFAULT_SETTINGS.structures;
   (st.rooms||[]).forEach(r=>{
     h+=`<div class="set-row" style="flex-wrap:wrap;gap:6px;">
       <input class="set-fi" value="${r.name.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateRoom('${r.id}','name',this.value)">
       <input class="set-fi" style="width:52px;flex:none;" value="${r.short.replace(/"/g,'&quot;')}" placeholder="Court" onblur="updateRoom('${r.id}','short',this.value)">
-      <input type="color" class="set-color" value="${r.color||'#7A8C65'}" oninput="updateRoom('${r.id}','color',this.value)">
       <span style="font-size:11px;color:var(--gray);flex-shrink:0;white-space:nowrap">max <input type="number" class="set-fi-sm" value="${r.maxPersons||2}" min="1" max="20" title="Capacité max" onblur="updateRoom('${r.id}','maxPersons',parseInt(this.value)||2)"> pers</span>
-      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--gray);flex-shrink:0;cursor:pointer" title="Lit bébé disponible">
-        <input type="checkbox" ${r.babyCrib?'checked':''} onchange="updateRoom('${r.id}','babyCrib',this.checked)"> 🛏
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--gray);flex-shrink:0;cursor:pointer" title="Propose un lit bébé, en supplément payant, pour cette chambre">
+        <input type="checkbox" ${r.babyCrib?'checked':''} onchange="updateRoom('${r.id}','babyCrib',this.checked)"> 🛏 Lit bébé
       </label>
       ${r.babyCrib?`<input type="number" class="set-fi-sm" value="${r.babyCribPrice||15}" min="0" title="Prix lit bébé/nuit (€)" onblur="updateRoom('${r.id}','babyCribPrice',parseFloat(this.value)||15)"> <span style="font-size:11px;color:var(--gray)">€/nuit</span>`:''}
-      <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;padding:2px 4px;background:#fff;color:var(--dark);flex-shrink:0" onchange="updateRoom('${r.id}','group',this.value)">
-        <option value="sasu"${(r.group||'sasu')==='sasu'?' selected':''}>SASU</option>
-        <option value="lmnp"${r.group==='lmnp'?' selected':''}>LMNP</option>
+      <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;padding:2px 4px;background:#fff;color:var(--dark);flex-shrink:0" title="Structure juridique de rattachement" onchange="updateRoom('${r.id}','group',this.value)">
+        ${structs.map(s=>`<option value="${s.id}"${(r.group||structs[0].id)===s.id?' selected':''}>${s.name.replace(/"/g,'&quot;')}</option>`).join('')}
       </select>
       <button class="set-del" onclick="delRoom('${r.id}')">×</button>
     </div>`;
@@ -3539,24 +3579,37 @@ function renderSettings(){
   h+=`<button class="set-add" onclick="addSource()">+ Ajouter une source</button>
   </div>`;
 
-  // — Seuils fiscaux —
+  // — Structures juridiques, chacune avec ses propres seuils —
   h+=`<div class="set-sec">
-    <div class="set-sec-title">Seuils fiscaux</div>
-    <div class="set-row">
-      <span class="set-lbl">Franchise TVA</span>
-      <input type="number" class="set-fi-sm" style="width:90px" value="${(st.thresholds||DEFAULT_SETTINGS.thresholds).tva||91900}" onblur="updateThreshold('tva',parseFloat(this.value)||91900)">
-      <span style="font-size:11px;color:var(--gray)">€</span>
+    <div class="set-sec-title">Structures juridiques</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Chaque chambre/gîte est rattaché(e) à l'une de ces structures (réglage dans "Chambres &amp; gîtes" ci-dessus). Dans la vue Année, le total global est toujours affiché en premier, puis chaque structure est calculée indépendamment. Les seuils sont optionnels et propres à chaque structure — laissez-en zéro si non pertinent.</div>`;
+  const structsForThr=st.structures&&st.structures.length?st.structures:DEFAULT_SETTINGS.structures;
+  structsForThr.forEach(s=>{
+    const thr=(st.structureThresholds&&st.structureThresholds[s.id])||[];
+    const canDelS=structsForThr.length>1;
+    h+=`<div class="set-row">
+      <input class="set-fi" value="${s.name.replace(/"/g,'&quot;')}" placeholder="Nom de la structure" onblur="updateStructureName('${s.id}',this.value)">
+      <button class="set-del" ${canDelS?'':'disabled style="opacity:.3"'} onclick="delStructure('${s.id}')">×</button>
     </div>
-    <div class="set-row">
-      <span class="set-lbl">Seuil LMNP</span>
-      <input type="number" class="set-fi-sm" style="width:90px" value="${(st.thresholds||DEFAULT_SETTINGS.thresholds).lmnp||23000}" onblur="updateThreshold('lmnp',parseFloat(this.value)||23000)">
-      <span style="font-size:11px;color:var(--gray)">€</span>
-    </div>
-    <div class="set-row">
-      <span class="set-lbl">Limite nuits plateformes</span>
-      <input type="number" class="set-fi-sm" style="width:70px" value="${(st.thresholds||DEFAULT_SETTINGS.thresholds).platformNights||120}" onblur="updateThreshold('platformNights',parseFloat(this.value)||120)">
-      <span style="font-size:11px;color:var(--gray)">nuits/an</span>
-    </div>
+    <div style="margin:4px 0 10px 0;padding:8px 10px;background:#F7F5F1;border-radius:8px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:4px">Seuils — ${s.name.replace(/"/g,'&quot;')}</div>`;
+    if(!thr.length)h+=`<div style="font-size:11px;color:#bbb;padding:2px 0 6px">Aucun seuil configuré pour cette structure.</div>`;
+    thr.forEach(t=>{
+      h+=`<div class="set-row" style="gap:6px;flex-wrap:wrap">
+        <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;padding:4px;background:#fff;color:var(--dark)" onchange="updateStructureThreshold('${s.id}','${t.id}','type',this.value)">
+          <option value="revenue"${t.type==='revenue'?' selected':''}>Chiffre d'affaires (€)</option>
+          <option value="nights"${t.type==='nights'?' selected':''}>Nuits (plateformes)</option>
+        </select>
+        <input class="set-fi" style="flex:1;min-width:90px" placeholder="Libellé" value="${(t.label||'').replace(/"/g,'&quot;')}" onblur="updateStructureThreshold('${s.id}','${t.id}','label',this.value)">
+        <input type="number" class="set-fi-sm" style="width:80px" value="${t.amount||0}" onblur="updateStructureThreshold('${s.id}','${t.id}','amount',parseFloat(this.value)||0)">
+        <span style="font-size:11px;color:var(--gray)">${t.type==='nights'?'nuits/an':'€'}</span>
+        <button class="set-del" onclick="delStructureThreshold('${s.id}','${t.id}')">×</button>
+      </div>`;
+    });
+    h+=`<button class="set-add" onclick="addStructureThreshold('${s.id}')">+ Ajouter un seuil</button>
+    </div>`;
+  });
+  h+=`<button class="set-add" onclick="addStructure()">+ Ajouter une structure</button>
   </div>`;
 
   // — Équipe ménage —
@@ -3622,10 +3675,9 @@ function updateTariff(id,field,val){
 
 // Room CRUD
 function addRoom(){
-  const colors=['#7A8C65','#7A8CB5','#B57A8C','#8CB57A','#B5A07A','#7AB5A0'];
-  const color=colors[S.settings.rooms.length%colors.length];
   const n=S.settings.rooms.length+1;
-  S.settings.rooms.push({id:uid(),name:'Chambre '+n,short:'C'+n,color,maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:uid(),from:'2000-01-01',prices:defaultRoomPrices(2)}]});
+  const structs=S.settings.structures&&S.settings.structures.length?S.settings.structures:DEFAULT_SETTINGS.structures;
+  S.settings.rooms.push({id:uid(),name:'Chambre '+n,short:'C'+n,maxPersons:2,babyCrib:false,babyCribPrice:15,group:structs[0].id,tariffHistory:[{id:uid(),from:'2000-01-01',prices:defaultRoomPrices(2)}]});
   saveSettings();applySettings();renderSettings();renderGrid();
 }
 function delRoom(id){
@@ -3676,11 +3728,53 @@ function updateRoomTariffPrice(roomId,tid,pax,val){
   saveSettings();
 }
 
-function updateThreshold(field,val){
-  if(!S.settings.thresholds)S.settings.thresholds={...DEFAULT_SETTINGS.thresholds};
-  S.settings.thresholds[field]=val;
+// Structures juridiques — CRUD
+function addStructure(){
+  if(!S.settings.structures)S.settings.structures=[];
+  const n=S.settings.structures.length+1;
+  const s={id:uid(),name:'Structure '+n};
+  S.settings.structures.push(s);
+  if(!S.settings.structureThresholds)S.settings.structureThresholds={};
+  S.settings.structureThresholds[s.id]=[];
+  saveSettings();renderSettings();
+}
+function delStructure(id){
+  if(!S.settings.structures||S.settings.structures.length<=1)return;
+  const usedBy=(S.settings.rooms||[]).filter(r=>r.group===id);
+  if(usedBy.length&&!confirm(`${usedBy.length} chambre(s)/gîte(s) sont rattaché(e)s à cette structure. Elles seront réaffectées à la première structure restante. Continuer ?`))return;
+  S.settings.structures=S.settings.structures.filter(s=>s.id!==id);
+  delete S.settings.structureThresholds[id];
+  const fallback=S.settings.structures[0].id;
+  (S.settings.rooms||[]).forEach(r=>{if(r.group===id)r.group=fallback;});
+  saveSettings();applySettings();renderSettings();renderGrid();
+  if(S.view==='year')renderYear();
+}
+function updateStructureName(id,name){
+  const s=(S.settings.structures||[]).find(x=>x.id===id);
+  if(!s)return;
+  s.name=name;
   saveSettings();
   if(S.view==='year')renderYear();
+}
+function addStructureThreshold(sid){
+  if(!S.settings.structureThresholds)S.settings.structureThresholds={};
+  if(!S.settings.structureThresholds[sid])S.settings.structureThresholds[sid]=[];
+  S.settings.structureThresholds[sid].push({id:uid(),type:'revenue',label:'Nouveau seuil',amount:0,color:'#E07828'});
+  saveSettings();renderSettings();
+}
+function delStructureThreshold(sid,tid){
+  if(!S.settings.structureThresholds||!S.settings.structureThresholds[sid])return;
+  S.settings.structureThresholds[sid]=S.settings.structureThresholds[sid].filter(t=>t.id!==tid);
+  saveSettings();renderSettings();
+}
+function updateStructureThreshold(sid,tid,field,val){
+  const arr=S.settings.structureThresholds&&S.settings.structureThresholds[sid];
+  const t=arr&&arr.find(x=>x.id===tid);
+  if(!t)return;
+  t[field]=val;
+  if(field==='type')t.color=val==='nights'?'#3D5C35':'#E07828';
+  saveSettings();
+  if(field==='type')renderSettings();
 }
 
 // Source CRUD
@@ -4426,8 +4520,8 @@ function renderMonth(){
     h+=`</div></div>`;
   }
 
-  // Charges réelles — relevé bancaire panel (un groupe par compte importé, ex. SASU / LMNP)
-  const gNames=S.settings?.groupNames||DEFAULT_SETTINGS.groupNames;
+  // Charges réelles — relevé bancaire panel (un groupe par structure/compte importé)
+  const monthStructs=(S.settings?.structures&&S.settings.structures.length)?S.settings.structures:DEFAULT_SETTINGS.structures;
   const cats=S.settings.chargeCategories||[];
   h+=`<div class="month-charges yr-regl${monthChargesOpen?' open':''}" onclick="toggleMonthPanel('charges')">
     <div class="mch-header" style="margin-bottom:0;cursor:pointer">
@@ -4436,7 +4530,7 @@ function renderMonth(){
     </div>
     <div class="yr-regl-body" style="margin-top:10px">`;
   let anyBankTx=false;
-  [['sasu',gNames.sasu||"Chambres d'hôtes"],['lmnp',gNames.lmnp||'Wissous']].forEach(([gid,label])=>{
+  monthStructs.map(s=>[s.id,s.name]).forEach(([gid,label])=>{
     const bc=variableChargesForMonth(mStart,mEndExact,gid);
     const catRows=Object.entries(bc.byCat).filter(([id,v])=>v.count>0).sort((a,b)=>b[1].total-a[1].total);
     if(catRows.length)anyBankTx=true;
@@ -4565,10 +4659,12 @@ function renderYear(){
   const yStart=`${year}-01-01`;
   const yEnd=`${year+1}-01-01`;
   const today=todayISO();
-  const thr=S.settings?.thresholds||DEFAULT_SETTINGS.thresholds;
-  const gNames=S.settings?.groupNames||DEFAULT_SETTINGS.groupNames;
+  const structs=(S.settings?.structures&&S.settings.structures.length)?S.settings.structures:DEFAULT_SETTINGS.structures;
+  const structThr=S.settings?.structureThresholds||DEFAULT_SETTINGS.structureThresholds;
+  const STRUCTURE_COLORS=['#3D5C35','#8B9D86','#B5A07A','#7A8CB5','#B57A8C','#8CB57A'];
+  const structColor=i=>STRUCTURE_COLORS[i%STRUCTURE_COLORS.length];
 
-  function getGroupRooms(g){return ROOMS.filter(r=>(r.group||'sasu')===g);}
+  function getGroupRooms(g){return ROOMS.filter(r=>(r.group||structs[0].id)===g);}
 
   function groupStats(g){
     const rooms=getGroupRooms(g);
@@ -4608,13 +4704,14 @@ function renderYear(){
     return{rooms,bks,realCA,realNights,projCA,projNights,totalCap,occRate,platNights,ghostCA};
   }
 
-  function nightsGauge(nights,limit){
+  function nightsGauge(nights,limit,label){
+    const lbl=label||'Nuits plateformes';
     const pct=Math.min(100,nights/limit*100);
     const cls=pct>=100?'yr-gauge-danger':pct>=80?'yr-gauge-warn':'';
     const fillColor=cls?'#E07828':'#3D5C35';
     return`<div class="yr-gauge${cls?' '+cls:''}">
       <div class="yr-gauge-top">
-        <span class="yr-gauge-lbl">Nuits plateformes${cls==='yr-gauge-danger'?' ⚠️':cls==='yr-gauge-warn'?' ⚡':''}</span>
+        <span class="yr-gauge-lbl">${lbl}${cls==='yr-gauge-danger'?' ⚠️':cls==='yr-gauge-warn'?' ⚡':''}</span>
         <span class="yr-gauge-thr">limite ${limit} nuits</span>
       </div>
       <div class="yr-gauge-bar">
@@ -4651,10 +4748,16 @@ function renderYear(){
     </div>`;
   }
 
-  function groupCard(gid,name,thresholds,showPlatform){
+  // thresholdConfigs : liste libre de seuils pour cette structure, de type 'revenue' (jauge
+  // CA réalisé/projeté vs montant) ou 'nights' (jauge nuits plateformes vs limite). 0, 1 ou N.
+  function groupCard(gid,name,thresholdConfigs){
     const st=groupStats(gid);
-    const platLimit=thr.platformNights||120;
-    const gaugesHTML=thresholds.map(t=>gauge(st.realCA,st.projCA,t.val,t.color,t.label,st.ghostCA)).join('');
+    const revenueThr=(thresholdConfigs||[]).filter(t=>t.type==='revenue');
+    const nightsThr=(thresholdConfigs||[]).filter(t=>t.type==='nights');
+    const showPlatform=nightsThr.length>0;
+    const platLimit=nightsThr[0]?.amount||120;
+    const gaugesHTML=revenueThr.map(t=>gauge(st.realCA,st.projCA,t.amount,t.color||'#E07828',t.label,st.ghostCA)).join('')
+      +nightsThr.map(t=>nightsGauge(st.platNights,t.amount,t.label)).join('');
     const platStatHTML=showPlatform?`<div class="mstat-card mstat-rev">
           <div class="mstat-val">${st.platNights}</div>
           <div class="mstat-sub">nuits plateformes</div>
@@ -4663,7 +4766,6 @@ function renderYear(){
     return`<div class="yr-group">
       <div class="yr-group-hd">
         <div class="yr-group-name">${name.replace(/\s*\([^)]*\)\s*$/,'')}</div>
-        <span class="yr-group-tag">${gid.toUpperCase()}</span>
       </div>
       <div class="yr-stats">
         <div class="mstat-card mstat-rev">
@@ -4684,26 +4786,19 @@ function renderYear(){
         ${platStatHTML}
       </div>
       ${gaugesHTML}
-      ${showPlatform?nightsGauge(st.platNights,platLimit):''}
     </div>`;
   }
 
-  const sasuHTML=groupCard('sasu',gNames.sasu||"Chambres d'hôtes",[
-    {label:'Franchise TVA',val:thr.tva||91900,color:'#E07828'}
-  ],false);
-  const lmnpHTML=groupCard('lmnp',gNames.lmnp||'Wissous',[
-    {label:'Seuil LMP',val:thr.lmnp||23000,color:'#E07828'}
-  ],true);
+  const structureCardsHTML=structs.map(s=>groupCard(s.id,s.name,structThr[s.id]||[])).join('');
 
-  // Vue d'ensemble : addition des deux activités (occupation = moyenne pondérée par capacité)
+  // Vue d'ensemble : addition de toutes les structures (occupation = moyenne pondérée par capacité)
   function globalCard(){
-    const s1=groupStats('sasu');
-    const s2=groupStats('lmnp');
-    const realCA=s1.realCA+s2.realCA;
-    const projCA=s1.projCA+s2.projCA;
-    const realNights=s1.realNights+s2.realNights;
-    const projNights=s1.projNights+s2.projNights;
-    const totalRooms=s1.rooms.length+s2.rooms.length;
+    const allStats=structs.map(s=>groupStats(s.id));
+    const realCA=allStats.reduce((s,x)=>s+x.realCA,0);
+    const projCA=allStats.reduce((s,x)=>s+x.projCA,0);
+    const realNights=allStats.reduce((s,x)=>s+x.realNights,0);
+    const projNights=allStats.reduce((s,x)=>s+x.projNights,0);
+    const totalRooms=allStats.reduce((s,x)=>s+x.rooms.length,0);
     const elapsedEnd=today<yEnd?today:yEnd;
     const elapsedCap=totalRooms*daysBetween(yStart,elapsedEnd);
     const occRate=elapsedCap>0?Math.round(realNights/elapsedCap*100):0;
@@ -4735,22 +4830,22 @@ function renderYear(){
   }
   const globalHTML=globalCard();
 
-  // Monthly chart
+  // Monthly chart — une série empilée par structure, couleur attribuée par position dans la liste
   const monthRevs=Array.from({length:12},(_,m)=>{
     const mStart=`${year}-${p(m+1)}-01`;
     const mEnd=m===11?`${year+1}-01-01`:`${year}-${p(m+2)}-01`;
-    const rev={sasu:0,lmnp:0};
-    ['sasu','lmnp'].forEach(g=>{
-      const rooms=getGroupRooms(g);
+    const rev={};
+    structs.forEach(s=>{
+      const rooms=getGroupRooms(s.id);
       const roomIds=new Set(rooms.map(r=>r.id));
-      rev[g]=S.bookings
+      rev[s.id]=S.bookings
         .filter(bk=>roomIds.has(bk.roomId)&&bk.checkIn<mEnd&&bk.checkOut>mStart&&!isSourceNoRevenue(bk.source))
-        .reduce((s,bk)=>s+getBookingRevForPeriod(bk,mStart,mEnd),0);
+        .reduce((s2,bk)=>s2+getBookingRevForPeriod(bk,mStart,mEnd),0);
     });
-    rev.total=rev.sasu+rev.lmnp;
-    return{m,mStart,rev};
+    const total=structs.reduce((s2,s)=>s2+rev[s.id],0);
+    return{m,mStart,rev,total};
   });
-  const maxRev=Math.max(1,...monthRevs.map(x=>x.rev.total));
+  const maxRev=Math.max(1,...monthRevs.map(x=>x.total));
   const curMon=today.slice(0,7);
 
   const BAR_H=58;
@@ -4758,17 +4853,17 @@ function renderYear(){
   const chartHTML=`<div class="yr-section">
     <div class="yr-section-title">Revenus par mois</div>
     ${hasRevData?`<div class="yr-chart">
-      ${monthRevs.map(({m,mStart,rev})=>{
+      ${monthRevs.map(({m,mStart,rev,total})=>{
         const isCur=mStart.slice(0,7)===curMon;
-        const sasuPx=Math.round(rev.sasu/maxRev*BAR_H);
-        const lmnpPx=Math.round(rev.lmnp/maxRev*BAR_H);
         const fmtCompact=v=>v>=1000?(v/1000).toFixed(1).replace('.',',')+'k':String(Math.round(v));
+        // 1re structure de la liste au bas de la pile (comme avant pour Chambres d'hôtes/SASU),
+        // les suivantes empilées au-dessus, dans l'ordre inverse de la liste.
+        const segs=structs.map((s,i)=>({px:Math.round((rev[s.id]||0)/maxRev*BAR_H),color:structColor(i)})).filter(x=>x.px>0).reverse();
         return`<div class="yr-bar-col${isCur?' yr-cur':''}">
           <div class="yr-bar-area">
-            ${rev.total>0?`<div class="yr-bar-val">${fmtCompact(rev.total)}</div>`:''}
-            ${(sasuPx>0||lmnpPx>0)?`<div class="yr-bar-stack">
-              ${lmnpPx>0?`<div class="yr-bar-seg yr-bar-lmnp" style="height:${lmnpPx}px"></div>`:''}
-              ${sasuPx>0?`<div class="yr-bar-seg yr-bar-sasu" style="height:${sasuPx}px"></div>`:''}
+            ${total>0?`<div class="yr-bar-val">${fmtCompact(total)}</div>`:''}
+            ${segs.length?`<div class="yr-bar-stack">
+              ${segs.map((seg,i)=>`<div class="yr-bar-seg" style="height:${seg.px}px;background:${seg.color}${i===0?';border-radius:2px 2px 0 0':''}"></div>`).join('')}
             </div>`:''}
           </div>
           <div class="yr-bar-mon">${MON[m].slice(0,1)}</div>
@@ -4776,8 +4871,7 @@ function renderYear(){
       }).join('')}
     </div>
     <div class="yr-chart-legend">
-      <span><span class="yr-legend-dot" style="background:#3D5C35"></span>Chambres</span>
-      <span><span class="yr-legend-dot" style="background:#8B9D86"></span>Wissous</span>
+      ${structs.map((s,i)=>`<span><span class="yr-legend-dot" style="background:${structColor(i)}"></span>${s.name.replace(/</g,'&lt;')}</span>`).join('')}
     </div>`:`<div class="yr-chart-nodata">Aucune donnée de revenu pour ${year}<br><span style="font-size:11px">Vérifiez que vos réservations ont un tarif configuré</span></div>`}
   </div>`;
 
@@ -4787,9 +4881,9 @@ function renderYear(){
     <div class="yr-regl-body" style="margin-top:10px">
       <div class="yr-regl-item">📋 <b>Déclaration meublé de tourisme</b> — numéro d'enregistrement obligatoire en mairie avant mise en location.</div>
       <div class="yr-regl-item">💶 <b>Taxe de séjour</b> — à collecter et reverser à la commune (souvent automatisée par Airbnb/Booking).</div>
-      <div class="yr-regl-item">⚠️ <b>LMNP → LMP (Wissous)</b> — si recettes > ${(thr.lmnp||23000).toLocaleString('fr-FR')} € <em>et</em> > 50 % des revenus du foyer, passage au statut LMP avec cotisations sociales obligatoires.</div>
-      <div class="yr-regl-item">💰 <b>Franchise TVA hébergement</b> — si CA > ${(thr.tva||91900).toLocaleString('fr-FR')} €, assujettissement à la TVA. Vérifier avec votre expert-comptable.</div>
-      <div class="yr-regl-item">🏠 <b>Loi Le Meur (nov. 2024)</b> — résidence principale : limite de <b>${(thr.platformNights||120)} nuits/an</b> via plateformes numériques. Les communes >200 000 hab. peuvent abaisser à 90 nuits. Nouvelles exigences DPE pour les meublés de tourisme neufs dès 2025.</div>
+      <div class="yr-regl-item">⚠️ <b>LMNP → LMP</b> — si recettes > ${(structThr.lmnp?.find(t=>t.type==='revenue')?.amount||23000).toLocaleString('fr-FR')} € <em>et</em> > 50 % des revenus du foyer, passage au statut LMP avec cotisations sociales obligatoires.</div>
+      <div class="yr-regl-item">💰 <b>Franchise TVA hébergement</b> — si CA > ${(structThr.sasu?.find(t=>t.type==='revenue')?.amount||91900).toLocaleString('fr-FR')} €, assujettissement à la TVA. Vérifier avec votre expert-comptable.</div>
+      <div class="yr-regl-item">🏠 <b>Loi Le Meur (nov. 2024)</b> — résidence principale : limite de <b>${(structThr.lmnp?.find(t=>t.type==='nights')?.amount||120)} nuits/an</b> via plateformes numériques. Les communes >200 000 hab. peuvent abaisser à 90 nuits. Nouvelles exigences DPE pour les meublés de tourisme neufs dès 2025.</div>
       <div class="yr-regl-item" style="color:var(--gray);font-style:italic;font-size:11px;border-bottom:none">Ces informations sont indicatives — consultez votre expert-comptable.</div>
     </div>
   </div>`;
@@ -4852,8 +4946,7 @@ function renderYear(){
     </div>
     <div class="vnav-now-row">${year!==todayYear?`<button class="vnav-now-btn" onclick="thisYear()">Cette année</button>`:''}</div>
     ${globalHTML}
-    ${sasuHTML}
-    ${lmnpHTML}
+    ${structureCardsHTML}
     ${chartHTML}
     ${fiscalHTML}
     ${reglHTML}
