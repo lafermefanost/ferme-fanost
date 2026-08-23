@@ -724,24 +724,30 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .set-tariff-row .set-fi-sm{width:100%;}
 .set-tariff-hd span{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);text-align:right;}
 .set-tariff-hd span:first-child{text-align:left;}
-.set-color{width:28px;height:28px;border:none;padding:2px;border-radius:6px;cursor:pointer;flex-shrink:0;}
-/* Une chambre = un bloc bien dissocié : nom en tête, champs secondaires étiquetés,
-   tarif nuitée en bas — le tout dans un même encadré beige. */
-.room-card{background:#F7F5F1;border-radius:10px;padding:12px;margin-bottom:10px;}
-.room-card:last-of-type{margin-bottom:0;}
-.room-card-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-.room-card-top .set-fi{background:#fff;border-radius:6px;padding:7px 9px;font-weight:500;}
-.room-card-grid{display:grid;grid-template-columns:.65fr 1fr 1.85fr;gap:8px;margin-bottom:10px;}
-.room-card-grid>.rcg-field{min-width:0;}
-.rcg-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.rcg-field .rcg-input-wrap{display:flex;align-items:center;gap:4px;background:#fff;border-radius:6px;padding:2px 8px;}
-.rcg-field .set-fi-sm{padding:5px 0;text-align:left;width:32px;}
-.rcg-field .rcg-unit{font-size:11px;color:var(--gray);flex-shrink:0;}
-.rcg-field select{width:100%;border:none;background:#fff;border-radius:6px;padding:7px 8px;
+.set-color{width:28px;height:28px;border:none;padding:2px;border-radius:6px;cursor:pointer;flex-shrink:0;background:#fff;}
+/* Chaque donnée modifiable des réglages = un bloc bien dissocié : cartouche
+   beige pour le contenu, cartouche blanc pour chaque champ personnalisable. */
+.set-card{background:#F7F5F1;border-radius:10px;padding:12px;margin-bottom:10px;}
+.set-card:last-of-type{margin-bottom:0;}
+.set-card.set-card-new{background:transparent;border:1.5px dashed var(--light);}
+.set-card-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.set-card-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.set-card .set-fi,.set-card .mch-label{background:#fff;border-radius:6px;padding:7px 9px;font-weight:500;border:none;}
+.set-card .set-fi-sm{background:#fff;border-radius:6px;padding:7px 6px;text-align:center;}
+.set-card select{border:none;background:#fff;border-radius:6px;padding:7px 8px;
   font-family:'Jost',sans-serif;font-size:13px;color:var(--dark);outline:none;}
-.room-card-tariff{padding-top:10px;border-top:1px solid #E8E4DC;}
-.room-card-tariff-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:6px;}
-.room-card-tariff .set-tariff-row,.room-card-tariff .set-tariff-hd{background:transparent;}
+.set-card-grid{display:grid;grid-template-columns:.65fr 1fr 1.85fr;gap:8px;margin-bottom:10px;}
+.set-card-grid>.sc-field{min-width:0;}
+.sc-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-field .sc-input-wrap{display:flex;align-items:center;gap:4px;background:#fff;border-radius:6px;padding:2px 8px;}
+.sc-field .set-fi-sm{padding:5px 0;text-align:left;width:32px;background:transparent;}
+.sc-field .sc-unit{font-size:11px;color:var(--gray);flex-shrink:0;}
+.sc-field select{width:100%;padding:7px 8px;background:#fff;}
+.set-card-sub{padding-top:10px;margin-top:10px;border-top:1px solid #E8E4DC;}
+.set-card-sub-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:6px;}
+.set-card-sub .set-tariff-row,.set-card-sub .set-tariff-hd,.set-card .set-tariff-row,.set-card .set-tariff-hd{background:transparent;}
+.set-card .mch-row{border-bottom:none;padding:3px 0;}
+.set-card-checklbl{font-size:10px;color:var(--gray);display:flex;align-items:center;gap:3px;white-space:nowrap;}
 /* ── Year view ── */
 #yearWrap{flex:1;overflow-y:auto;display:none;padding:12px 12px 24px;
   -webkit-overflow-scrolling:touch;}
@@ -3499,8 +3505,8 @@ function roomTariffHTML(r){
   const cols=Array.from({length:max},(_,i)=>i+1);
   const hist=[...(r.tariffHistory||[])].sort((a,b)=>a.from.localeCompare(b.from));
   const gridCols=`1fr ${cols.map(()=>'44px').join(' ')} 22px`;
-  let h=`<div class="room-card-tariff">
-    <div class="room-card-tariff-title">Tarif nuitée</div>
+  let h=`<div class="set-card-sub">
+    <div class="set-card-sub-title">Tarif nuitée</div>
     <div class="set-tariff-hd" style="grid-template-columns:${gridCols}">
       <span>À partir du</span>${cols.map(p=>`<span>${p} pers</span>`).join('')}<span></span>
     </div>`;
@@ -3522,9 +3528,12 @@ function renderSettings(){
   let h='';
 
   // — Établissement —
-  const etabBody=`<div class="set-row">
-      <input class="set-fi" value="${st.name||''}" placeholder="Nom de l'établissement"
-        onblur="S.settings.name=this.value;saveSettings();applySettings()">
+  const etabBody=`<div class="set-card">
+      <div class="sc-field">
+        <label>Nom de l'établissement</label>
+        <div class="sc-input-wrap"><input class="set-fi" style="padding:5px 0;width:100%;min-width:0" value="${st.name||''}" placeholder="Nom de l'établissement"
+          onblur="S.settings.name=this.value;saveSettings();applySettings()"></div>
+      </div>
     </div>`;
   h+=settingsPanel('etablissement','Établissement',etabBody);
 
@@ -3534,16 +3543,17 @@ function renderSettings(){
   structsForThr.forEach(s=>{
     const thr=(st.structureThresholds&&st.structureThresholds[s.id])||[];
     const canDelS=structsForThr.length>1;
-    structBody+=`<div class="set-row">
-      <input class="set-fi" value="${s.name.replace(/"/g,'&quot;')}" placeholder="Nom de la structure" onblur="updateStructureName('${s.id}',this.value)">
-      <button class="set-del" ${canDelS?'':'disabled style="opacity:.3"'} onclick="delStructure('${s.id}')">×</button>
-    </div>
-    <div style="margin:4px 0 10px 0;padding:8px 10px;background:#F7F5F1;border-radius:8px">
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:4px">Seuils — ${s.name.replace(/"/g,'&quot;')}</div>`;
+    structBody+=`<div class="set-card">
+      <div class="set-card-top">
+        <input class="set-fi" value="${s.name.replace(/"/g,'&quot;')}" placeholder="Nom de la structure" onblur="updateStructureName('${s.id}',this.value)">
+        <button class="set-del" ${canDelS?'':'disabled style="opacity:.3"'} onclick="delStructure('${s.id}')">×</button>
+      </div>
+      <div class="set-card-sub" style="margin-top:0;padding-top:10px">
+        <div class="set-card-sub-title">Seuils</div>`;
     if(!thr.length)structBody+=`<div style="font-size:11px;color:#bbb;padding:2px 0 6px">Aucun seuil configuré pour cette structure.</div>`;
     thr.forEach(t=>{
-      structBody+=`<div class="set-row" style="gap:6px;flex-wrap:wrap">
-        <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;padding:4px;background:#fff;color:var(--dark)" onchange="updateStructureThreshold('${s.id}','${t.id}','type',this.value)">
+      structBody+=`<div class="set-card-row" style="gap:6px;margin-bottom:6px">
+        <select style="font-size:11px" onchange="updateStructureThreshold('${s.id}','${t.id}','type',this.value)">
           <option value="revenue"${t.type==='revenue'?' selected':''}>Chiffre d'affaires (€)</option>
           <option value="nights"${t.type==='nights'?' selected':''}>Nuits (plateformes)</option>
         </select>
@@ -3554,6 +3564,7 @@ function renderSettings(){
       </div>`;
     });
     structBody+=`<button class="set-add" onclick="addStructureThreshold('${s.id}')">+ Ajouter un seuil</button>
+      </div>
     </div>`;
   });
   structBody+=`<button class="set-add" onclick="addStructure()">+ Ajouter une structure</button>`;
@@ -3563,21 +3574,21 @@ function renderSettings(){
   const structs=st.structures&&st.structures.length?st.structures:DEFAULT_SETTINGS.structures;
   let roomsBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Chaque chambre a son propre tarif nuitée par nombre de personnes, versionné par date : les réservations déjà enregistrées gardent le tarif en vigueur à leur date d'arrivée, seules les nouvelles réservations utilisent un tarif modifié.</div>`;
   (st.rooms||[]).forEach(r=>{
-    roomsBody+=`<div class="room-card">
-      <div class="room-card-top">
+    roomsBody+=`<div class="set-card">
+      <div class="set-card-top">
         <input class="set-fi" value="${r.name.replace(/"/g,'&quot;')}" placeholder="Nom de la chambre" onblur="updateRoom('${r.id}','name',this.value)">
         <button class="set-del" onclick="delRoom('${r.id}')">×</button>
       </div>
-      <div class="room-card-grid">
-        <div class="rcg-field">
+      <div class="set-card-grid">
+        <div class="sc-field">
           <label title="Nom abrégé affiché dans les en-têtes de la grille">Code</label>
-          <div class="rcg-input-wrap"><input class="set-fi" style="padding:5px 0;width:100%;min-width:0" value="${r.short.replace(/"/g,'&quot;')}" placeholder="Ch.1" title="Nom abrégé affiché dans les en-têtes de la grille" onblur="updateRoom('${r.id}','short',this.value)"></div>
+          <div class="sc-input-wrap"><input class="set-fi" style="padding:5px 0;width:100%;min-width:0" value="${r.short.replace(/"/g,'&quot;')}" placeholder="Ch.1" title="Nom abrégé affiché dans les en-têtes de la grille" onblur="updateRoom('${r.id}','short',this.value)"></div>
         </div>
-        <div class="rcg-field">
+        <div class="sc-field">
           <label>Capacité max</label>
-          <div class="rcg-input-wrap"><input type="number" class="set-fi-sm" value="${r.maxPersons||2}" min="1" max="20" onblur="updateRoom('${r.id}','maxPersons',parseInt(this.value)||2)"><span class="rcg-unit">pers</span></div>
+          <div class="sc-input-wrap"><input type="number" class="set-fi-sm" value="${r.maxPersons||2}" min="1" max="20" onblur="updateRoom('${r.id}','maxPersons',parseInt(this.value)||2)"><span class="sc-unit">pers</span></div>
         </div>
-        <div class="rcg-field">
+        <div class="sc-field">
           <label>Structure</label>
           <select onchange="updateRoom('${r.id}','group',this.value)">
             ${structs.map(s=>`<option value="${s.id}"${(r.group||structs[0].id)===s.id?' selected':''}>${s.name.replace(/"/g,'&quot;')}</option>`).join('')}
@@ -3592,6 +3603,7 @@ function renderSettings(){
 
   // — Tarifs repas & petit-déjeuner (globaux, identiques pour toutes les chambres) —
   let tarifsBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Communs à toutes les chambres, appliqués selon la date de début du séjour. « P-déj € » est le montant déduit par nuit lorsqu'il est décoché (voir tarif nuitée dans chaque chambre ci-dessus).</div>
+    <div class="set-card">
     <div class="set-tariff-hd" style="grid-template-columns:1fr 60px 60px 24px">
       <span>À partir du</span><span>Repas €</span><span>P-déj €</span><span></span>
     </div>`;
@@ -3608,7 +3620,8 @@ function renderSettings(){
       <button class="set-del" ${canDel?'':'disabled style="opacity:.3"'} onclick="delTariff('${t.id}')">×</button>
     </div>`;
   });
-  tarifsBody+=`<button class="set-add" onclick="addTariff()">+ Nouveau tarif à partir d'aujourd'hui</button>`;
+  tarifsBody+=`<button class="set-add" onclick="addTariff()">+ Nouveau tarif à partir d'aujourd'hui</button>
+    </div>`;
   h+=settingsPanel('tarifs','Tarifs repas &amp; petit-déjeuner',tarifsBody);
 
   // — Sources de réservation —
@@ -3616,8 +3629,8 @@ function renderSettings(){
   const BUILTIN_SOURCES=['direct','airbnb','booking','homexchange','ghost'];
   (st.sources||DEFAULT_SETTINGS.sources).forEach(s=>{
     const isBuiltin=BUILTIN_SOURCES.includes(s.id);
-    sourcesBody+=`<div class="set-row">
-      <input class="set-fi" value="${s.label.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateSource('${s.id}','label',this.value)">
+    sourcesBody+=`<div class="set-card set-card-row">
+      <input class="set-fi" style="flex:1" value="${s.label.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateSource('${s.id}','label',this.value)">
       <input type="color" class="set-color" value="${s.color||'#888'}" oninput="updateSource('${s.id}','color',this.value)">
       <span style="font-size:10px;color:var(--gray);flex-shrink:0;opacity:.6">${s.noRevenue?'(sans CA)':''}</span>
       ${isBuiltin?'':`<button class="set-del" onclick="delSource('${s.id}')">×</button>`}
@@ -3629,17 +3642,17 @@ function renderSettings(){
   // — Équipe ménage —
   let menageBody='';
   (st.cleaners||[]).forEach((c,i)=>{
-    menageBody+=`<div class="set-row">
-      <input class="set-fi" value="${c.name.replace(/"/g,'&quot;')}" placeholder="Prénom" onblur="updateCleanerField(${i},'name',this.value)">
-      <input type="number" class="set-fi-sm" style="width:60px" min="0" step="0.5" value="${c.rate!=null?c.rate:15}" onblur="updateCleanerField(${i},'rate',this.value)">
+    menageBody+=`<div class="set-card set-card-row">
+      <input class="set-fi" style="flex:1" value="${c.name.replace(/"/g,'&quot;')}" placeholder="Prénom" onblur="updateCleanerField(${i},'name',this.value)">
+      <input type="number" class="set-fi-sm" style="width:50px" min="0" step="0.5" value="${c.rate!=null?c.rate:15}" onblur="updateCleanerField(${i},'rate',this.value)">
       <span style="font-size:11px;color:var(--gray)">€/h</span>
       <button class="set-del" onclick="delCleaner(${i})">×</button>
     </div>`;
   });
-  menageBody+=`<div class="set-row">
-      <input class="set-fi" id="newCleanerInput" placeholder="Prénom…"
+  menageBody+=`<div class="set-card set-card-row set-card-new">
+      <input class="set-fi" style="flex:1" id="newCleanerInput" placeholder="Prénom…"
         onkeydown="if(event.key==='Enter'){addCleaner();event.preventDefault();}">
-      <input type="number" class="set-fi-sm" id="newCleanerRateInput" style="width:60px" min="0" step="0.5" placeholder="15">
+      <input type="number" class="set-fi-sm" id="newCleanerRateInput" style="width:50px" min="0" step="0.5" placeholder="15">
       <span style="font-size:11px;color:var(--gray)">€/h</span>
       <button class="btn-s" style="padding:4px 12px;font-size:12px;" onclick="addCleaner()">Ajouter</button>
     </div>`;
@@ -3648,14 +3661,14 @@ function renderSettings(){
   // — Catégories de charges bancaires (import CSV) —
   let chargesBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px">Mots-clés (séparés par des virgules) recherchés dans le marchand/description pour catégoriser automatiquement chaque import.</div>`;
   (st.chargeCategories||[]).forEach(c=>{
-    chargesBody+=`<div class="mch-row" style="flex-wrap:wrap">
+    chargesBody+=`<div class="set-card set-card-row">
       <input class="mch-label" style="flex:0 0 140px" value="${(c.label||'').replace(/"/g,'&quot;')}" placeholder="Catégorie"
         onblur="updateChargeCategoryField('${c.id}','label',this.value)"
         onkeydown="if(event.key==='Enter')this.blur()">
-      <input class="mch-label" style="font-size:12px;color:var(--gray)" value="${(c.keywords||[]).join(', ').replace(/"/g,'&quot;')}" placeholder="mot-clé1, mot-clé2…"
+      <input class="mch-label" style="flex:1 1 160px;font-size:12px;color:var(--gray)" value="${(c.keywords||[]).join(', ').replace(/"/g,'&quot;')}" placeholder="mot-clé1, mot-clé2…"
         onblur="updateChargeCategoryField('${c.id}','keywords',this.value)"
         onkeydown="if(event.key==='Enter')this.blur()">
-      <label style="font-size:10px;color:var(--gray);display:flex;align-items:center;gap:3px;white-space:nowrap">
+      <label class="set-card-checklbl">
         <input type="checkbox" ${c.excluded?'checked':''} onchange="toggleChargeCategoryExcluded('${c.id}')"> hors charges
       </label>
       <button class="mch-del" onclick="removeChargeCategory('${c.id}')">×</button>
