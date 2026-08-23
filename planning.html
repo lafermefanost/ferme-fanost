@@ -1369,6 +1369,7 @@ function defaultRoomPrices(max){
 const DEFAULT_SETTINGS={
   name:'Fanost — Planning',
   dinnerEnabled:true,
+  breakfastEnabled:true,
   rooms:[
     {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
     {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
@@ -1463,6 +1464,12 @@ function isSourceNoRevenue(src){
 // enregistrées (dinnerNights des réservations existantes reste intact).
 function dinnerEnabled(){
   return S.settings.dinnerEnabled!==false;
+}
+// Même principe pour le petit-déjeuner (utile pour les hébergements type gîte,
+// sans prestation petit-déj). Désactivé, il masque la case à cocher par nuit dans
+// le modal de réservation, sans toucher aux données déjà enregistrées.
+function breakfastEnabled(){
+  return S.settings.breakfastEnabled!==false;
 }
 function getBabyCribRevenue(bk){
   if(!bk.babyCrib)return 0;
@@ -2571,10 +2578,11 @@ function doModalSwap(){
   const st=byId('bStatus').value;
   const np=parseInt(byId('bPersons').value)||2;
   const nt=byId('bNotes').value.trim();
-  // Si la table d'hôte est désactivée, les cases ne sont pas affichées : on
-  // garde les données existantes plutôt que de les écraser par une lecture vide.
+  // Si la table d'hôte / le petit-déjeuner est désactivé(e), les cases ne sont pas
+  // affichées : on garde les données existantes plutôt que de les écraser par une
+  // lecture vide du formulaire.
   const dn=dinnerEnabled()?getDinnerNights():bk.dinnerNights;
-  const nbf=getNoBreakfastNights();
+  const nbf=breakfastEnabled()?getNoBreakfastNights():bk.noBreakfast;
   const i=S.bookings.findIndex(b=>b.id===editBid);
   if(i!==-1)S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,noBreakfast:nbf,notes:nt,guestId:selGid||bk.guestId};
   persist();closeM('modalBooking');renderGrid();
@@ -2615,10 +2623,11 @@ function saveBooking(){
 
   if(editBid){
     const i=S.bookings.findIndex(b=>b.id===editBid);
-    // Si la table d'hôte est désactivée, les cases ne sont pas affichées : on
-    // garde les données existantes plutôt que de les écraser par une lecture vide.
+    // Si la table d'hôte / le petit-déjeuner est désactivé(e), les cases ne sont
+    // pas affichées : on garde les données existantes plutôt que de les écraser
+    // par une lecture vide du formulaire.
     const dn=dinnerEnabled()?getDinnerNights():(i!==-1?S.bookings[i].dinnerNights:{});
-    const nbf=getNoBreakfastNights();
+    const nbf=breakfastEnabled()?getNoBreakfastNights():(i!==-1?S.bookings[i].noBreakfast:{});
     if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet};
   }else{
     // Le petit-déjeuner est inclus par défaut (checkboxes cochées à la création) :
@@ -2648,6 +2657,7 @@ function renderBreakfastList(){
   const co=byId('bOut').value;
   const fg=byId('breakfastListFg');
   const container=byId('breakfastList');
+  if(!breakfastEnabled()){fg.style.display='none';return;}
   if(!ci||!co||ci>=co){fg.style.display='none';return;}
   fg.style.display='block';
 
@@ -3349,6 +3359,7 @@ function applySettings(){
   const logoEl=byId('appName');
   if(logoEl)logoEl.textContent=S.settings.name||'Fanost — Planning';
   document.body.classList.toggle('no-dinner',!dinnerEnabled());
+  document.body.classList.toggle('no-breakfast',!breakfastEnabled());
   // Update room select in booking modal
   const bRoomEl=byId('bRoom');
   if(bRoomEl){
@@ -3634,7 +3645,7 @@ function renderSettings(){
   roomsBody+=`<button class="set-add" onclick="addRoom()">+ Ajouter une chambre</button>`;
   h+=settingsPanel('chambres','Locations',roomsBody);
 
-  // — Services : table d'hôte (interrupteur global) + tarifs repas & petit-déjeuner —
+  // — Services : table d'hôte + petit-déjeuner (interrupteurs globaux) + tarifs —
   let tarifsBody=`<div class="set-card set-card-row">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1">
         <input type="checkbox" ${dinnerEnabled()?'checked':''} onchange="toggleDinnerEnabled(this.checked)">
@@ -3642,7 +3653,14 @@ function renderSettings(){
       </label>
     </div>
     <div style="font-size:11px;color:var(--gray);margin:-2px 0 12px 2px">Décochez si vous ne proposez pas de repas en table d'hôte : masque la colonne dédiée dans la grille, l'option dans les réservations, le menu du jour (vues Jour &amp; Semaine) et les compteurs correspondants dans les autres vues. Les données déjà enregistrées ne sont pas supprimées.</div>
-    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Tarifs communs à toutes les chambres, appliqués selon la date de début du séjour. « Repas € » n'est utilisé que si la table d'hôte est activée ci-dessus. « P-déj € » est le montant déduit par nuit lorsqu'il est décoché (voir tarif nuitée dans chaque chambre).</div>
+    <div class="set-card set-card-row">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1">
+        <input type="checkbox" ${breakfastEnabled()?'checked':''} onchange="toggleBreakfastEnabled(this.checked)">
+        <span style="font-weight:500">Petit-déjeuner</span>
+      </label>
+    </div>
+    <div style="font-size:11px;color:var(--gray);margin:-2px 0 12px 2px">Décochez pour les hébergements sans prestation petit-déjeuner (ex : gîtes) : masque l'option dans les réservations. Les données déjà enregistrées ne sont pas supprimées.</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Tarifs communs à toutes les chambres, appliqués selon la date de début du séjour. « Repas € » n'est utilisé que si la table d'hôte est activée ci-dessus. « P-déj € » (montant déduit par nuit lorsqu'il est décoché — voir tarif nuitée dans chaque chambre) n'est utilisé que si le petit-déjeuner est activé.</div>
     <div class="set-card">
     <div class="set-tariff-hd" style="grid-template-columns:1fr 60px 60px 24px">
       <span>À partir du</span><span>Repas €</span><span>P-déj €</span><span></span>
@@ -3729,6 +3747,13 @@ function toggleDinnerEnabled(checked){
   if(S.view==='today')renderToday();
   if(S.view==='week')renderWeek();
   if(S.view==='month')renderMonth();
+}
+// Interrupteur global "petit-déjeuner" (réglages → Services)
+function toggleBreakfastEnabled(checked){
+  S.settings.breakfastEnabled=checked;
+  saveSettings();
+  applySettings();
+  if(byId('modalBooking').style.display==='flex'){renderBreakfastList();updateModalTotal();}
 }
 
 // Tariff CRUD
@@ -4002,7 +4027,7 @@ function buildStayNoteText(bk){
   if(isCustom){
     lines.push(`Prix personnalisé : ${bk.prixNet.toLocaleString('fr-FR')} €`,'');
   } else {
-    if(rate>0)lines.push(`${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} € (petit-déj inclus) — ${(nights*rate).toLocaleString('fr-FR')} €`);
+    if(rate>0)lines.push(`${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €${breakfastEnabled()?' (petit-déj inclus)':''} — ${(nights*rate).toLocaleString('fr-FR')} €`);
     if(noBfCount>0)lines.push(`${noBfCount} nuit${noBfCount>1?'s':''} sans petit-déj — -${bfDeduction.toLocaleString('fr-FR')} €`);
     if(dinCount>0)lines.push(`${dinCount} repas × ${pax} pers × ${tariff.th} € — ${thRevenue.toLocaleString('fr-FR')} €`);
     if(cribRevenue>0)lines.push(`Lit bébé × ${nights} nuit${nights>1?'s':''} — ${cribRevenue.toLocaleString('fr-FR')} €`);
@@ -4111,7 +4136,7 @@ function updateModalTotal(){
       rows+=`<div class="btot-line sep"><span>Total</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
     }
   } else {
-    if(rate>0)rows+=`<div class="btot-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} € <span style="opacity:.6">(petit-déj inclus)</span></span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
+    if(rate>0)rows+=`<div class="btot-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €${breakfastEnabled()?' <span style="opacity:.6">(petit-déj inclus)</span>':''}</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
     if(noBfCount>0)rows+=`<div class="btot-line"><span>${noBfCount} nuit${noBfCount>1?'s':''} sans petit-déj</span><span>-${bfDeduction.toLocaleString('fr-FR')} €</span></div>`;
     if(dinCount>0)rows+=`<div class="btot-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${(dinCount*pax*tariff.th).toLocaleString('fr-FR')} €</span></div>`;
     if(cribPrice>0)rows+=`<div class="btot-line"><span>Lit bébé × ${nights} nuit${nights>1?'s':''}</span><span>${cribPrice.toLocaleString('fr-FR')} €</span></div>`;
