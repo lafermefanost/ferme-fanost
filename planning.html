@@ -731,7 +731,8 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .room-card:last-of-type{margin-bottom:0;}
 .room-card-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .room-card-top .set-fi{background:#fff;border-radius:6px;padding:7px 9px;font-weight:500;}
-.room-card-grid{display:grid;grid-template-columns:.7fr 1fr 1.7fr;gap:8px;margin-bottom:10px;}
+.room-card-grid{display:grid;grid-template-columns:.45fr 1fr 2fr;gap:8px;margin-bottom:10px;}
+.room-card-grid>.rcg-field{min-width:0;}
 .rcg-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:3px;}
 .rcg-field .rcg-input-wrap{display:flex;align-items:center;gap:4px;background:#fff;border-radius:6px;padding:2px 8px;}
 .rcg-field .set-fi-sm{padding:5px 0;text-align:left;width:32px;}
@@ -3570,7 +3571,7 @@ function renderSettings(){
       <div class="room-card-grid">
         <div class="rcg-field">
           <label title="Nom abrégé affiché dans les en-têtes de la grille">Code court</label>
-          <div class="rcg-input-wrap"><input class="set-fi" style="padding:5px 0" value="${r.short.replace(/"/g,'&quot;')}" placeholder="Ch.1" title="Nom abrégé affiché dans les en-têtes de la grille" onblur="updateRoom('${r.id}','short',this.value)"></div>
+          <div class="rcg-input-wrap"><input class="set-fi" style="padding:5px 0;width:100%;min-width:0" value="${r.short.replace(/"/g,'&quot;')}" placeholder="Ch.1" title="Nom abrégé affiché dans les en-têtes de la grille" onblur="updateRoom('${r.id}','short',this.value)"></div>
         </div>
         <div class="rcg-field">
           <label>Capacité max</label>
