@@ -701,9 +701,9 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .evcard-time{font-size:11px;color:var(--gray);margin-top:2px;}
 
 /* Settings */
-.set-sec{margin-bottom:16px;}
+.set-sec{margin-bottom:12px;background:#fff;border:1.5px solid var(--light);border-radius:12px;padding:12px 14px;}
 .set-sec-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
-  color:var(--gray);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  color:var(--gray);margin-bottom:0;display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;}
 .set-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--light);}
 .set-row:last-child{border-bottom:none;}
 .set-fi{flex:1;border:none;background:transparent;font-family:'Jost',sans-serif;
@@ -1326,6 +1326,7 @@ const S = {year:2026, bookings:[], guests:[], events:[], cleaning:{}, menus:{}, 
 let bankExpandedCat=null;
 let monthBklistOpen=false;
 let monthChargesOpen=false;
+let settingsPanelOpen={};
 let weekOpenDays=new Set();
 let weekOpenDaysFor=null;
 
@@ -3455,8 +3456,23 @@ function toggleChargeCategoryExcluded(id){
 //  SETTINGS UI
 // ═══════════════════════════════════════════════════════════════
 function openSettings(){
+  settingsPanelOpen={};
   renderSettings();
   byId('modalSettings').style.display='flex';
+}
+function toggleSettingsPanel(id){
+  settingsPanelOpen[id]=!settingsPanelOpen[id];
+  renderSettings();
+}
+// Enveloppe une section des réglages dans un volet dépliant, comme les volets des
+// vues Mois/Année (même chevron, même mécanique). L'état ouvert/fermé est mémorisé
+// par id pour survivre aux multiples re-rendus déclenchés par chaque modification.
+function settingsPanel(id,title,bodyHtml){
+  const open=!!settingsPanelOpen[id];
+  return`<div class="set-sec yr-regl${open?' open':''}">
+    <div class="set-sec-title" onclick="toggleSettingsPanel('${id}')">${title}<span class="yr-regl-chev">▾</span></div>
+    <div class="yr-regl-body" style="margin-top:10px">${bodyHtml}</div>
+  </div>`;
 }
 
 // Petit tableau de tarifs nuitée (1 pers, 2 pers, ... jusqu'à la capacité de la
@@ -3489,90 +3505,27 @@ function renderSettings(){
   let h='';
 
   // — Établissement —
-  h+=`<div class="set-sec">
-    <div class="set-sec-title">Établissement</div>
-    <div class="set-row">
+  const etabBody=`<div class="set-row">
       <input class="set-fi" value="${st.name||''}" placeholder="Nom de l'établissement"
         onblur="S.settings.name=this.value;saveSettings();applySettings()">
-    </div>
-  </div>`;
-
-  // — Tarifs repas & petit-déjeuner (globaux, identiques pour toutes les chambres) —
-  h+=`<div class="set-sec">
-    <div class="set-sec-title">Tarifs repas &amp; petit-déjeuner</div>
-    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Communs à toutes les chambres, appliqués selon la date de début du séjour. « P-déj € » est le montant déduit par nuit lorsqu'il est décoché (voir tarif nuitée dans chaque chambre ci-dessous).</div>
-    <div class="set-tariff-hd" style="grid-template-columns:1fr 60px 60px 24px">
-      <span>À partir du</span><span>Repas €</span><span>P-déj €</span><span></span>
     </div>`;
-  const tariffs=[...(st.tariffHistory||[])].sort((a,b)=>a.from.localeCompare(b.from));
-  tariffs.forEach((t,i)=>{
-    const canDel=tariffs.length>1;
-    h+=`<div class="set-tariff-row" style="grid-template-columns:1fr 60px 60px 24px">
-      <input class="set-fi" type="date" value="${t.from}"
-        onblur="updateTariff('${t.id}','from',this.value)">
-      <input class="set-fi-sm" type="number" value="${t.th}"
-        onblur="updateTariff('${t.id}','th',+this.value)">
-      <input class="set-fi-sm" type="number" value="${t.bf!=null?t.bf:5}"
-        onblur="updateTariff('${t.id}','bf',+this.value)">
-      <button class="set-del" ${canDel?'':'disabled style="opacity:.3"'} onclick="delTariff('${t.id}')">×</button>
-    </div>`;
-  });
-  h+=`<button class="set-add" onclick="addTariff()">+ Nouveau tarif à partir d'aujourd'hui</button>
-  </div>`;
-
-  // — Chambres / gîtes, avec tarif nuitée propre à chacun(e) —
-  h+=`<div class="set-sec">
-    <div class="set-sec-title">Chambres &amp; gîtes</div>
-    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Chaque chambre a son propre tarif nuitée par nombre de personnes, versionné par date : les réservations déjà enregistrées gardent le tarif en vigueur à leur date d'arrivée, seules les nouvelles réservations utilisent un tarif modifié.</div>`;
-  const structs=st.structures&&st.structures.length?st.structures:DEFAULT_SETTINGS.structures;
-  (st.rooms||[]).forEach(r=>{
-    h+=`<div class="set-row" style="flex-wrap:wrap;gap:6px;">
-      <input class="set-fi" value="${r.name.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateRoom('${r.id}','name',this.value)">
-      <input class="set-fi" style="width:52px;flex:none;" value="${r.short.replace(/"/g,'&quot;')}" placeholder="Court" onblur="updateRoom('${r.id}','short',this.value)">
-      <span style="font-size:11px;color:var(--gray);flex-shrink:0;white-space:nowrap">max <input type="number" class="set-fi-sm" value="${r.maxPersons||2}" min="1" max="20" title="Capacité max" onblur="updateRoom('${r.id}','maxPersons',parseInt(this.value)||2)"> pers</span>
-      <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;padding:2px 4px;background:#fff;color:var(--dark);flex-shrink:0" title="Structure juridique de rattachement" onchange="updateRoom('${r.id}','group',this.value)">
-        ${structs.map(s=>`<option value="${s.id}"${(r.group||structs[0].id)===s.id?' selected':''}>${s.name.replace(/"/g,'&quot;')}</option>`).join('')}
-      </select>
-      <button class="set-del" onclick="delRoom('${r.id}')">×</button>
-    </div>`;
-    h+=roomTariffHTML(r);
-  });
-  h+=`<button class="set-add" onclick="addRoom()">+ Ajouter une chambre</button>
-  </div>`;
-
-  // — Sources de réservation —
-  h+=`<div class="set-sec">
-    <div class="set-sec-title">Sources de réservation</div>`;
-  const BUILTIN_SOURCES=['direct','airbnb','booking','homexchange','ghost'];
-  (st.sources||DEFAULT_SETTINGS.sources).forEach(s=>{
-    const isBuiltin=BUILTIN_SOURCES.includes(s.id);
-    h+=`<div class="set-row">
-      <input class="set-fi" value="${s.label.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateSource('${s.id}','label',this.value)">
-      <input type="color" class="set-color" value="${s.color||'#888'}" oninput="updateSource('${s.id}','color',this.value)">
-      <span style="font-size:10px;color:var(--gray);flex-shrink:0;opacity:.6">${s.noRevenue?'(sans CA)':''}</span>
-      ${isBuiltin?'':`<button class="set-del" onclick="delSource('${s.id}')">×</button>`}
-    </div>`;
-  });
-  h+=`<button class="set-add" onclick="addSource()">+ Ajouter une source</button>
-  </div>`;
+  h+=settingsPanel('etablissement','Établissement',etabBody);
 
   // — Structures juridiques, chacune avec ses propres seuils —
-  h+=`<div class="set-sec">
-    <div class="set-sec-title">Structures juridiques</div>
-    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Chaque chambre/gîte est rattaché(e) à l'une de ces structures (réglage dans "Chambres &amp; gîtes" ci-dessus). Dans la vue Année, le total global est toujours affiché en premier, puis chaque structure est calculée indépendamment. Les seuils sont optionnels et propres à chaque structure — laissez-en zéro si non pertinent.</div>`;
   const structsForThr=st.structures&&st.structures.length?st.structures:DEFAULT_SETTINGS.structures;
+  let structBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Chaque chambre/gîte est rattaché(e) à l'une de ces structures (réglage dans "Chambres &amp; gîtes" ci-dessous). Dans la vue Année, le total global est toujours affiché en premier, puis chaque structure est calculée indépendamment. Les seuils sont optionnels et propres à chaque structure — laissez-en zéro si non pertinent.</div>`;
   structsForThr.forEach(s=>{
     const thr=(st.structureThresholds&&st.structureThresholds[s.id])||[];
     const canDelS=structsForThr.length>1;
-    h+=`<div class="set-row">
+    structBody+=`<div class="set-row">
       <input class="set-fi" value="${s.name.replace(/"/g,'&quot;')}" placeholder="Nom de la structure" onblur="updateStructureName('${s.id}',this.value)">
       <button class="set-del" ${canDelS?'':'disabled style="opacity:.3"'} onclick="delStructure('${s.id}')">×</button>
     </div>
     <div style="margin:4px 0 10px 0;padding:8px 10px;background:#F7F5F1;border-radius:8px">
       <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:4px">Seuils — ${s.name.replace(/"/g,'&quot;')}</div>`;
-    if(!thr.length)h+=`<div style="font-size:11px;color:#bbb;padding:2px 0 6px">Aucun seuil configuré pour cette structure.</div>`;
+    if(!thr.length)structBody+=`<div style="font-size:11px;color:#bbb;padding:2px 0 6px">Aucun seuil configuré pour cette structure.</div>`;
     thr.forEach(t=>{
-      h+=`<div class="set-row" style="gap:6px;flex-wrap:wrap">
+      structBody+=`<div class="set-row" style="gap:6px;flex-wrap:wrap">
         <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;padding:4px;background:#fff;color:var(--dark)" onchange="updateStructureThreshold('${s.id}','${t.id}','type',this.value)">
           <option value="revenue"${t.type==='revenue'?' selected':''}>Chiffre d'affaires (€)</option>
           <option value="nights"${t.type==='nights'?' selected':''}>Nuits (plateformes)</option>
@@ -3583,38 +3536,89 @@ function renderSettings(){
         <button class="set-del" onclick="delStructureThreshold('${s.id}','${t.id}')">×</button>
       </div>`;
     });
-    h+=`<button class="set-add" onclick="addStructureThreshold('${s.id}')">+ Ajouter un seuil</button>
+    structBody+=`<button class="set-add" onclick="addStructureThreshold('${s.id}')">+ Ajouter un seuil</button>
     </div>`;
   });
-  h+=`<button class="set-add" onclick="addStructure()">+ Ajouter une structure</button>
-  </div>`;
+  structBody+=`<button class="set-add" onclick="addStructure()">+ Ajouter une structure</button>`;
+  h+=settingsPanel('structures','Structures juridiques',structBody);
+
+  // — Chambres / gîtes, avec tarif nuitée propre à chacun(e) —
+  const structs=st.structures&&st.structures.length?st.structures:DEFAULT_SETTINGS.structures;
+  let roomsBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Chaque chambre a son propre tarif nuitée par nombre de personnes, versionné par date : les réservations déjà enregistrées gardent le tarif en vigueur à leur date d'arrivée, seules les nouvelles réservations utilisent un tarif modifié.</div>`;
+  (st.rooms||[]).forEach(r=>{
+    roomsBody+=`<div class="set-row" style="flex-wrap:wrap;gap:6px;">
+      <input class="set-fi" value="${r.name.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateRoom('${r.id}','name',this.value)">
+      <input class="set-fi" style="width:52px;flex:none;" value="${r.short.replace(/"/g,'&quot;')}" placeholder="Court" onblur="updateRoom('${r.id}','short',this.value)">
+      <span style="font-size:11px;color:var(--gray);flex-shrink:0;white-space:nowrap">max <input type="number" class="set-fi-sm" value="${r.maxPersons||2}" min="1" max="20" title="Capacité max" onblur="updateRoom('${r.id}','maxPersons',parseInt(this.value)||2)"> pers</span>
+      <select style="font-size:11px;border:1px solid var(--light);border-radius:6px;padding:2px 4px;background:#fff;color:var(--dark);flex-shrink:0" title="Structure juridique de rattachement" onchange="updateRoom('${r.id}','group',this.value)">
+        ${structs.map(s=>`<option value="${s.id}"${(r.group||structs[0].id)===s.id?' selected':''}>${s.name.replace(/"/g,'&quot;')}</option>`).join('')}
+      </select>
+      <button class="set-del" onclick="delRoom('${r.id}')">×</button>
+    </div>`;
+    roomsBody+=roomTariffHTML(r);
+  });
+  roomsBody+=`<button class="set-add" onclick="addRoom()">+ Ajouter une chambre</button>`;
+  h+=settingsPanel('chambres','Chambres &amp; gîtes',roomsBody);
+
+  // — Tarifs repas & petit-déjeuner (globaux, identiques pour toutes les chambres) —
+  let tarifsBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Communs à toutes les chambres, appliqués selon la date de début du séjour. « P-déj € » est le montant déduit par nuit lorsqu'il est décoché (voir tarif nuitée dans chaque chambre ci-dessus).</div>
+    <div class="set-tariff-hd" style="grid-template-columns:1fr 60px 60px 24px">
+      <span>À partir du</span><span>Repas €</span><span>P-déj €</span><span></span>
+    </div>`;
+  const tariffs=[...(st.tariffHistory||[])].sort((a,b)=>a.from.localeCompare(b.from));
+  tariffs.forEach((t,i)=>{
+    const canDel=tariffs.length>1;
+    tarifsBody+=`<div class="set-tariff-row" style="grid-template-columns:1fr 60px 60px 24px">
+      <input class="set-fi" type="date" value="${t.from}"
+        onblur="updateTariff('${t.id}','from',this.value)">
+      <input class="set-fi-sm" type="number" value="${t.th}"
+        onblur="updateTariff('${t.id}','th',+this.value)">
+      <input class="set-fi-sm" type="number" value="${t.bf!=null?t.bf:5}"
+        onblur="updateTariff('${t.id}','bf',+this.value)">
+      <button class="set-del" ${canDel?'':'disabled style="opacity:.3"'} onclick="delTariff('${t.id}')">×</button>
+    </div>`;
+  });
+  tarifsBody+=`<button class="set-add" onclick="addTariff()">+ Nouveau tarif à partir d'aujourd'hui</button>`;
+  h+=settingsPanel('tarifs','Tarifs repas &amp; petit-déjeuner',tarifsBody);
+
+  // — Sources de réservation —
+  let sourcesBody='';
+  const BUILTIN_SOURCES=['direct','airbnb','booking','homexchange','ghost'];
+  (st.sources||DEFAULT_SETTINGS.sources).forEach(s=>{
+    const isBuiltin=BUILTIN_SOURCES.includes(s.id);
+    sourcesBody+=`<div class="set-row">
+      <input class="set-fi" value="${s.label.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateSource('${s.id}','label',this.value)">
+      <input type="color" class="set-color" value="${s.color||'#888'}" oninput="updateSource('${s.id}','color',this.value)">
+      <span style="font-size:10px;color:var(--gray);flex-shrink:0;opacity:.6">${s.noRevenue?'(sans CA)':''}</span>
+      ${isBuiltin?'':`<button class="set-del" onclick="delSource('${s.id}')">×</button>`}
+    </div>`;
+  });
+  sourcesBody+=`<button class="set-add" onclick="addSource()">+ Ajouter une source</button>`;
+  h+=settingsPanel('sources','Sources de réservation',sourcesBody);
 
   // — Équipe ménage —
-  h+=`<div class="set-sec">
-    <div class="set-sec-title">Équipe ménage</div>`;
+  let menageBody='';
   (st.cleaners||[]).forEach((c,i)=>{
-    h+=`<div class="set-row">
+    menageBody+=`<div class="set-row">
       <input class="set-fi" value="${c.name.replace(/"/g,'&quot;')}" placeholder="Prénom" onblur="updateCleanerField(${i},'name',this.value)">
       <input type="number" class="set-fi-sm" style="width:60px" min="0" step="0.5" value="${c.rate!=null?c.rate:15}" onblur="updateCleanerField(${i},'rate',this.value)">
       <span style="font-size:11px;color:var(--gray)">€/h</span>
       <button class="set-del" onclick="delCleaner(${i})">×</button>
     </div>`;
   });
-  h+=`<div class="set-row">
+  menageBody+=`<div class="set-row">
       <input class="set-fi" id="newCleanerInput" placeholder="Prénom…"
         onkeydown="if(event.key==='Enter'){addCleaner();event.preventDefault();}">
       <input type="number" class="set-fi-sm" id="newCleanerRateInput" style="width:60px" min="0" step="0.5" placeholder="15">
       <span style="font-size:11px;color:var(--gray)">€/h</span>
       <button class="btn-s" style="padding:4px 12px;font-size:12px;" onclick="addCleaner()">Ajouter</button>
-    </div>
-  </div>`;
+    </div>`;
+  h+=settingsPanel('menage','Équipe ménage',menageBody);
 
   // — Catégories de charges bancaires (import CSV) —
-  h+=`<div class="set-sec">
-    <div class="set-sec-title">Catégories — relevé bancaire</div>
-    <div style="font-size:11px;color:var(--gray);margin-bottom:8px">Mots-clés (séparés par des virgules) recherchés dans le marchand/description pour catégoriser automatiquement chaque import.</div>`;
+  let chargesBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px">Mots-clés (séparés par des virgules) recherchés dans le marchand/description pour catégoriser automatiquement chaque import.</div>`;
   (st.chargeCategories||[]).forEach(c=>{
-    h+=`<div class="mch-row" style="flex-wrap:wrap">
+    chargesBody+=`<div class="mch-row" style="flex-wrap:wrap">
       <input class="mch-label" style="flex:0 0 140px" value="${(c.label||'').replace(/"/g,'&quot;')}" placeholder="Catégorie"
         onblur="updateChargeCategoryField('${c.id}','label',this.value)"
         onkeydown="if(event.key==='Enter')this.blur()">
@@ -3627,8 +3631,8 @@ function renderSettings(){
       <button class="mch-del" onclick="removeChargeCategory('${c.id}')">×</button>
     </div>`;
   });
-  h+=`<button class="mch-add" onclick="addChargeCategory()">+ Ajouter une catégorie</button>
-  </div>`;
+  chargesBody+=`<button class="mch-add" onclick="addChargeCategory()">+ Ajouter une catégorie</button>`;
+  h+=settingsPanel('charges','Catégories — relevé bancaire',chargesBody);
 
   byId('settingsBody').innerHTML=h;
 }
