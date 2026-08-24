@@ -1029,6 +1029,13 @@ body.no-dinner .tsec-panel.menu{display:none;}
         <label class="fl">Table d'hôtes — soirs du séjour</label>
         <div id="dinnerList" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
       </div>
+      <div class="fg" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;margin:0">
+          <input type="checkbox" id="bTaxeSejour" onchange="updateModalTotal()">
+          Taxe de séjour
+        </label>
+        <span id="bTaxeSejourVal" style="font-size:12px;color:var(--gray);font-weight:600"></span>
+      </div>
     </div>
 
     <!-- ── Paiement ── -->
@@ -1365,6 +1372,10 @@ const DEFAULT_SETTINGS={
   // pas d'exemple avec des prénoms de personnes réelles.
   cleaners:[],
   tariffHistory:[{id:'t0',from:'2000-01-01',th:25,bf:5}],
+  // Taxe de séjour (€ par personne et par nuit), versionnée par date comme les
+  // tarifs ci-dessus. Collectée pour le compte de la commune : volontairement
+  // tenue à l'écart du chiffre d'affaires (voir getTaxeSejourAmount).
+  taxeSejourHistory:[{id:'ts0',from:'2000-01-01',amount:1}],
   // Intitulés génériques et réutilisables ; volontairement sans mots-clés
   // (keywords vide) — ceux d'origine viendraient forcément d'un relevé
   // bancaire réel. Chacun ajoute les siens dans Réglages → Catégories.
@@ -1413,6 +1424,34 @@ function getTariffForDate(ds){
   let t=sorted[0];
   for(const h of sorted){if(h.from<=ds)t=h;}
   return t;
+}
+// Taxe de séjour (€/pers/nuit), versionnée par date — même logique que getTariffForDate.
+function getTaxeSejourRateForDate(ds){
+  const hist=(S.settings&&S.settings.taxeSejourHistory&&S.settings.taxeSejourHistory.length)?S.settings.taxeSejourHistory:DEFAULT_SETTINGS.taxeSejourHistory;
+  const sorted=[...hist].sort((a,b)=>a.from.localeCompare(b.from));
+  let t=sorted[0];
+  for(const h of sorted){if(h.from<=ds)t=h;}
+  return t?.amount||0;
+}
+// Montant de taxe de séjour d'une résa : nuits × personnes × taux en vigueur à
+// l'arrivée. Reversée à la commune — volontairement exclue du CA (getStayTotal,
+// getBookingRevForPeriod...) pour ne pas fausser le suivi du seuil de franchise TVA.
+function getTaxeSejourAmount(bk){
+  if(!bk||!bk.taxeSejour)return 0;
+  const nights=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
+  if(nights<=0)return 0;
+  const pax=bk.nbPersons||2;
+  const rate=getTaxeSejourRateForDate(bk.checkIn||todayISO());
+  return Math.round(nights*pax*rate*100)/100;
+}
+// Insère/retire la ligne "Taxe de séjour : X €" dans les notes (un champ texte
+// simple, une ligne) : repère un segment existant par mot-clé et le remplace au
+// lieu de le dupliquer, pour que le montant reste juste après chaque sauvegarde
+// même si le tarif, les dates ou le nombre de personnes ont changé entretemps.
+function syncTaxeSejourNote(notes,enabled,amount){
+  const parts=(notes||'').split(/\s*·\s*/).map(p=>p.trim()).filter(p=>p&&!/^Taxe de séjour\s*:/i.test(p));
+  if(enabled&&amount>0)parts.push(`Taxe de séjour : ${amount.toLocaleString('fr-FR')} €`);
+  return parts.join(' · ');
 }
 // Tarif nuitée, propre à chaque chambre/gîte et versionné par date : {id,from,prices:{1:.., 2:.., ...}}.
 function getRoomTariffForDate(roomId,ds){
@@ -2370,6 +2409,8 @@ function openAddModal(roomId,ds,dsOut){
   byId('bStatus').value='ok';
   setPax(1);
   byId('bNotes').value='';
+  byId('bTaxeSejour').checked=false;
+  byId('bTaxeSejourVal').textContent='';
   byId('prixNet').value='';
   byId('prixNetHint').textContent='';
   resetPaymentUI(null,false,'');
@@ -2402,6 +2443,7 @@ function openEditModal(id){
   byId('bStatus').value=b.status||'ok';
   setPax(b.nbPersons||2);
   byId('bNotes').value=b.notes||'';
+  byId('bTaxeSejour').checked=!!b.taxeSejour;
   resetPaymentUI(b.payment,b.ghost,b.depositAmount,b.source);
   byId('prixNet').value=b.prixNet!=null?b.prixNet:'';
   const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
@@ -2625,7 +2667,9 @@ function saveBooking(){
   const at=byId('bTime').value.trim();
   const st=byId('bStatus').value;
   const np=parseInt(byId('bPersons').value)||2;
-  const nt=byId('bNotes').value.trim();
+  const taxeSejour=byId('bTaxeSejour').checked;
+  const tsAmount=taxeSejour?getTaxeSejourAmount({checkIn:ci,checkOut:co,nbPersons:np,taxeSejour:true}):0;
+  const nt=syncTaxeSejourNote(byId('bNotes').value.trim(),taxeSejour,tsAmount);
   const pay=bkPayment;
   const depositAmt=pay==='deposit'?(parseFloat(byId('depositAmt').value)||0):0;
   const source=bkSource;
@@ -2656,13 +2700,13 @@ function saveBooking(){
     // par une lecture vide du formulaire.
     const dn=dinnerEnabled()?getDinnerNights():(i!==-1?S.bookings[i].dinnerNights:{});
     const nbf=breakfastEnabled()?getNoBreakfastNights():(i!==-1?S.bookings[i].noBreakfast:{});
-    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet};
+    if(i!==-1) S.bookings[i]={...S.bookings[i],roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,taxeSejour};
   }else{
     // Le petit-déjeuner est inclus par défaut (checkboxes cochées à la création) :
     // on lit quand même les cases de la modale au cas où l'utilisateur en aurait
     // décoché avant même la première sauvegarde.
     const nbf=getNoBreakfastNights();
-    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet});
+    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,taxeSejour});
   }
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
@@ -3311,6 +3355,7 @@ function loadSettings(){
   S.settings=raw?JSON.parse(raw):JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
   if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
   if(!S.settings.chargeCategories||!S.settings.chargeCategories.length)S.settings.chargeCategories=JSON.parse(JSON.stringify(DEFAULT_SETTINGS.chargeCategories));
+  if(!S.settings.taxeSejourHistory||!S.settings.taxeSejourHistory.length)S.settings.taxeSejourHistory=JSON.parse(JSON.stringify(DEFAULT_SETTINGS.taxeSejourHistory));
   migrateCleaners();
   const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
   if(ghostSrc)ghostSrc.noRevenue=false;
@@ -3711,6 +3756,27 @@ function renderSettings(){
     </div>`;
   h+=settingsPanel('tarifs','Services',tarifsBody);
 
+  // — Taxe de séjour —
+  let taxeSejourBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Montant par personne et par nuit, appliqué selon la date d'arrivée du séjour. Reversée à la commune : volontairement exclue du chiffre d'affaires et des seuils de franchise TVA ci-dessus.</div>
+    <div class="set-card">
+    <div class="set-tariff-hd" style="grid-template-columns:1fr 70px 24px">
+      <span>À partir du</span><span>€/pers/nuit</span><span></span>
+    </div>`;
+  const tsRates=[...(S.settings.taxeSejourHistory||[])].sort((a,b)=>a.from.localeCompare(b.from));
+  tsRates.forEach(t=>{
+    const canDel=tsRates.length>1;
+    taxeSejourBody+=`<div class="set-tariff-row" style="grid-template-columns:1fr 70px 24px">
+      <input class="set-fi" type="date" value="${t.from}"
+        onblur="updateTaxeSejourRate('${t.id}','from',this.value)">
+      <input class="set-fi-sm" type="number" step="0.01" value="${t.amount}"
+        onblur="updateTaxeSejourRate('${t.id}','amount',+this.value)">
+      <button class="set-del" ${canDel?'':'disabled style="opacity:.3"'} onclick="delTaxeSejourRate('${t.id}')">×</button>
+    </div>`;
+  });
+  taxeSejourBody+=`<button class="set-add" onclick="addTaxeSejourRate()">+ Nouveau tarif à partir d'aujourd'hui</button>
+    </div>`;
+  h+=settingsPanel('taxesejour','Taxe de séjour',taxeSejourBody);
+
   // — Catalogue extras (boissons, options, lit bébé…), vendu à la nuit ou au séjour —
   const catCats=[...new Set(S.catalog.map(c=>c.cat))];
   let catalogBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Articles proposés en extra dans le modal de réservation (boissons, options petit-déjeuner, lit bébé…), regroupés par catégorie. Choisissez une catégorie existante ou créez-en une nouvelle.</div>`;
@@ -3837,6 +3903,27 @@ function updateTariff(id,field,val){
   if(!t)return;
   t[field]=val;
   saveSettings();
+}
+
+// Taxe de séjour CRUD (même logique que les tarifs ci-dessus)
+function addTaxeSejourRate(){
+  const last=[...S.settings.taxeSejourHistory].sort((a,b)=>a.from.localeCompare(b.from)).pop();
+  S.settings.taxeSejourHistory.push({id:uid(),from:todayISO(),amount:last?last.amount:1});
+  saveSettings();renderSettings();
+}
+function delTaxeSejourRate(id){
+  if(S.settings.taxeSejourHistory.length<=1)return;
+  S.settings.taxeSejourHistory=S.settings.taxeSejourHistory.filter(t=>t.id!==id);
+  saveSettings();renderSettings();
+}
+function updateTaxeSejourRate(id,field,val){
+  const t=S.settings.taxeSejourHistory.find(x=>x.id===id);
+  if(!t)return;
+  t[field]=val;
+  saveSettings();
+  // Le modal de réservation peut être ouvert avec la case déjà cochée : le montant
+  // affiché doit refléter le nouveau taux sans attendre une fermeture/réouverture.
+  if(byId('modalBooking').style.display==='flex')updateModalTotal();
 }
 
 // Room CRUD
@@ -4157,7 +4244,8 @@ function updateModalTotal(){
   if(shareRow){shareRow.style.display='none';shareRow.innerHTML='';}
   const ci=byId('bIn').value;
   const co=byId('bOut').value;
-  if(!ci||!co||ci>=co){el.style.display='none';return;}
+  const tsBox=byId('bTaxeSejourVal');
+  if(!ci||!co||ci>=co){el.style.display='none';if(tsBox)tsBox.textContent='';return;}
   const nights=Math.round((new Date(co)-new Date(ci))/86400000);
   const bk=editBid?S.bookings.find(b=>b.id===editBid):null;
   const prixNetRaw=byId('prixNet').value;
@@ -4166,6 +4254,13 @@ function updateModalTotal(){
   const tariff=getTariffForDate(ci);
   const pax=parseInt(document.querySelector('.pax-btn.on')?.textContent)||2;
   const tempBk={...(bk||{}),checkIn:ci,checkOut:co,guestId:selGid,source:bkSource,prixNet:prixNetVal,roomId:rid,nbPersons:pax};
+  // Taxe de séjour : reversée à la commune, volontairement affichée à part et
+  // exclue du total séjour ci-dessous (voir getTaxeSejourAmount).
+  if(tsBox){
+    const taxeSejourOn=byId('bTaxeSejour')?.checked;
+    const tsAmount=taxeSejourOn?getTaxeSejourAmount({checkIn:ci,checkOut:co,nbPersons:pax,taxeSejour:true}):0;
+    tsBox.textContent=taxeSejourOn?`${tsAmount.toLocaleString('fr-FR')} € — non comprise dans le total, à collecter à part`:'';
+  }
   const rate=getNightlyRate(tempBk);
   const dinnerNights=getDinnerNights(); // read from DOM checkboxes, not saved booking
   const dinCount=Object.keys(dinnerNights).length;
