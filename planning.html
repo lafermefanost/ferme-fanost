@@ -1487,19 +1487,20 @@ function getThRevenue(bk,fromDate,toDate){
     .length*(bk.nbPersons||2)*t.th;
 }
 
+// Catalogue de démarrage : sert de base à tout nouveau compte n'ayant encore
+// aucun catalogue enregistré (voir loadCatalog). Volontairement générique —
+// applicable aussi bien à une chambre d'hôtes qu'à un gîte — plutôt que calqué
+// sur l'offre exacte d'un établissement en particulier.
 const DEFAULT_CATALOG=[
   {id:'eau-pet',  name:'Eau pétillante',         price:2,   cat:'Boissons',  emoji:'💧'},
-  {id:'soda-jus', name:'Soda / Jus bio',          price:3.5, cat:'Boissons',  emoji:'🥤'},
+  {id:'soda-jus', name:'Soda / Jus',             price:3.5, cat:'Boissons',  emoji:'🥤'},
   {id:'biere',    name:'Bière',                   price:5,   cat:'Boissons',  emoji:'🍺'},
-  {id:'cocktail', name:'Cocktail s/alcool',       price:5,   cat:'Boissons',  emoji:'🍹'},
-  {id:'vin-ver',  name:'Vin — verre',             price:4.5, cat:'Boissons',  emoji:'🍷'},
-  {id:'vin-bout', name:'Vin — bouteille',         price:18,  cat:'Boissons',  emoji:'🍾'},
-  {id:'champa',   name:'Champagne — coupe',       price:6,   cat:'Boissons',  emoji:'🥂'},
   {id:'cafe',     name:'Café / Thé',              price:2,   cat:'Boissons',  emoji:'☕'},
   {id:'pdj-oeufs',name:'Option salée — œufs',    price:4,   cat:'Petit-déj', emoji:'🍳'},
   {id:'pdj-jam',  name:'Option salée — jambon',   price:4,   cat:'Petit-déj', emoji:'🥩'},
   {id:'pdj-fro',  name:'Option salée — fromage',  price:4,   cat:'Petit-déj', emoji:'🧀'},
   {id:'lit-bebe', name:'Lit bébé (séjour)',       price:15,  cat:'Confort',   emoji:'🛏'},
+  {id:'linge-sup',name:'Linge de maison suppl. (séjour)', price:10, cat:'Confort', emoji:'🧺'},
 ];
 let editBid = null, editGid = null, editEvid = null;
 let selGid = null, newGMode = false;
