@@ -1035,13 +1035,6 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
         <label class="fl">Table d'hôtes — soirs du séjour</label>
         <div id="dinnerList" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
       </div>
-      <div class="fg" id="taxeSejourFg" style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;margin:0">
-          <input type="checkbox" id="bTaxeSejour" onchange="updateModalTotal()">
-          Taxe de séjour
-        </label>
-        <span id="bTaxeSejourVal" style="font-size:12px;color:var(--gray);font-weight:600"></span>
-      </div>
     </div>
 
     <!-- ── Paiement ── -->
@@ -1049,6 +1042,14 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
       <div class="msec-title">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
         Paiement
+      </div>
+      <div class="fg" id="taxeSejourFg">
+        <label class="fl">Taxe de séjour</label>
+        <div class="pay-row">
+          <button class="pay-chip" id="ts-non" onclick="setTaxeSejour(false)">Non</button>
+          <button class="pay-chip" id="ts-oui" onclick="setTaxeSejour(true)">Oui</button>
+        </div>
+        <span id="bTaxeSejourVal" style="font-size:12px;color:var(--gray);font-weight:600;display:inline-block;margin-top:6px"></span>
       </div>
       <div class="fg">
         <label class="fl">Statut</label>
@@ -1576,13 +1577,24 @@ const DEFAULT_CATALOG=[
 ];
 let editBid = null, editGid = null, editEvid = null;
 let selGid = null, newGMode = false;
-let bkPayment = null, bkSource = 'direct';
+let bkPayment = null, bkSource = 'direct', bkTaxeSejour = false;
 let openExtrasId = null;
 
 function setPayment(v){
   bkPayment=bkPayment===v?null:v;
   ['pending','deposit','paid'].forEach(p=>byId('pay-'+p)?.classList.toggle('on',bkPayment===p));
   byId('depositAmtFg').style.display=bkPayment==='deposit'?'block':'none';
+}
+// Bulles Oui/Non (même patron que setPayment), sauf qu'une des deux est
+// toujours active (case binaire, pas de statut "non défini" à représenter).
+function applyTaxeSejourUI(){
+  byId('ts-non')?.classList.toggle('on',!bkTaxeSejour);
+  byId('ts-oui')?.classList.toggle('on',bkTaxeSejour);
+}
+function setTaxeSejour(v){
+  bkTaxeSejour=v;
+  applyTaxeSejourUI();
+  updateModalTotal();
 }
 function renderSourceBtns(){
   const el=byId('srcBtns');
@@ -2438,7 +2450,8 @@ function openAddModal(roomId,ds,dsOut){
   byId('bStatus').value='ok';
   setPax(1);
   byId('bNotes').value='';
-  byId('bTaxeSejour').checked=false;
+  bkTaxeSejour=false;
+  applyTaxeSejourUI();
   byId('bTaxeSejourVal').textContent='';
   byId('prixNet').value='';
   byId('prixNetHint').textContent='';
@@ -2472,7 +2485,8 @@ function openEditModal(id){
   byId('bStatus').value=b.status||'ok';
   setPax(b.nbPersons||2);
   byId('bNotes').value=b.notes||'';
-  byId('bTaxeSejour').checked=!!b.taxeSejour;
+  bkTaxeSejour=!!b.taxeSejour;
+  applyTaxeSejourUI();
   resetPaymentUI(b.payment,b.ghost,b.depositAmount,b.source);
   byId('prixNet').value=b.prixNet!=null?b.prixNet:'';
   const nights=Math.round((new Date(b.checkOut)-new Date(b.checkIn))/86400000);
@@ -2696,7 +2710,7 @@ function saveBooking(){
   const at=byId('bTime').value.trim();
   const st=byId('bStatus').value;
   const np=parseInt(byId('bPersons').value)||2;
-  const taxeSejour=taxeSejourEnabled()&&byId('bTaxeSejour').checked;
+  const taxeSejour=taxeSejourEnabled()&&bkTaxeSejour;
   const tsAmount=taxeSejour?getTaxeSejourAmount({checkIn:ci,checkOut:co,nbPersons:np,roomId:rid,guestId:selGid,taxeSejour:true}):0;
   const nt=syncTaxeSejourNote(byId('bNotes').value.trim(),taxeSejour,tsAmount);
   const pay=bkPayment;
@@ -4316,7 +4330,7 @@ function updateModalTotal(){
   // Taxe de séjour : reversée à la commune, volontairement affichée à part et
   // exclue du total séjour ci-dessous (voir getTaxeSejourAmount).
   if(tsBox){
-    const taxeSejourOn=taxeSejourEnabled()&&byId('bTaxeSejour')?.checked;
+    const taxeSejourOn=taxeSejourEnabled()&&bkTaxeSejour;
     const tsAmount=taxeSejourOn?getTaxeSejourAmount({...tempBk,taxeSejour:true}):0;
     tsBox.textContent=taxeSejourOn?`${tsAmount.toLocaleString('fr-FR')} € — non comprise dans le total, à collecter à part`:'';
   }
