@@ -1345,53 +1345,58 @@ function defaultRoomPrices(max){
   for(let p=1;p<=(max||2);p++) prices[p]=p===1?100:125;
   return prices;
 }
+// Réglages de démarrage : base neutre pour tout nouveau compte n'ayant encore
+// rien enregistré (voir loadSettings/applyRemoteData) — pensée pour être
+// revendue telle quelle à d'autres structures, sans rien de propre à un
+// établissement en particulier (pas de nom de lieu, pas de vrais tarifs
+// bancaires, pas de nom de personne). Un compte déjà utilisé n'est jamais
+// affecté par un changement ici : ses propres réglages, une fois enregistrés,
+// prennent toujours le dessus (voir la note dans applyRemoteData).
 const DEFAULT_SETTINGS={
-  name:'Fanost — Planning',
+  name:'Planning',
   dinnerEnabled:true,
   breakfastEnabled:true,
   rooms:[
-    {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
-    {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
-    {id:'ch3',name:'Chambre 3',short:'Ch.3',color:'#B57A8C',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
-    {id:'ch4',name:'Chambre 4',short:'Ch.4',color:'#8CB57A',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
-    {id:'vip',name:'VIP',short:'VIP',color:'#B5A07A',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
-    {id:'fam',name:'Famille',short:'FAM',color:'#7AB5A0',maxPersons:4,babyCrib:true,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(4)}]},
-    {id:'jdn',name:'Jardin',short:'JDN',color:'#A07AB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'sasu',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
-    {id:'wis',name:'Wissous',short:'WIS',color:'#B57A7A',maxPersons:4,babyCrib:false,babyCribPrice:15,group:'lmnp',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(4)}]},
+    {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'struct1',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
+    {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'struct1',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
+    {id:'ch3',name:'Chambre 3',short:'Ch.3',color:'#B57A8C',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'struct1',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
+    {id:'ch4',name:'Chambre 4',short:'Ch.4',color:'#8CB57A',maxPersons:4,babyCrib:true,babyCribPrice:15,group:'struct1',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(4)}]},
   ],
-  cleaners:[{name:'Rosa',rate:15},{name:'Svetlana',rate:15},{name:'Tatiana',rate:15}],
+  // Vide par défaut : une équipe de ménage est propre à chaque établissement,
+  // pas d'exemple avec des prénoms de personnes réelles.
+  cleaners:[],
   tariffHistory:[{id:'t0',from:'2000-01-01',th:25,bf:5}],
+  // Intitulés génériques et réutilisables ; volontairement sans mots-clés
+  // (keywords vide) — ceux d'origine viendraient forcément d'un relevé
+  // bancaire réel. Chacun ajoute les siens dans Réglages → Catégories.
   chargeCategories:[
-    {id:'depot',label:'Dépôt / Caution',keywords:['depot de garantie','dépôt de garantie'],excluded:true},
-    {id:'notesfrais',label:'Notes de frais',keywords:['note de frais','achat pro'],excluded:false},
-    {id:'perso',label:'Dépenses personnelles',keywords:['uk visas and immigration'],excluded:true},
-    {id:'associe',label:'Compte courant associé',keywords:['marandin'],excluded:true},
-    {id:'alim',label:'Alimentaire',keywords:['carrefour','biocoop','lidl','la fourche','e.leclerc','sc-','boucherie','isa volaille',"prim' et saisons",'aux gourmets','sarl fossato','barberon vikings','liknadistrib','tomas poisson','nagar','intermarché','pointier','chez pompette','greenweez','maxicoffee','barbarella','boiton rabain'],excluded:false},
-    {id:'petitdej',label:'Petit-déjeuner',keywords:['fab tradition'],excluded:false},
-    {id:'energie',label:'Énergie',keywords:['engie','bellenergie'],excluded:false},
-    {id:'travaux',label:'Travaux / Matériel',keywords:['point.p','leroy merlin','ppg idf','amazon pay','amazon','dyson','gardena','bsh electroménager','arrosage distrib','5five','pccomponentes','action'],excluded:false},
-    {id:'deco',label:'Déco / Ameublement',keywords:['tropiflora','westwing','the bradery','create','sephora','flaconsapot','maison citron','minibout'],excluded:false},
-    {id:'logiciels',label:'Logiciels / Abonnements',keywords:['molotov','adobe','chatgpt','qonto','microsoft','cybevasion'],excluded:false},
-    {id:'marketing',label:'Marketing',keywords:['google ads'],excluded:false},
-    {id:'repasaffaires',label:"Repas d'affaires",keywords:['le terroir'],excluded:false},
-    {id:'auto',label:'Auto / Divers',keywords:['morangis auto'],excluded:false},
-    {id:'fraisbancaires',label:'Frais bancaires',keywords:['sumup'],excluded:false},
-    {id:'compta',label:'Comptabilité',keywords:['wity'],excluded:false},
-    {id:'mutuelle',label:'Mutuelle / Assurance',keywords:['aésio','mutuelle'],excluded:false},
-    {id:'conciergerie',label:'Conciergerie',keywords:['conciergerie','marine dubois'],excluded:false},
-    {id:'linge',label:'Linge / Pressing',keywords:['saifwad','tissco'],excluded:false},
+    {id:'depot',label:'Dépôt / Caution',keywords:[],excluded:true},
+    {id:'notesfrais',label:'Notes de frais',keywords:[],excluded:false},
+    {id:'perso',label:'Dépenses personnelles',keywords:[],excluded:true},
+    {id:'associe',label:'Compte courant associé',keywords:[],excluded:true},
+    {id:'alim',label:'Alimentaire',keywords:[],excluded:false},
+    {id:'petitdej',label:'Petit-déjeuner',keywords:[],excluded:false},
+    {id:'energie',label:'Énergie',keywords:[],excluded:false},
+    {id:'travaux',label:'Travaux / Matériel',keywords:[],excluded:false},
+    {id:'deco',label:'Déco / Ameublement',keywords:[],excluded:false},
+    {id:'logiciels',label:'Logiciels / Abonnements',keywords:[],excluded:false},
+    {id:'marketing',label:'Marketing',keywords:[],excluded:false},
+    {id:'repasaffaires',label:"Repas d'affaires",keywords:[],excluded:false},
+    {id:'auto',label:'Auto / Divers',keywords:[],excluded:false},
+    {id:'fraisbancaires',label:'Frais bancaires',keywords:[],excluded:false},
+    {id:'compta',label:'Comptabilité',keywords:[],excluded:false},
+    {id:'mutuelle',label:'Mutuelle / Assurance',keywords:[],excluded:false},
+    {id:'conciergerie',label:'Conciergerie',keywords:[],excluded:false},
+    {id:'linge',label:'Linge / Pressing',keywords:[],excluded:false},
   ],
   // Structures juridiques : liste libre, une chambre/gîte est rattaché(e) à l'une d'elles (room.group).
-  structures:[{id:'sasu',name:"Chambres d'hôtes"},{id:'lmnp',name:'Wissous'}],
+  // Une seule structure générique par défaut — à renommer et dupliquer dans Réglages selon les besoins.
+  structures:[{id:'struct1',name:'Structure 1'}],
   // Seuils par structure — plusieurs possibles, de type 'revenue' (CA réalisé/projeté vs montant)
-  // ou 'nights' (nuits via plateformes vs limite). Purement informatif/déclaratif, aucun par défaut
-  // n'est imposé à une structure ajoutée par l'utilisateur.
+  // ou 'nights' (nuits via plateformes vs limite). Un seul exemple par défaut (franchise de TVA,
+  // seuil légal identique pour tous), purement informatif/déclaratif — à ajuster ou supprimer.
   structureThresholds:{
-    sasu:[{id:'th-tva',type:'revenue',label:'Franchise TVA',amount:91900,color:'#E07828'}],
-    lmnp:[
-      {id:'th-lmp',type:'revenue',label:'Seuil LMP',amount:23000,color:'#E07828'},
-      {id:'th-plat',type:'nights',label:'Nuits plateformes',amount:120,color:'#3D5C35'},
-    ],
+    struct1:[{id:'th-tva',type:'revenue',label:'Franchise TVA',amount:91900,color:'#E07828'}],
   },
   sources:[
     {id:'direct',      label:'Direct',      color:'#7ABF6A',noRevenue:false},
@@ -3381,7 +3386,7 @@ function applySettings(){
   ROOMS=S.settings.rooms||ROOMS;
   CLEANERS=S.settings.cleaners||CLEANERS;
   const logoEl=byId('appName');
-  if(logoEl)logoEl.textContent=S.settings.name||'Fanost — Planning';
+  if(logoEl)logoEl.textContent=S.settings.name||DEFAULT_SETTINGS.name;
   document.body.classList.toggle('no-dinner',!dinnerEnabled());
   document.body.classList.toggle('no-breakfast',!breakfastEnabled());
   // Update room select in booking modal
