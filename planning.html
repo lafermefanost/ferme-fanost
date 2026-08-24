@@ -1194,7 +1194,7 @@ body.no-dinner .tsec-panel.menu{display:none;}
     </div>
     <div class="fg">
       <label class="fl">Titre</label>
-      <input type="text" class="fi" id="evTitle" placeholder="Rosa, Ski Voyage, Réunion…">
+      <input type="text" class="fi" id="evTitle" placeholder="Fermeture, Travaux, Réunion…">
     </div>
     <div class="frow">
       <div class="fg">
@@ -1299,15 +1299,14 @@ body.no-dinner .tsec-panel.menu{display:none;}
 // ═══════════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════════
+// Valeur de départ, écrasée par applySettings() dès l'initialisation (voir
+// init()) — gardée en phase avec le contenu générique de DEFAULT_SETTINGS.rooms
+// pour ne pas laisser une liste différente ici, même un court instant.
 let ROOMS = [
   {id:'ch1',name:'Chambre 1',short:'Ch.1'},
   {id:'ch2',name:'Chambre 2',short:'Ch.2'},
   {id:'ch3',name:'Chambre 3',short:'Ch.3'},
   {id:'ch4',name:'Chambre 4',short:'Ch.4'},
-  {id:'vip',name:'VIP',       short:'VIP'},
-  {id:'fam',name:'Famille',   short:'FAM'},
-  {id:'jdn',name:'Jardin',    short:'JDN'},
-  {id:'wis',name:'Wissous',   short:'WIS'},
 ];
 
 const DOW = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
@@ -3243,7 +3242,8 @@ function flash(msg,bg){
 // ═══════════════════════════════════════════════════════════════
 //  WEEK VIEW
 // ═══════════════════════════════════════════════════════════════
-let CLEANERS=[{name:'Rosa',rate:15},{name:'Svetlana',rate:15},{name:'Tatiana',rate:15}];
+// Écrasée par applySettings() dès l'initialisation — vide comme DEFAULT_SETTINGS.cleaners.
+let CLEANERS=[];
 const CLEAN_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M20 4 11 13"/><path d="M11 13 5 21h10z"/><line x1="7.5" y1="18" x2="12.5" y2="18"/></svg>';
 
 // Migrate old format S.cleaning[ds]=name (string) → array of {name,hours,time}
@@ -5101,15 +5101,23 @@ function renderYear(){
     </div>`:`<div class="yr-chart-nodata">Aucune donnée de revenu pour ${year}<br><span style="font-size:11px">Vérifiez que vos réservations ont un tarif configuré</span></div>`}
   </div>`;
 
-  // Regulatory
+  // Regulatory — les seuils affichés viennent des seuils réellement configurés
+  // (n'importe quelle structure, retrouvés par mot-clé dans leur libellé plutôt
+  // que par un id de structure fixe 'sasu'/'lmnp' qui n'existe plus forcément :
+  // les structures juridiques sont une liste libre, renommable/supprimable).
+  const allThr=structs.flatMap(s=>structThr[s.id]||[]);
+  const findThrByLabel=kw=>allThr.find(t=>(t.label||'').toLowerCase().includes(kw));
+  const lmpThr=findThrByLabel('lmp');
+  const tvaThr=findThrByLabel('tva');
+  const nightsThr=allThr.find(t=>t.type==='nights');
   const reglHTML=`<div class="yr-section yr-regl" onclick="this.classList.toggle('open')">
     <div class="yr-section-title" style="cursor:pointer;margin-bottom:0;display:flex;justify-content:space-between;align-items:center">Réglementation — rappels<span class="yr-regl-chev">▾</span></div>
     <div class="yr-regl-body" style="margin-top:10px">
       <div class="yr-regl-item">📋 <b>Déclaration meublé de tourisme</b> — numéro d'enregistrement obligatoire en mairie avant mise en location.</div>
       <div class="yr-regl-item">💶 <b>Taxe de séjour</b> — à collecter et reverser à la commune (souvent automatisée par Airbnb/Booking).</div>
-      <div class="yr-regl-item">⚠️ <b>LMNP → LMP</b> — si recettes > ${(structThr.lmnp?.find(t=>t.type==='revenue')?.amount||23000).toLocaleString('fr-FR')} € <em>et</em> > 50 % des revenus du foyer, passage au statut LMP avec cotisations sociales obligatoires.</div>
-      <div class="yr-regl-item">💰 <b>Franchise TVA hébergement</b> — si CA > ${(structThr.sasu?.find(t=>t.type==='revenue')?.amount||91900).toLocaleString('fr-FR')} €, assujettissement à la TVA. Vérifier avec votre expert-comptable.</div>
-      <div class="yr-regl-item">🏠 <b>Loi Le Meur (nov. 2024)</b> — résidence principale : limite de <b>${(structThr.lmnp?.find(t=>t.type==='nights')?.amount||120)} nuits/an</b> via plateformes numériques. Les communes >200 000 hab. peuvent abaisser à 90 nuits. Nouvelles exigences DPE pour les meublés de tourisme neufs dès 2025.</div>
+      <div class="yr-regl-item">⚠️ <b>LMNP → LMP</b> — si recettes > ${(lmpThr?.amount||23000).toLocaleString('fr-FR')} € <em>et</em> > 50 % des revenus du foyer, passage au statut LMP avec cotisations sociales obligatoires.</div>
+      <div class="yr-regl-item">💰 <b>Franchise TVA hébergement</b> — si CA > ${(tvaThr?.amount||91900).toLocaleString('fr-FR')} €, assujettissement à la TVA. Vérifier avec votre expert-comptable.</div>
+      <div class="yr-regl-item">🏠 <b>Loi Le Meur (nov. 2024)</b> — résidence principale : limite de <b>${(nightsThr?.amount||120)} nuits/an</b> via plateformes numériques. Les communes >200 000 hab. peuvent abaisser à 90 nuits. Nouvelles exigences DPE pour les meublés de tourisme neufs dès 2025.</div>
       <div class="yr-regl-item" style="color:var(--gray);font-style:italic;font-size:11px;border-bottom:none">Ces informations sont indicatives — consultez votre expert-comptable.</div>
     </div>
   </div>`;
@@ -5118,12 +5126,12 @@ function renderYear(){
   const MABR=['','Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
   const FISCAL=[
     {m:3, d:31,title:'Option régime fiscal SASU',         desc:'Notifier avant fin mars si changement IR/IS souhaité pour l\'exercice en cours',      color:'#E07828'},
-    {m:6, d:5, title:'Déclaration IR + LMNP réel',        desc:'Date limite en ligne — zone 3 (Essonne) : début juin, vérifier sur impots.gouv.fr',   color:'#3D5C35', approx:true},
+    {m:6, d:5, title:'Déclaration IR + LMNP réel',        desc:'Date limite en ligne — variable selon votre zone/département, début-fin juin : vérifier sur impots.gouv.fr', color:'#3D5C35', approx:true},
     {m:6, d:15,title:'Acompte CFE',                       desc:'Si cotisation N-1 ≥ 3 000 € — règlement de 50 % de l\'acompte prévisionnel',          color:'#B57A7A', cond:true},
     {m:6, d:30,title:'Déclaration d\'occupation (GMBI)',  desc:'Mise à jour foncière obligatoire si changement d\'occupant ou d\'usage du bien',       color:'#7A8CB5'},
     {m:9, d:15,title:'Solde IR / acompte',                desc:'Versement d\'un acompte ou solde d\'impôt sur le revenu selon situation fiscale',       color:'#E07828', cond:true},
     {m:11,d:1, title:'Avis de CFE disponibles',           desc:'Mise en ligne des avis de cotisation foncière — vérifier le montant par établissement',color:'#7A8800'},
-    {m:12,d:15,title:'Paiement CFE',                      desc:'Règlement de la CFE pour chaque établissement (SASU + LMNP Wissous)',                  color:'#B57A7A'},
+    {m:12,d:15,title:'Paiement CFE',                      desc:'Règlement de la CFE pour chaque établissement/structure',                              color:'#B57A7A'},
   ];
   const fiscalItems=FISCAL.map(f=>{
     const ds=`${year}-${p(f.m)}-${p(f.d)}`;
