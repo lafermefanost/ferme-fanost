@@ -69,6 +69,17 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 
 /* ─── TABLE ─────────────────────────────────────────────── */
 .pt{border-collapse:collapse;min-width:max-content;font-size:11px;}
+/* "Dézoomer" la grille pour voir toutes les colonnes d'un coup : `zoom` (et non
+   `transform`) car il conserve un comportement correct de `position:sticky`. */
+.pt.zoomed-out{zoom:.6;}
+
+.grid-zoom-btn{position:fixed;right:16px;bottom:16px;z-index:90;width:40px;height:40px;
+  border-radius:50%;border:1.5px solid var(--light);background:var(--white);color:var(--gray);
+  display:none;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,.12);transition:all .15s;}
+.grid-zoom-btn:hover{color:var(--green);border-color:var(--green);}
+.grid-zoom-btn.on{background:var(--green);color:var(--white);border-color:var(--green);}
+@media(max-width:599px){.grid-zoom-btn{bottom:66px;}}
 
 /* Sticky header */
 .pt thead th{
@@ -902,6 +913,11 @@ body.no-dinner .tsec-panel.menu{display:none;}
     <tbody id="ptBody"></tbody>
   </table>
 </div>
+<button class="grid-zoom-btn" id="gridZoomBtn" onclick="toggleGridZoom()" title="Voir toutes les chambres">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>
+  </svg>
+</button>
 
 <!-- ─── TODAY VIEW ─────────────────────────────────────────────── -->
 <div id="todayWrap"></div>
@@ -3712,7 +3728,6 @@ function renderSettings(){
     sourcesBody+=`<div class="set-card set-card-row">
       <input class="set-fi" style="flex:1" value="${s.label.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateSource('${s.id}','label',this.value)">
       <input type="color" class="set-color" value="${s.color||'#888'}" oninput="updateSource('${s.id}','color',this.value)">
-      <span style="font-size:10px;color:var(--gray);flex-shrink:0;opacity:.6">${s.noRevenue?'(sans CA)':''}</span>
       ${isBuiltin?'':`<button class="set-del" onclick="delSource('${s.id}')">×</button>`}
     </div>`;
   });
@@ -4715,6 +4730,23 @@ function renderMonth(){
 // ═══════════════════════════════════════════════════════════════
 //  VIEW / YEAR
 // ═══════════════════════════════════════════════════════════════
+// "Dézoomer" la grille pour voir toutes les chambres d'un coup, sans avoir à
+// scroller horizontalement. Préférence mémorisée d'une session à l'autre.
+let gridZoomed=localStorage.getItem('ff2_gridZoom')==='1';
+function applyGridZoom(){
+  byId('pt')?.classList.toggle('zoomed-out',gridZoomed);
+  const btn=byId('gridZoomBtn');
+  if(btn){
+    btn.classList.toggle('on',gridZoomed);
+    btn.title=gridZoomed?'Revenir à la taille normale':'Voir toutes les chambres';
+  }
+}
+function toggleGridZoom(){
+  gridZoomed=!gridZoomed;
+  localStorage.setItem('ff2_gridZoom',gridZoomed?'1':'0');
+  applyGridZoom();
+}
+
 function setView(v){
   S.view=v;
   ['grid','today','week','month','year'].forEach(id=>{
@@ -4723,6 +4755,8 @@ function setView(v){
     byId('vt-'+id)?.classList.toggle('on',id===v);
     byId('mn-'+id)?.classList.toggle('on',id===v);
   });
+  const zb=byId('gridZoomBtn');
+  if(zb)zb.style.display=v==='grid'?'flex':'none';
   if(v==='today'){if(!S.todayDate)S.todayDate=todayISO();renderToday();}
   if(v==='week')renderWeek();
   if(v==='month')renderMonth();
@@ -5099,6 +5133,8 @@ function init(){
   byId('yrLabel').textContent=S.year;
 
   renderGrid();
+  applyGridZoom();
+  byId('gridZoomBtn').style.display=S.view==='grid'?'flex':'none';
 
   // Auto-scroll to today after render
   setTimeout(()=>byId('row-today')?.scrollIntoView({block:'center'}),150);
