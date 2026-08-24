@@ -79,10 +79,16 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 .th-room-short{display:none;}
 .pt.zoomed-out .th-room-full{display:none;}
 .pt.zoomed-out .th-room-short{display:inline;}
-.pt.zoomed-out td.rc{min-width:46px;max-width:56px;}
-.pt.zoomed-out td.c-menage{min-width:56px;max-width:76px;}
-.pt.zoomed-out td.c-event{min-width:70px;max-width:110px;}
-.pt.zoomed-out td.c-th{min-width:28px;max-width:28px;}
+/* width:100% + des max-width généreux : le tableau s'étire tout seul pour
+   remplir l'écran quand peu de chambres laissent de la place (ex: mobile,
+   Ménage/Événement déjà masqués) — sans passer par `zoom`, qui grossirait
+   aussi les colonnes fixes J/#/S à gauche. Le `zoom` (calculé en JS) ne sert
+   plus qu'à rétrécir quand même ces largeurs minimales ne suffisent pas. */
+.pt.zoomed-out{width:100%;}
+.pt.zoomed-out td.rc{min-width:46px;max-width:120px;}
+.pt.zoomed-out td.c-menage{min-width:56px;max-width:140px;}
+.pt.zoomed-out td.c-event{min-width:70px;max-width:220px;}
+.pt.zoomed-out td.c-th{min-width:28px;max-width:44px;}
 
 .grid-zoom-btn{position:fixed;right:16px;bottom:16px;z-index:90;width:40px;height:40px;
   border-radius:50%;border:1.5px solid var(--light);background:var(--white);color:var(--gray);
@@ -4785,16 +4791,17 @@ function computeGridZoomFactor(){
   // Taille normale (colonnes larges, pas de zoom) : avec peu de chambres, tout
   // peut déjà tenir sans rien changer du tout.
   if(full<=avail||avail<=0)return{needed:false,factor:1};
-  // Ça ne tient pas : réduit d'abord la largeur des cellules (moins de zoom
-  // nécessaire ensuite, donc plus lisible), puis calcule le zoom qui comble
-  // ce qu'il reste à gagner — dans les DEUX sens : si les colonnes réduites
-  // dépassent encore la largeur visible, il rétrécit (facteur < 1) ; si au
-  // contraire elles laissent de la place (ex: peu de chambres sur mobile où
-  // Ménage/Événement sont déjà masqués), il agrandit (facteur > 1) pour que
-  // la grille remplisse l'écran au lieu de laisser une bande vide à droite.
+  // Ça ne tient pas : réduit d'abord la largeur des cellules (codes courts,
+  // colonnes plus étroites, tableau étiré à 100%). Sur la plupart des écrans
+  // ça suffit déjà à tout faire tenir pile — le CSS s'en charge tout seul,
+  // sans toucher au zoom (qui grossirait aussi les colonnes fixes J/#/S à
+  // gauche, ce qui donnait un rendu bizarre).
   pt.classList.add('zoomed-out');
   const narrowed=pt.getBoundingClientRect().width;
   if(narrowed<=0)return{needed:false,factor:1};
+  if(narrowed<=avail)return{needed:true,factor:1};
+  // Même à leur largeur minimale, les colonnes dépassent encore (beaucoup de
+  // chambres) : là seulement on complète avec un zoom pour que tout tienne.
   const factor=Math.max(.4,avail/narrowed);
   return{needed:true,factor};
 }
