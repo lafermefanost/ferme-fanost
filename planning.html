@@ -248,6 +248,8 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 #pay-pending.on{background:#FFF3CD;color:#7A5800;border-color:#E6C96A;}
 #pay-deposit.on{background:#E8F0FE;color:#1967D2;border-color:#94B1F6;}
 #pay-paid.on{background:#E8F3E5;color:#2E5C28;border-color:#7ABF6A;}
+#ts-chip.on{background:#E8F3E5;color:#2E5C28;border-color:#7ABF6A;}
+#ts-chip.on::before{content:'✓ ';}
 .src-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
 .src-chip{padding:5px 12px;border:1.5px solid var(--light);border-radius:20px;
   font-family:'Jost',sans-serif;font-size:12px;font-weight:500;
@@ -1046,10 +1048,9 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
       <div class="fg" id="taxeSejourFg">
         <label class="fl">Taxe de séjour</label>
         <div class="pay-row">
-          <button class="pay-chip" id="ts-non" onclick="setTaxeSejour(false)">Non</button>
-          <button class="pay-chip" id="ts-oui" onclick="setTaxeSejour(true)">Oui</button>
+          <button class="pay-chip" id="ts-chip" onclick="setTaxeSejour(!bkTaxeSejour)">Taxe de séjour</button>
         </div>
-        <span id="bTaxeSejourVal" style="font-size:12px;color:var(--gray);font-weight:600;display:inline-block;margin-top:6px"></span>
+        <span id="bTaxeSejourVal" style="font-size:12px;color:var(--gray);font-weight:600;display:none"></span>
       </div>
       <div class="fg">
         <label class="fl">Statut</label>
@@ -1585,11 +1586,11 @@ function setPayment(v){
   ['pending','deposit','paid'].forEach(p=>byId('pay-'+p)?.classList.toggle('on',bkPayment===p));
   byId('depositAmtFg').style.display=bkPayment==='deposit'?'block':'none';
 }
-// Bulles Oui/Non (même patron que setPayment), sauf qu'une des deux est
-// toujours active (case binaire, pas de statut "non défini" à représenter).
+// Une seule bulle à cocher (coche visuelle + surlignage au lieu de deux
+// bulles Oui/Non) : plus proche d'une case à cocher classique, dans le même
+// esprit que les autres bulles de la section Paiement.
 function applyTaxeSejourUI(){
-  byId('ts-non')?.classList.toggle('on',!bkTaxeSejour);
-  byId('ts-oui')?.classList.toggle('on',bkTaxeSejour);
+  byId('ts-chip')?.classList.toggle('on',bkTaxeSejour);
 }
 function setTaxeSejour(v){
   bkTaxeSejour=v;
@@ -4318,7 +4319,7 @@ function updateModalTotal(){
   const ci=byId('bIn').value;
   const co=byId('bOut').value;
   const tsBox=byId('bTaxeSejourVal');
-  if(!ci||!co||ci>=co){el.style.display='none';if(tsBox)tsBox.textContent='';return;}
+  if(!ci||!co||ci>=co){el.style.display='none';if(tsBox){tsBox.textContent='';tsBox.style.display='none';}return;}
   const nights=Math.round((new Date(co)-new Date(ci))/86400000);
   const bk=editBid?S.bookings.find(b=>b.id===editBid):null;
   const prixNetRaw=byId('prixNet').value;
@@ -4333,6 +4334,11 @@ function updateModalTotal(){
     const taxeSejourOn=taxeSejourEnabled()&&bkTaxeSejour;
     const tsAmount=taxeSejourOn?getTaxeSejourAmount({...tempBk,taxeSejour:true}):0;
     tsBox.textContent=taxeSejourOn?`${tsAmount.toLocaleString('fr-FR')} € — non comprise dans le total, à collecter à part`:'';
+    // display:none plutôt qu'un texte vide : sans ça, la ligne réserve quand
+    // même son espace (interligne) même quand elle n'affiche rien, ce qui
+    // décale la ligne suivante de façon incohérente avec le reste du modal.
+    tsBox.style.display=taxeSejourOn?'block':'none';
+    tsBox.style.marginTop=taxeSejourOn?'6px':'0';
   }
   const rate=getNightlyRate(tempBk);
   const dinnerNights=getDinnerNights(); // read from DOM checkboxes, not saved booking
