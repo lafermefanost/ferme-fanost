@@ -2126,6 +2126,10 @@ function renderGrid(){
 
   tbody.innerHTML='';
   tbody.appendChild(frag);
+
+  // Si la vue est dézoomée, on réajuste : ajouter/retirer une chambre change le
+  // nombre de colonnes, donc le niveau de zoom qui les fait toutes tenir.
+  if(gridZoomed)applyGridZoom();
 }
 
 function td(tr,cls,txt){
