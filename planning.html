@@ -70,8 +70,19 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 /* ─── TABLE ─────────────────────────────────────────────── */
 .pt{border-collapse:collapse;min-width:max-content;font-size:11px;}
 /* "Dézoomer" la grille pour voir toutes les colonnes d'un coup : `zoom` (et non
-   `transform`) car il conserve un comportement correct de `position:sticky`. */
-.pt.zoomed-out{zoom:.6;}
+   `transform`) car il conserve un comportement correct de `position:sticky` et
+   des interactions souris. Le niveau de zoom est calculé dynamiquement en JS
+   (toggleGridZoom) pour que ça tienne quel que soit le nombre de chambres —
+   ces largeurs réduites diminuent d'abord le zoom nécessaire, pour rester le
+   plus lisible possible.
+   Codes courts à la place du nom complet dans les en-têtes, une fois dézoomé. */
+.th-room-short{display:none;}
+.pt.zoomed-out .th-room-full{display:none;}
+.pt.zoomed-out .th-room-short{display:inline;}
+.pt.zoomed-out td.rc{min-width:46px;max-width:56px;}
+.pt.zoomed-out td.c-menage{min-width:56px;max-width:76px;}
+.pt.zoomed-out td.c-event{min-width:70px;max-width:110px;}
+.pt.zoomed-out td.c-th{min-width:28px;max-width:28px;}
 
 .grid-zoom-btn{position:fixed;right:16px;bottom:16px;z-index:90;width:40px;height:40px;
   border-radius:50%;border:1.5px solid var(--light);background:var(--white);color:var(--gray);
@@ -893,18 +904,11 @@ body.no-dinner .tsec-panel.menu{display:none;}
 <div id="gridWrap">
   <table class="pt" id="pt">
     <thead>
-      <tr>
+      <tr id="ptHeadRow">
         <th class="th-dow" style="min-width:22px">J</th>
         <th class="th-day" style="min-width:22px">#</th>
         <th class="th-wk" style="min-width:24px">S</th>
-        <th>Chambre 1</th>
-        <th>Chambre 2</th>
-        <th>Chambre 3</th>
-        <th>Chambre 4</th>
-        <th>VIP</th>
-        <th>Famille</th>
-        <th>Jardin</th>
-        <th>Wissous</th>
+        <!-- Colonnes chambres : générées par renderGridHeader() (voir renderGrid) -->
         <th class="th-th" style="min-width:42px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg> TH</th>
         <th class="th-menage">Ménage</th>
         <th class="th-event">Événement</th>
@@ -1924,7 +1928,25 @@ function doImport(inp){
 // ═══════════════════════════════════════════════════════════════
 //  GRID RENDERING
 // ═══════════════════════════════════════════════════════════════
+// En-têtes de colonnes chambres (nom complet, ou code court une fois la vue
+// dézoomée — voir toggleGridZoom). Régénérés à chaque renderGrid() pour
+// suivre les changements de chambres faits dans les réglages.
+function renderGridHeader(){
+  const tr=byId('ptHeadRow');
+  if(!tr)return;
+  const thTh=tr.querySelector('.th-th');
+  tr.querySelectorAll('th.th-room').forEach(el=>el.remove());
+  const frag=document.createDocumentFragment();
+  ROOMS.forEach(r=>{
+    const th=document.createElement('th');
+    th.className='th-room';
+    th.innerHTML=`<span class="th-room-full">${r.name}</span><span class="th-room-short">${r.short}</span>`;
+    frag.appendChild(th);
+  });
+  tr.insertBefore(frag,thTh);
+}
 function renderGrid(){
+  renderGridHeader();
   const tbody=byId('ptBody');
   const days=daysOf(S.year);
   const today=todayISO();
@@ -4733,8 +4755,27 @@ function renderMonth(){
 // "Dézoomer" la grille pour voir toutes les chambres d'un coup, sans avoir à
 // scroller horizontalement. Préférence mémorisée d'une session à l'autre.
 let gridZoomed=localStorage.getItem('ff2_gridZoom')==='1';
+// Niveau de zoom calculé pour que toutes les colonnes tiennent dans la largeur
+// visible, quel que soit le nombre de chambres — pas une valeur fixe qui ne
+// suffirait plus dès qu'on ajoute des chambres. `.zoomed-out` (déjà posée avant
+// l'appel) réduit d'abord la largeur des cellules ; le zoom comble le reste.
+function computeGridZoomFactor(){
+  const pt=byId('pt'),wrap=byId('gridWrap');
+  if(!pt||!wrap)return .55;
+  const prevZoom=pt.style.zoom;
+  pt.style.zoom='1';
+  const natural=wrap.scrollWidth;
+  const avail=wrap.clientWidth;
+  pt.style.zoom=prevZoom;
+  if(natural<=avail||avail<=0)return 1;
+  return Math.max(.4,avail/natural);
+}
 function applyGridZoom(){
-  byId('pt')?.classList.toggle('zoomed-out',gridZoomed);
+  const pt=byId('pt');
+  if(pt){
+    pt.classList.toggle('zoomed-out',gridZoomed);
+    pt.style.zoom=gridZoomed?computeGridZoomFactor():'';
+  }
   const btn=byId('gridZoomBtn');
   if(btn){
     btn.classList.toggle('on',gridZoomed);
@@ -4742,9 +4783,22 @@ function applyGridZoom(){
   }
 }
 function toggleGridZoom(){
+  const wrap=byId('gridWrap');
+  // Mémorise la position relative (verticale + horizontale) pour rester au même
+  // endroit dans l'année une fois le zoom changé, plutôt que de sauter ailleurs.
+  const maxVBefore=wrap.scrollHeight-wrap.clientHeight;
+  const ratioV=maxVBefore>0?wrap.scrollTop/maxVBefore:0;
+  const maxHBefore=wrap.scrollWidth-wrap.clientWidth;
+  const ratioH=maxHBefore>0?wrap.scrollLeft/maxHBefore:0;
+
   gridZoomed=!gridZoomed;
   localStorage.setItem('ff2_gridZoom',gridZoomed?'1':'0');
   applyGridZoom();
+
+  const maxVAfter=wrap.scrollHeight-wrap.clientHeight;
+  wrap.scrollTop=ratioV*maxVAfter;
+  const maxHAfter=wrap.scrollWidth-wrap.clientWidth;
+  wrap.scrollLeft=ratioH*maxHAfter;
 }
 
 function setView(v){
