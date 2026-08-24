@@ -4766,24 +4766,38 @@ function renderMonth(){
 let gridZoomed=localStorage.getItem('ff2_gridZoom')==='1';
 // Niveau de zoom calculé pour que toutes les colonnes tiennent dans la largeur
 // visible, quel que soit le nombre de chambres — pas une valeur fixe qui ne
-// suffirait plus dès qu'on ajoute des chambres. `.zoomed-out` (déjà posée avant
-// l'appel) réduit d'abord la largeur des cellules ; le zoom comble le reste.
+// suffirait plus dès qu'on ajoute des chambres, et pas non plus appliquée pour
+// rien quand ça tient déjà (ex: seulement 4 chambres) — sans quoi les cellules
+// restaient inutilement rétrécies, laissant une bande vide à droite au lieu de
+// s'étirer normalement pour remplir l'écran.
 function computeGridZoomFactor(){
   const pt=byId('pt'),wrap=byId('gridWrap');
-  if(!pt||!wrap)return .55;
-  const prevZoom=pt.style.zoom;
-  pt.style.zoom='1';
-  const natural=wrap.scrollWidth;
+  if(!pt||!wrap)return{needed:false,factor:1};
+  // Mesure d'abord en taille normale (colonnes larges, pas de zoom) : avec peu
+  // de chambres, tout peut déjà tenir sans rien changer du tout.
+  pt.classList.remove('zoomed-out');
+  pt.style.zoom='';
   const avail=wrap.clientWidth;
-  pt.style.zoom=prevZoom;
-  if(natural<=avail||avail<=0)return 1;
-  return Math.max(.4,avail/natural);
+  if(wrap.scrollWidth<=avail||avail<=0)return{needed:false,factor:1};
+  // Ça ne tient pas : réduit d'abord la largeur des cellules (moins de zoom
+  // nécessaire ensuite, donc plus lisible), puis calcule le zoom qui comble
+  // ce qu'il reste à gagner.
+  pt.classList.add('zoomed-out');
+  const natural=wrap.scrollWidth;
+  const factor=natural<=avail?1:Math.max(.4,avail/natural);
+  return{needed:true,factor};
 }
 function applyGridZoom(){
   const pt=byId('pt');
   if(pt){
-    pt.classList.toggle('zoomed-out',gridZoomed);
-    pt.style.zoom=gridZoomed?computeGridZoomFactor():'';
+    if(gridZoomed){
+      const{needed,factor}=computeGridZoomFactor();
+      pt.classList.toggle('zoomed-out',needed);
+      pt.style.zoom=needed?factor:'';
+    }else{
+      pt.classList.remove('zoomed-out');
+      pt.style.zoom='';
+    }
   }
   const btn=byId('gridZoomBtn');
   if(btn){
