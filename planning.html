@@ -1372,10 +1372,12 @@ const DEFAULT_SETTINGS={
   // pas d'exemple avec des prénoms de personnes réelles.
   cleaners:[],
   tariffHistory:[{id:'t0',from:'2000-01-01',th:25,bf:5}],
-  // Taxe de séjour (€ par personne et par nuit), versionnée par date comme les
-  // tarifs ci-dessus. Collectée pour le compte de la commune : volontairement
-  // tenue à l'écart du chiffre d'affaires (voir getTaxeSejourAmount).
-  taxeSejourHistory:[{id:'ts0',from:'2000-01-01',amount:1}],
+  // Taxe de séjour, versionnée par date comme les tarifs ci-dessus. Collectée
+  // pour le compte de la commune : volontairement tenue à l'écart du chiffre
+  // d'affaires (voir getTaxeSejourAmount). type:'fixed' (€/pers/nuit, le cas des
+  // hébergements classés) par défaut — 'percent' (taux % plafonné) pour les
+  // communes qui appliquent le régime des hébergements non classés.
+  taxeSejourHistory:[{id:'ts0',from:'2000-01-01',type:'fixed',amount:1}],
   // Intitulés génériques et réutilisables ; volontairement sans mots-clés
   // (keywords vide) — ceux d'origine viendraient forcément d'un relevé
   // bancaire réel. Chacun ajoute les siens dans Réglages → Catégories.
@@ -1425,24 +1427,39 @@ function getTariffForDate(ds){
   for(const h of sorted){if(h.from<=ds)t=h;}
   return t;
 }
-// Taxe de séjour (€/pers/nuit), versionnée par date — même logique que getTariffForDate.
+// Taxe de séjour, versionnée par date — même logique que getTariffForDate. Deux
+// régimes possibles selon la commune (voir getTaxeSejourAmount) : {type:'fixed',
+// amount} en €/pers/nuit (hébergement classé), ou {type:'percent', percent, cap}
+// en % du prix/pers/nuit plafonné (hébergement non classé — le cas le plus
+// courant pour une chambre d'hôtes sans label).
 function getTaxeSejourRateForDate(ds){
   const hist=(S.settings&&S.settings.taxeSejourHistory&&S.settings.taxeSejourHistory.length)?S.settings.taxeSejourHistory:DEFAULT_SETTINGS.taxeSejourHistory;
   const sorted=[...hist].sort((a,b)=>a.from.localeCompare(b.from));
   let t=sorted[0];
   for(const h of sorted){if(h.from<=ds)t=h;}
-  return t?.amount||0;
+  return t||{type:'fixed',amount:0};
 }
-// Montant de taxe de séjour d'une résa : nuits × personnes × taux en vigueur à
-// l'arrivée. Reversée à la commune — volontairement exclue du CA (getStayTotal,
-// getBookingRevForPeriod...) pour ne pas fausser le suivi du seuil de franchise TVA.
+// Montant de taxe de séjour d'une résa : nuits × personnes × tarif/pers/nuit en
+// vigueur à l'arrivée. Reversée à la commune — volontairement exclue du CA
+// (getStayTotal, getBookingRevForPeriod...) pour ne pas fausser le suivi du
+// seuil de franchise TVA. En régime "percent", le prix/pers/nuit de référence
+// est le tarif nuitée de la chambre (getNightlyRate) divisé par le nombre de
+// personnes — une approximation du "coût de la nuitée par personne" légal,
+// à vérifier au cas par cas si un client applique ce régime.
 function getTaxeSejourAmount(bk){
   if(!bk||!bk.taxeSejour)return 0;
   const nights=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
   if(nights<=0)return 0;
   const pax=bk.nbPersons||2;
-  const rate=getTaxeSejourRateForDate(bk.checkIn||todayISO());
-  return Math.round(nights*pax*rate*100)/100;
+  const cfg=getTaxeSejourRateForDate(bk.checkIn||todayISO());
+  let perPersonPerNight;
+  if(cfg.type==='percent'){
+    const pricePerPerson=pax>0?getNightlyRate(bk)/pax:0;
+    perPersonPerNight=Math.min(pricePerPerson*(cfg.percent||0)/100,cfg.cap!=null?cfg.cap:Infinity);
+  }else{
+    perPersonPerNight=cfg.amount||0;
+  }
+  return Math.round(nights*pax*perPersonPerNight*100)/100;
 }
 // Insère/retire la ligne "Taxe de séjour : X €" dans les notes (un champ texte
 // simple, une ligne) : repère un segment existant par mot-clé et le remplace au
@@ -2668,7 +2685,7 @@ function saveBooking(){
   const st=byId('bStatus').value;
   const np=parseInt(byId('bPersons').value)||2;
   const taxeSejour=byId('bTaxeSejour').checked;
-  const tsAmount=taxeSejour?getTaxeSejourAmount({checkIn:ci,checkOut:co,nbPersons:np,taxeSejour:true}):0;
+  const tsAmount=taxeSejour?getTaxeSejourAmount({checkIn:ci,checkOut:co,nbPersons:np,roomId:rid,guestId:selGid,taxeSejour:true}):0;
   const nt=syncTaxeSejourNote(byId('bNotes').value.trim(),taxeSejour,tsAmount);
   const pay=bkPayment;
   const depositAmt=pay==='deposit'?(parseFloat(byId('depositAmt').value)||0):0;
@@ -3757,19 +3774,31 @@ function renderSettings(){
   h+=settingsPanel('tarifs','Services',tarifsBody);
 
   // — Taxe de séjour —
-  let taxeSejourBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Montant par personne et par nuit, appliqué selon la date d'arrivée du séjour. Reversée à la commune : volontairement exclue du chiffre d'affaires et des seuils de franchise TVA ci-dessus.</div>
-    <div class="set-card">
-    <div class="set-tariff-hd" style="grid-template-columns:1fr 70px 24px">
-      <span>À partir du</span><span>€/pers/nuit</span><span></span>
-    </div>`;
+  // Deux régimes possibles selon la commune : montant fixe €/pers/nuit
+  // (hébergement classé), ou taux % du prix/pers/nuit plafonné (non classé —
+  // le cas le plus courant pour une chambre d'hôtes sans label). Voir
+  // getTaxeSejourAmount pour le détail du calcul de chaque régime.
+  let taxeSejourBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Appliquée selon la date d'arrivée du séjour. Reversée à la commune : volontairement exclue du chiffre d'affaires et des seuils de franchise TVA ci-dessus. « Montant fixe » pour un hébergement classé, « % du prix » pour un hébergement non classé (le régime le plus courant sans label) — à vérifier auprès de votre mairie/office de tourisme.</div>
+    <div class="set-card">`;
   const tsRates=[...(S.settings.taxeSejourHistory||[])].sort((a,b)=>a.from.localeCompare(b.from));
   tsRates.forEach(t=>{
     const canDel=tsRates.length>1;
-    taxeSejourBody+=`<div class="set-tariff-row" style="grid-template-columns:1fr 70px 24px">
+    const isPct=t.type==='percent';
+    taxeSejourBody+=`<div class="set-tariff-row" style="grid-template-columns:1fr 100px 62px 62px 24px;align-items:center">
       <input class="set-fi" type="date" value="${t.from}"
         onblur="updateTaxeSejourRate('${t.id}','from',this.value)">
-      <input class="set-fi-sm" type="number" step="0.01" value="${t.amount}"
+      <select onchange="updateTaxeSejourRate('${t.id}','type',this.value);renderSettings()">
+        <option value="fixed" ${!isPct?'selected':''}>Montant fixe</option>
+        <option value="percent" ${isPct?'selected':''}>% du prix</option>
+      </select>
+      ${isPct?`
+      <input class="set-fi-sm" type="number" step="0.1" value="${t.percent!=null?t.percent:5}" title="Taux en %"
+        onblur="updateTaxeSejourRate('${t.id}','percent',+this.value)">
+      <input class="set-fi-sm" type="number" step="0.01" value="${t.cap!=null?t.cap:1.5}" title="Plafond €/pers/nuit"
+        onblur="updateTaxeSejourRate('${t.id}','cap',+this.value)">`:`
+      <input class="set-fi-sm" type="number" step="0.01" value="${t.amount!=null?t.amount:1}" title="€/pers/nuit"
         onblur="updateTaxeSejourRate('${t.id}','amount',+this.value)">
+      <span></span>`}
       <button class="set-del" ${canDel?'':'disabled style="opacity:.3"'} onclick="delTaxeSejourRate('${t.id}')">×</button>
     </div>`;
   });
@@ -3908,7 +3937,10 @@ function updateTariff(id,field,val){
 // Taxe de séjour CRUD (même logique que les tarifs ci-dessus)
 function addTaxeSejourRate(){
   const last=[...S.settings.taxeSejourHistory].sort((a,b)=>a.from.localeCompare(b.from)).pop();
-  S.settings.taxeSejourHistory.push({id:uid(),from:todayISO(),amount:last?last.amount:1});
+  // Reprend le régime (fixe ou %) du dernier tarif en date, plutôt que de
+  // repartir sur un montant fixe par défaut à chaque fois.
+  const base=last?{...last}:{type:'fixed',amount:1};
+  S.settings.taxeSejourHistory.push({...base,id:uid(),from:todayISO()});
   saveSettings();renderSettings();
 }
 function delTaxeSejourRate(id){
@@ -4258,7 +4290,7 @@ function updateModalTotal(){
   // exclue du total séjour ci-dessous (voir getTaxeSejourAmount).
   if(tsBox){
     const taxeSejourOn=byId('bTaxeSejour')?.checked;
-    const tsAmount=taxeSejourOn?getTaxeSejourAmount({checkIn:ci,checkOut:co,nbPersons:pax,taxeSejour:true}):0;
+    const tsAmount=taxeSejourOn?getTaxeSejourAmount({...tempBk,taxeSejour:true}):0;
     tsBox.textContent=taxeSejourOn?`${tsAmount.toLocaleString('fr-FR')} € — non comprise dans le total, à collecter à part`:'';
   }
   const rate=getNightlyRate(tempBk);
