@@ -1395,7 +1395,7 @@ const DEFAULT_SETTINGS={
   // ou 'nights' (nuits via plateformes vs limite). Un seul exemple par défaut (franchise de TVA,
   // seuil légal identique pour tous), purement informatif/déclaratif — à ajuster ou supprimer.
   structureThresholds:{
-    struct1:[{id:'th-tva',type:'revenue',label:'Franchise TVA',amount:91900,color:'#E07828'}],
+    struct1:[{id:'th-tva',type:'revenue',label:'Franchise TVA',amount:85000,color:'#E07828'}],
   },
   sources:[
     {id:'direct',      label:'Direct',      color:'#7ABF6A',noRevenue:false},
@@ -5141,7 +5141,9 @@ function renderYear(){
       <div class="yr-regl-item">📋 <b>Déclaration meublé de tourisme</b> — numéro d'enregistrement obligatoire en mairie avant mise en location.</div>
       <div class="yr-regl-item">💶 <b>Taxe de séjour</b> — à collecter et reverser à la commune (souvent automatisée par Airbnb/Booking).</div>
       <div class="yr-regl-item">⚠️ <b>LMNP → LMP</b> — si recettes > ${(lmpThr?.amount||23000).toLocaleString('fr-FR')} € <em>et</em> > 50 % des revenus du foyer, passage au statut LMP avec cotisations sociales obligatoires.</div>
-      <div class="yr-regl-item">💰 <b>Franchise TVA hébergement</b> — si CA > ${(tvaThr?.amount||91900).toLocaleString('fr-FR')} €, assujettissement à la TVA. Vérifier avec votre expert-comptable.</div>
+      <div class="yr-regl-item">💰 <b>Franchise TVA hébergement</b> — si CA > ${(tvaThr?.amount||85000).toLocaleString('fr-FR')} € (37 500 € pour des prestations de services), assujettissement à la TVA. Le projet de seuil unique à 25 000 € a été définitivement abandonné (loi n° 2025-1044 du 3 nov. 2025) : les seuils 2026 restent inchangés. Vérifier avec votre expert-comptable.</div>
+      <div class="yr-regl-item">📎 <b>Nouvelle mention TVA (à partir du 1ᵉʳ sept. 2026)</b> — « TVA non applicable, art. 293 B du CGI » devient « TVA non applicable, art. L. 223-3 du CIBS » (recodification à droit constant, ordonnance n° 2025-1247 du 17 déc. 2025). L'ancienne mention reste tolérée sur les factures jusqu'au 31/12/2027 — rien d'urgent, mais à mettre à jour sur vos modèles de facture.</div>
+      <div class="yr-regl-item">🧾 <b>Facturation électronique</b> — réception obligatoire dès le <b>1ᵉʳ septembre 2026</b> pour toutes les entreprises, y compris en franchise de TVA : il faut pouvoir recevoir vos factures fournisseurs via une plateforme agréée (PA, ex-PDP). Émission obligatoire à partir du 1ᵉʳ septembre 2027 pour les micro-entreprises/TPE (2026 déjà pour les grandes entreprises/ETI). Sanctions renforcées par la loi de finances 2026 : jusqu'à 50 €/facture non conforme et 500 €/e-reporting manquant (plafond 15 000 €/an).</div>
       <div class="yr-regl-item">🏠 <b>Loi Le Meur (nov. 2024)</b> — résidence principale : limite de <b>${(nightsThr?.amount||120)} nuits/an</b> via plateformes numériques. Les communes >200 000 hab. peuvent abaisser à 90 nuits. Nouvelles exigences DPE pour les meublés de tourisme neufs dès 2025.</div>
       <div class="yr-regl-item" style="color:var(--gray);font-style:italic;font-size:11px;border-bottom:none">Ces informations sont indicatives — consultez votre expert-comptable.</div>
     </div>
