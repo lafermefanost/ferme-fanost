@@ -4832,12 +4832,18 @@ function renderMonth(){
       <div class="mocc-pct">${pct}%</div>
     </div>`;
   });
-  // Total taxe de séjour du mois — masqué si la collecte est désactivée dans
-  // les réglages (voir taxeSejourEnabled). Toujours exclu du CA ci-dessus.
-  if(taxeSejourEnabled())h+=`<div class="mocc-taxe">
-      <span>Taxe de séjour collectée</span><span>${taxeSejourTotal>0?taxeSejourTotal.toLocaleString('fr-FR')+' €':'—'}</span>
-    </div>`;
   h+=`</div>`;
+
+  // Taxe de séjour du mois — catégorie à part (sa propre carte, pas une ligne
+  // ajoutée dans une carte qui parle d'autre chose), placée sous Taux par
+  // chambre. Masquée si la collecte est désactivée dans les réglages (voir
+  // taxeSejourEnabled). Toujours exclue du CA ci-dessus.
+  if(taxeSejourEnabled())h+=`<div class="month-occ">
+    <div class="mocc-title">Taxe de séjour</div>
+    <div class="mocc-taxe" style="margin-top:0;padding-top:0;border-top:none">
+      <span>Collectée ce mois-ci</span><span>${taxeSejourTotal>0?taxeSejourTotal.toLocaleString('fr-FR')+' €':'—'}</span>
+    </div>
+  </div>`;
 
   // Booking list — grouped by client, sorted by revenue desc
   if(bks.length){
@@ -5333,10 +5339,18 @@ function renderYear(){
     <div class="yr-chart-legend">
       ${structs.map((s,i)=>`<span><span class="yr-legend-dot" style="background:${structColor(i)}"></span>${s.name.replace(/</g,'&lt;')}</span>`).join('')}
     </div>`:`<div class="yr-chart-nodata">Aucune donnée de revenu pour ${year}<br><span style="font-size:11px">Vérifiez que vos réservations ont un tarif configuré</span></div>`}
-    ${taxeSejourEnabled()?`<div class="mocc-taxe" style="margin-top:14px">
-      <span>Taxe de séjour collectée sur l'année</span><span>${taxeSejourYearTotal>0?taxeSejourYearTotal.toLocaleString('fr-FR')+' €':'—'}</span>
-    </div>`:''}
   </div>`;
+
+  // Taxe de séjour de l'année — catégorie à part (sa propre carte, pas une
+  // ligne ajoutée dans la carte du graphe de revenus), placée sous Revenus
+  // par mois. Masquée si la collecte est désactivée dans les réglages.
+  // Toujours exclue du CA (voir monthRevs ci-dessus, via getBookingRevForPeriod).
+  const taxeSejourYearHTML=taxeSejourEnabled()?`<div class="yr-section">
+    <div class="yr-section-title">Taxe de séjour</div>
+    <div class="mocc-taxe" style="margin-top:0;padding-top:0;border-top:none">
+      <span>Collectée sur l'année</span><span>${taxeSejourYearTotal>0?taxeSejourYearTotal.toLocaleString('fr-FR')+' €':'—'}</span>
+    </div>
+  </div>`:'';
 
   // Regulatory — les seuils affichés viennent des seuils réellement configurés
   // (n'importe quelle structure, retrouvés par mot-clé dans leur libellé plutôt
@@ -5421,6 +5435,7 @@ function renderYear(){
     ${globalHTML}
     ${structureCardsHTML}
     ${chartHTML}
+    ${taxeSejourYearHTML}
     ${fiscalHTML}
     ${reglHTML}
   </div>`;
