@@ -405,26 +405,6 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 .xchip-price{font-size:10px;opacity:.5;margin-left:2px;}
 .extras-total-row{display:flex;justify-content:flex-end;padding-top:6px;}
 .extras-total{font-size:12px;color:var(--green);font-weight:700;}
-/* Catalog modal */
-.cat-item{display:flex;align-items:center;gap:8px;padding:8px 0;
-  border-bottom:1px solid var(--light);}
-.cat-item:last-child{border-bottom:none;}
-.cat-emoji{font-size:18px;width:24px;text-align:center;flex-shrink:0;}
-.cat-name{flex:1;font-size:13px;}
-.cat-price{font-size:13px;color:var(--earth);min-width:42px;text-align:right;}
-.cat-del{background:none;border:none;color:#ccc;font-size:15px;
-  cursor:pointer;padding:0 4px;}
-.cat-del:hover{color:var(--danger);}
-.cat-add-row{display:grid;grid-template-columns:44px 1fr 72px 90px;gap:6px;}
-.cat-emoji-in{font-size:18px;width:30px;border:none;background:transparent;
-  outline:none;text-align:center;cursor:text;border-radius:4px;font-family:inherit;}
-.cat-emoji-in:focus{background:#F5F0E8;}
-.cat-name-in{flex:1;border:none;background:transparent;font-family:'Jost',sans-serif;
-  font-size:13px;color:var(--dark);outline:none;padding:2px 4px;border-radius:4px;min-width:0;}
-.cat-name-in:focus{background:#F5F0E8;}
-.cat-price-in{width:50px;border:none;background:transparent;font-family:'Jost',sans-serif;
-  font-size:13px;color:var(--earth);text-align:right;outline:none;padding:2px 4px;border-radius:4px;}
-.cat-price-in:focus{background:#F5F0E8;}
 
 /* ─── BACKUP REMINDER ────────────────────────────────────────── */
 #backupReminder{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
@@ -1120,27 +1100,6 @@ body.no-dinner .tsec-panel.menu{display:none;}
       <button class="btn-d" id="bDelBtn" onclick="delBooking()" style="display:none">Supprimer</button>
       <button class="btn-s" onclick="closeM('modalBooking')">Annuler</button>
       <button class="btn-p" id="bSaveBtn" onclick="saveBooking()">Enregistrer</button>
-    </div>
-  </div>
-</div>
-
-<!-- ─── CATALOG MODAL ─────────────────────────────────────────────── -->
-<div class="overlay" id="modalCatalog" style="display:none" onclick="ovClose(event,'modalCatalog')">
-  <div class="modal">
-    <div class="mhead">
-      <div class="mtitle">Catalogue extras</div>
-      <button class="mclose" onclick="closeM('modalCatalog')">✕</button>
-    </div>
-    <div id="catalogList"></div>
-    <div style="border-top:1px solid var(--light);margin-top:12px;padding-top:12px;">
-      <label class="fl" style="margin-bottom:8px;">Ajouter un article</label>
-      <div class="cat-add-row">
-        <input class="fi" id="newCatEmoji" placeholder="🍷">
-        <input class="fi" id="newCatName" placeholder="Nom">
-        <input type="number" class="fi" id="newCatPrice" placeholder="Prix €" min="0" step="0.5">
-        <input class="fi" id="newCatCat" placeholder="Catégorie">
-      </div>
-      <button class="btn-p" onclick="addCatalogItem()" style="width:100%;margin-top:10px">+ Ajouter</button>
     </div>
   </div>
 </div>
@@ -3600,7 +3559,7 @@ function toggleSettingsPanel(id){
 // par id pour survivre aux multiples re-rendus déclenchés par chaque modification.
 function settingsPanel(id,title,bodyHtml){
   const open=!!settingsPanelOpen[id];
-  return`<div class="set-sec yr-regl${open?' open':''}">
+  return`<div class="set-sec yr-regl${open?' open':''}" id="setpanel-${id}">
     <div class="set-sec-title" onclick="toggleSettingsPanel('${id}')">${title}<span class="yr-regl-chev">▾</span></div>
     <div class="yr-regl-body" style="margin-top:10px">${bodyHtml}</div>
   </div>`;
@@ -3745,6 +3704,44 @@ function renderSettings(){
   tarifsBody+=`<button class="set-add" onclick="addTariff()">+ Nouveau tarif à partir d'aujourd'hui</button>
     </div>`;
   h+=settingsPanel('tarifs','Services',tarifsBody);
+
+  // — Catalogue extras (boissons, options, lit bébé…), vendu à la nuit ou au séjour —
+  const catCats=[...new Set(S.catalog.map(c=>c.cat))];
+  let catalogBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Articles proposés en extra dans le modal de réservation (boissons, options petit-déjeuner, lit bébé…), regroupés par catégorie. Choisissez une catégorie existante ou créez-en une nouvelle.</div>`;
+  if(!S.catalog.length)catalogBody+=`<div style="font-size:11px;color:#bbb;padding:2px 0 8px">Catalogue vide.</div>`;
+  catCats.forEach(cat=>{
+    catalogBody+=`<div class="set-card-sub-title" style="margin-top:12px">${cat.replace(/</g,'&lt;')}</div>`;
+    S.catalog.filter(c=>c.cat===cat).forEach(item=>{
+      catalogBody+=`<div class="set-card set-card-row">
+        <input class="set-fi" style="flex:0 0 36px;width:36px;text-align:center;padding:7px 0" maxlength="2" value="${(item.emoji||'').replace(/"/g,'&quot;')}" onblur="updateCatalogItem('${item.id}','emoji',this.value)">
+        <input class="set-fi" style="flex:1 1 120px" value="${item.name.replace(/"/g,'&quot;')}" placeholder="Nom" onblur="updateCatalogItem('${item.id}','name',this.value)">
+        <input type="number" class="set-fi-sm" style="width:52px" step="0.5" min="0" value="${item.price}" onblur="updateCatalogItem('${item.id}','price',parseFloat(this.value)||0)">
+        <span style="font-size:11px;color:var(--gray)">€</span>
+        <select style="flex:1 1 110px" onchange="updateCatalogItemCat('${item.id}',this)">
+          ${catCats.map(c=>`<option value="${c.replace(/"/g,'&quot;')}"${c===item.cat?' selected':''}>${c}</option>`).join('')}
+          <option value="__new__">+ Nouvelle catégorie…</option>
+        </select>
+        <button class="set-del" onclick="delCatalogItem('${item.id}')">×</button>
+      </div>`;
+    });
+  });
+  catalogBody+=`<div class="set-card set-card-new" style="margin-top:12px">
+    <div class="set-card-row" style="margin-bottom:8px">
+      <input class="set-fi" id="newCatEmoji" style="flex:0 0 36px;width:36px;text-align:center;padding:7px 0" maxlength="2" placeholder="🍷">
+      <input class="set-fi" id="newCatName" style="flex:1 1 120px" placeholder="Nom de l'article">
+      <input type="number" class="set-fi-sm" id="newCatPrice" style="width:52px" placeholder="0" min="0" step="0.5">
+      <span style="font-size:11px;color:var(--gray)">€</span>
+    </div>
+    <div class="set-card-row" style="margin-bottom:8px">
+      <select id="newCatCatSelect" style="flex:1" onchange="onNewCatalogCatChange(this)">
+        ${catCats.map(c=>`<option value="${c.replace(/"/g,'&quot;')}">${c}</option>`).join('')}
+        <option value="__new__"${catCats.length?'':' selected'}>+ Nouvelle catégorie…</option>
+      </select>
+      <input class="set-fi" id="newCatCatNew" style="flex:1;display:${catCats.length?'none':'block'}" placeholder="Nom de la nouvelle catégorie">
+    </div>
+    <button class="set-add" onclick="addCatalogItem()">+ Ajouter un article</button>
+  </div>`;
+  h+=settingsPanel('catalogue','Catalogue extras',catalogBody);
 
   // — Sources de réservation —
   let sourcesBody='';
@@ -3979,26 +3976,13 @@ function updateCleanerField(i,field,val){
   if(S.view==='week')renderWeek();
 }
 
-function openCatalogModal(){renderCatalogList();byId('modalCatalog').style.display='flex';}
-function renderCatalogList(){
-  const cats=[...new Set(S.catalog.map(c=>c.cat))];
-  let h='';
-  cats.forEach(cat=>{
-    h+=`<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin:10px 0 4px">${cat}</div>`;
-    S.catalog.filter(c=>c.cat===cat).forEach(item=>{
-      h+=`<div class="cat-item">
-        <input class="cat-emoji-in" value="${item.emoji}" maxlength="2"
-          onchange="updateCatalogItem('${item.id}','emoji',this.value)">
-        <input class="cat-name-in" value="${item.name.replace(/"/g,'&quot;')}"
-          onchange="updateCatalogItem('${item.id}','name',this.value)">
-        <input type="number" class="cat-price-in" value="${item.price}" step="0.5" min="0"
-          onchange="updateCatalogItem('${item.id}','price',parseFloat(this.value)||0)">
-        <span style="font-size:13px;color:var(--earth);margin-right:2px">€</span>
-        <button class="cat-del" onclick="delCatalogItem('${item.id}')">✕</button>
-      </div>`;
-    });
-  });
-  byId('catalogList').innerHTML=h||'<div style="color:var(--gray);font-size:13px;padding:10px 0">Catalogue vide</div>';
+// Ouvre les Réglages directement sur le volet "Catalogue extras" (raccourci
+// depuis le lien "Modifier le catalogue" affiché sous les extras d'un séjour).
+function openCatalogSettings(){
+  openSettings();
+  settingsPanelOpen.catalogue=true;
+  renderSettings();
+  setTimeout(()=>byId('setpanel-catalogue')?.scrollIntoView({block:'start',behavior:'smooth'}),80);
 }
 function updateCatalogItem(id,field,value){
   const i=S.catalog.findIndex(c=>c.id===id);
@@ -4007,24 +3991,39 @@ function updateCatalogItem(id,field,value){
   saveCatalog();
   if(db)pushToFirebase();
 }
+// Gère le select "catégorie" de chaque article, y compris le choix
+// "+ Nouvelle catégorie…" qui demande le nom via une invite.
+function updateCatalogItemCat(id,selectEl){
+  if(selectEl.value==='__new__'){
+    const name=(prompt('Nom de la nouvelle catégorie')||'').trim();
+    if(name)updateCatalogItem(id,'cat',name);
+    renderSettings();
+    return;
+  }
+  updateCatalogItem(id,'cat',selectEl.value);
+}
+function onNewCatalogCatChange(selectEl){
+  const newFg=byId('newCatCatNew');
+  if(newFg)newFg.style.display=selectEl.value==='__new__'?'block':'none';
+}
 function addCatalogItem(){
   const name=byId('newCatName').value.trim();
   if(!name){alert('Nom requis');return;}
   const price=parseFloat(byId('newCatPrice').value)||0;
-  const cat=byId('newCatCat').value.trim()||'Autres';
+  const sel=byId('newCatCatSelect');
+  const cat=(sel.value==='__new__'?byId('newCatCatNew').value.trim():sel.value)||'Autres';
   const emoji=byId('newCatEmoji').value.trim()||'•';
   S.catalog.push({id:uid(),name,price,cat,emoji});
   saveCatalog();
   if(db)pushToFirebase();
-  ['newCatName','newCatPrice','newCatEmoji','newCatCat'].forEach(id=>byId(id).value='');
-  renderCatalogList();
+  renderSettings();
 }
 function delCatalogItem(id){
   if(!confirm('Supprimer cet article ?'))return;
   S.catalog=S.catalog.filter(c=>c.id!==id);
   saveCatalog();
   if(db)pushToFirebase();
-  renderCatalogList();
+  renderSettings();
 }
 
 function setExtra(bid,ds,itemId,delta){
@@ -4053,7 +4052,7 @@ function extrasHTMLFor(b,ds){
   const dayX=b.extras&&b.extras[ds]?b.extras[ds]:{};
   const cats=[...new Set(S.catalog.map(c=>c.cat))];
   let xh=`<div class="tcard-extras-hd">
-    <button class="catalog-link" onclick="event.stopPropagation();openCatalogModal()">Modifier le catalogue</button>
+    <button class="catalog-link" onclick="event.stopPropagation();openCatalogSettings()">Modifier le catalogue</button>
   </div>`;
   cats.forEach(cat=>{
     const items=S.catalog.filter(c=>c.cat===cat);
