@@ -2282,7 +2282,7 @@ function renderToday(){
     <button class="vnav-btn" onclick="chDay(-1)">${chevL}</button>
     <div class="vnav-center">
       <div class="vnav-rel">${relLabel||'&nbsp;'}</div>
-      <div class="vnav-title">${DAY_NAMES[d.getDay()].toLowerCase()} ${d.getDate()} ${MON[d.getMonth()].toLowerCase()}</div>
+      <div class="vnav-title">${DAY_NAMES[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()].toLowerCase()}</div>
       <div class="vnav-sub">&nbsp;</div>
     </div>
     <button class="vnav-btn" onclick="chDay(1)">${chevR}</button>
@@ -4333,7 +4333,7 @@ function renderWeek(){
     <button class="vnav-btn" onclick="chWeek(-1)">${chevL}</button>
     <div class="vnav-center">
       <div class="vnav-rel">${weekRelLabel||'&nbsp;'}</div>
-      <div class="vnav-title">semaine ${wn}</div>
+      <div class="vnav-title">Semaine ${wn}</div>
       <div class="vnav-sub">${fmtD(mondayDate)} – ${fmtD(sundayDate)}</div>
     </div>
     <button class="vnav-btn" onclick="chWeek(1)">${chevR}</button>
@@ -4574,7 +4574,7 @@ function renderMonth(){
     <button class="vnav-btn" onclick="chMonth(-1)">${chevL}</button>
     <div class="vnav-center">
       <div class="vnav-rel">${monthRelLabel||'&nbsp;'}</div>
-      <div class="vnav-title">${MONTH_NAMES[m].toLowerCase()}</div>
+      <div class="vnav-title">${MONTH_NAMES[m]}</div>
       <div class="vnav-sub">${y}</div>
     </div>
     <button class="vnav-btn" onclick="chMonth(1)">${chevR}</button>
