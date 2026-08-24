@@ -4773,18 +4773,29 @@ let gridZoomed=localStorage.getItem('ff2_gridZoom')==='1';
 function computeGridZoomFactor(){
   const pt=byId('pt'),wrap=byId('gridWrap');
   if(!pt||!wrap)return{needed:false,factor:1};
-  // Mesure d'abord en taille normale (colonnes larges, pas de zoom) : avec peu
-  // de chambres, tout peut déjà tenir sans rien changer du tout.
+  // Important : on mesure la largeur du TABLEAU lui-même (getBoundingClientRect),
+  // pas wrap.scrollWidth. wrap défile (overflow:auto), donc son scrollWidth ne
+  // peut jamais être inférieur à sa propre largeur visible — dès que le tableau
+  // est plus étroit que l'écran, ça se voyait à tort comme "ça tient déjà",
+  // sans jamais détecter qu'il restait de la place à combler.
   pt.classList.remove('zoomed-out');
   pt.style.zoom='';
   const avail=wrap.clientWidth;
-  if(wrap.scrollWidth<=avail||avail<=0)return{needed:false,factor:1};
+  const full=pt.getBoundingClientRect().width;
+  // Taille normale (colonnes larges, pas de zoom) : avec peu de chambres, tout
+  // peut déjà tenir sans rien changer du tout.
+  if(full<=avail||avail<=0)return{needed:false,factor:1};
   // Ça ne tient pas : réduit d'abord la largeur des cellules (moins de zoom
   // nécessaire ensuite, donc plus lisible), puis calcule le zoom qui comble
-  // ce qu'il reste à gagner.
+  // ce qu'il reste à gagner — dans les DEUX sens : si les colonnes réduites
+  // dépassent encore la largeur visible, il rétrécit (facteur < 1) ; si au
+  // contraire elles laissent de la place (ex: peu de chambres sur mobile où
+  // Ménage/Événement sont déjà masqués), il agrandit (facteur > 1) pour que
+  // la grille remplisse l'écran au lieu de laisser une bande vide à droite.
   pt.classList.add('zoomed-out');
-  const natural=wrap.scrollWidth;
-  const factor=natural<=avail?1:Math.max(.4,avail/natural);
+  const narrowed=pt.getBoundingClientRect().width;
+  if(narrowed<=0)return{needed:false,factor:1};
+  const factor=Math.max(.4,avail/narrowed);
   return{needed:true,factor};
 }
 function applyGridZoom(){
