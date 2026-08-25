@@ -2233,7 +2233,7 @@ function renderToday(){
   const extrasHTML=(b)=>extrasHTMLFor(b,ds);
 
   const card=(b,sub,showTotal=false)=>{
-    const g=guest(b.guestId);const col=b.payment==='pending'?'var(--pending-red)':g?g.color:'#999';const rm=room(b.roomId);
+    const g=guest(b.guestId);const col=g?g.color:'#999';const rm=room(b.roomId);
     const hasDin=b.dinnerNights&&b.dinnerNights[ds];
     const thBadge=hasDin?`<span class="dinner-badge" style="font-size:11px;color:var(--green);font-weight:600;flex-shrink:0;display:inline-flex;align-items:center;gap:3px">${MEAL_ICON_SM}${b.nbPersons||2}</span>`:'';
     const xd=getExtrasDayTotal(b,ds);
@@ -2323,9 +2323,8 @@ function renderToday(){
   const miniChip=(b,timeLabel)=>{
     const g=guest(b.guestId);const col=g?g.color:'#999';const rm=room(b.roomId);
     const isPaid=b.payment==='paid';
-    const isPending=b.payment==='pending';
     const isGhost=b.source==='ghost'||b.ghost;
-    const barCol=isGhost?'#1A1A1A':isPending?'var(--pending-red)':isPaid?'#A0A0A0':col;
+    const barCol=isGhost?'#1A1A1A':isPaid?'#A0A0A0':col;
     const sc=b.status==='opt'?' opt':b.status==='no'?' canc':'';
     const dot=b.status==='opt'?'#FF9800':b.status==='no'?'#F44336':'#4CAF50';
     const hasDin=b.dinnerNights&&b.dinnerNights[ds];
@@ -4572,9 +4571,8 @@ function renderWeek(){
     </div>`;
     h+=`<div class="wday-body">`;
     const wMiniChip=(b,timeLabel)=>{const g=guest(b.guestId);const rm=room(b.roomId);
-      const barCol=b.payment==='pending'?'var(--pending-red)':g?g.color:'#999';
       return`<div class="day-chip" onclick="openEditModal('${b.id}')">
-        <div class="tbar" style="background:${barCol}"></div>
+        <div class="tbar" style="background:${g?g.color:'#999'}"></div>
         <div class="day-chip-content">
           <span class="bname">${g?g.name:'?'}</span>
           <span class="bcont-init" style="flex:0 0 auto;opacity:.7">${rm?rm.short:''}</span>
