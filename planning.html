@@ -1154,7 +1154,7 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
     <div id="contractPrintArea"></div>
     <div class="macts">
       <button class="btn-s" onclick="closeM('modalContract')">Fermer</button>
-      <button class="btn-p" id="contractPdfBtn" onclick="downloadContractPDF()">📄 Télécharger en PDF</button>
+      <button class="btn-p" id="contractPdfBtn" onclick="exportContractPDF()">📄 Exporter en PDF (A4)</button>
     </div>
   </div>
 </div>
@@ -2501,11 +2501,9 @@ document.addEventListener('mousemove',e=>{if(byId('tooltip').style.display==='bl
 //  CONTRAT DE LOCATION
 // ═══════════════════════════════════════════════════════════════
 function escHtml(s){return (s||'').replace(/</g,'&lt;');}
-// Contenu du contrat sous forme de blocs de texte brut (pas de HTML ici) —
-// source unique réutilisée à la fois pour l'aperçu HTML (buildContractHTML)
-// et pour le PDF (downloadContractPDF), pour ne jamais avoir deux versions
-// du texte légal qui divergent. Un \n dans un paragraphe = retour à la ligne
-// (les deux rendus le traitent chacun à leur façon).
+// Contenu du contrat sous forme de blocs de texte brut (pas de HTML ici),
+// consommés par buildContractHTML — pour garder le texte légal à un seul
+// endroit plutôt que dupliqué. Un \n dans un paragraphe = retour à la ligne.
 function buildContractBlocks(bk){
   const g=guest(bk.guestId)||{name:'—'};
   const rm=room(bk.roomId)||{name:'—',description:''};
@@ -2563,74 +2561,44 @@ function openContractPreview(bkId){
   byId('contractPrintArea').innerHTML=buildContractHTML(bk);
   byId('modalContract').style.display='flex';
 }
-// Charge jsPDF à la demande (uniquement au moment d'exporter, pas au chargement
-// de la page) depuis un CDN — nécessite une connexion internet à ce moment-là.
-// Si le chargement échoue (hors-ligne notamment), on retombe sur l'impression
-// navigateur classique plutôt que de laisser le bouton ne rien faire.
-let jsPDFLoadPromise=null;
-function ensureJsPDF(){
-  if(window.jspdf&&window.jspdf.jsPDF)return Promise.resolve();
-  if(jsPDFLoadPromise)return jsPDFLoadPromise;
-  jsPDFLoadPromise=new Promise((resolve,reject)=>{
-    const s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';
-    s.onload=()=>resolve();
-    s.onerror=()=>{jsPDFLoadPromise=null;reject(new Error('jsPDF non chargé'));};
-    document.head.appendChild(s);
-  });
-  return jsPDFLoadPromise;
-}
-async function downloadContractPDF(){
+// CSS du contrat, dupliqué ici (plutôt que lu depuis la feuille de style de la
+// page) car le nouvel onglet ouvert par exportContractPDF a son propre
+// document, sans accès à celle-ci. À garder en phase avec .contract-doc /
+// .contract-sign* dans le <style> principal si l'un des deux change.
+const CONTRACT_DOC_CSS=`
+  body{font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;color:#222;margin:0;background:#fff;}
+  .contract-doc{padding:4px 2px 8px;}
+  .contract-doc h1{font-size:17px;text-align:center;margin:0 0 22px;text-transform:uppercase;letter-spacing:.03em;color:#2C2C2C;}
+  .contract-doc h2{font-size:12px;font-weight:700;margin:18px 0 6px;text-transform:uppercase;letter-spacing:.04em;color:#3D5C35;}
+  .contract-doc p{margin:0 0 8px;}
+  .contract-sign-row{display:flex;justify-content:space-between;gap:24px;margin-top:44px;}
+  .contract-sign{flex:1;text-align:center;border-top:1px solid #999;padding-top:6px;font-size:11px;color:#555;}
+`;
+// Exporte le contrat en PDF au format A4 : ouvre un nouvel onglet (document
+// autonome, avec sa propre copie du CSS ci-dessus) et déclenche l'impression
+// depuis CET onglet, avec @page{size:A4} pour forcer le format. C'est
+// nécessaire — pas juste une préférence — car window.print() ne fonctionne
+// pas quand l'appli est ajoutée à l'écran d'accueil sur iOS (mode
+// "standalone", qui l'ignore silencieusement) : un nouvel onglet en sort et
+// se comporte comme Safari normal, où "Imprimer → Enregistrer au format PDF"
+// fonctionne. Aucune dépendance externe, aucune connexion requise.
+function exportContractPDF(){
   const bk=S.bookings.find(b=>b.id===editBid);
   if(!bk)return;
-  const btn=byId('contractPdfBtn');
-  const origLabel=btn?btn.textContent:'';
-  if(btn){btn.textContent='Génération…';btn.disabled=true;}
-  try{
-    await ensureJsPDF();
-    const{jsPDF}=window.jspdf;
-    const doc=new jsPDF({unit:'mm',format:'a4'});
-    const pageW=210,pageH=297,margin=20,maxW=pageW-margin*2;
-    let y=margin;
-    const ensureRoom=(need)=>{if(y+need>pageH-margin){doc.addPage();y=margin;}};
-    const para=(text,size,style,gapAfter)=>{
-      doc.setFont('helvetica',style);doc.setFontSize(size);
-      text.split('\n').forEach(line=>{
-        const wrapped=doc.splitTextToSize(line,maxW);
-        ensureRoom(wrapped.length*(size*.42)+2);
-        doc.text(wrapped,margin,y);
-        y+=wrapped.length*(size*.42)+2;
-      });
-      y+=gapAfter||0;
-    };
-    const c=buildContractBlocks(bk);
-    doc.setFont('helvetica','bold');doc.setFontSize(15);
-    doc.text(c.title.toUpperCase(),pageW/2,y,{align:'center'});
-    y+=12;
-    c.intro.forEach(t=>para(t,11,'normal',4));
-    c.articles.forEach(a=>{
-      ensureRoom(14);
-      para(a.h.toUpperCase(),11,'bold',2);
-      para(a.p,11,'normal',6);
-    });
-    para(c.closing,11,'normal',20);
-    ensureRoom(20);
-    const colW=(maxW-16)/2;
-    doc.setLineWidth(.2);
-    doc.line(margin,y,margin+colW,y);
-    doc.line(margin+colW+16,y,margin+colW*2+16,y);
-    doc.setFontSize(10);
-    doc.text('Le bailleur',margin+colW/2,y+5,{align:'center'});
-    doc.text('Le locataire',margin+colW+16+colW/2,y+5,{align:'center'});
-    const g=guest(bk.guestId);
-    const safe=(g?.name||'contrat').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'-');
-    doc.save(`contrat-${safe}-${bk.checkIn}.pdf`);
-  }catch(err){
-    console.error('Génération PDF impossible, impression navigateur à la place :',err);
-    window.print();
-  }finally{
-    if(btn){btn.textContent=origLabel;btn.disabled=false;}
+  const w=window.open('','_blank');
+  if(!w){
+    alert("Impossible d'ouvrir un nouvel onglet — autorisez les pop-ups pour ce site, puis réessayez.");
+    return;
   }
+  const html=buildContractHTML(bk);
+  w.document.open();
+  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+    <title>Contrat de location</title>
+    <style>@page{size:A4;margin:18mm;}${CONTRACT_DOC_CSS}</style>
+    </head><body>${html}
+    <script>window.onload=function(){setTimeout(function(){window.print();},150);};<\/script>
+    </body></html>`);
+  w.document.close();
 }
 
 // ═══════════════════════════════════════════════════════════════
