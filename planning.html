@@ -847,6 +847,21 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
 .geh-src{font-size:10px;font-weight:600;flex-shrink:0;}
 .geh-rev{font-weight:700;color:var(--green);flex-shrink:0;}
 .geh-empty{font-size:12px;color:var(--gray);text-align:center;padding:4px 0;}
+
+/* Contrat de location (voir buildContractHTML / openContractPreview) */
+.contract-doc{font-family:'Jost',sans-serif;font-size:13px;line-height:1.6;color:#222;padding:4px 2px 8px;}
+.contract-doc h1{font-size:17px;text-align:center;margin:0 0 22px;text-transform:uppercase;letter-spacing:.03em;color:var(--dark);}
+.contract-doc h2{font-size:12px;font-weight:700;margin:18px 0 6px;text-transform:uppercase;letter-spacing:.04em;color:var(--green);}
+.contract-doc p{margin:0 0 8px;}
+.contract-sign-row{display:flex;justify-content:space-between;gap:24px;margin-top:44px;}
+.contract-sign{flex:1;text-align:center;border-top:1px solid #999;padding-top:6px;font-size:11px;color:#555;}
+@media print{
+  body *{visibility:hidden;}
+  #modalContract, #modalContract *{visibility:visible;}
+  #modalContract{position:absolute;top:0;left:0;width:100%;background:#fff;padding:0;}
+  #modalContract .mhead,#modalContract .macts{display:none!important;}
+  #modalContract .modal{box-shadow:none;max-width:100%;border-radius:0;padding:24px;}
+}
 </style>
 </head>
 <body>
@@ -1118,10 +1133,34 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
       </div>
     </div>
 
+    <!-- ── Contrat ── -->
+    <div class="msec" id="bContractSec" style="display:none">
+      <div class="msec-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Contrat
+      </div>
+      <button type="button" class="btn-s" style="width:100%" onclick="openContractPreview(editBid)">Générer le contrat de location</button>
+    </div>
+
     <div class="macts">
       <button class="btn-d" id="bDelBtn" onclick="delBooking()" style="display:none">Supprimer</button>
       <button class="btn-s" onclick="closeM('modalBooking')">Annuler</button>
       <button class="btn-p" id="bSaveBtn" onclick="saveBooking()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── CONTRACT PREVIEW MODAL ───────────────────────────────────── -->
+<div class="overlay" id="modalContract" style="display:none" onclick="ovClose(event,'modalContract')">
+  <div class="modal" style="max-width:640px">
+    <div class="mhead">
+      <div class="mtitle">Contrat de location</div>
+      <button class="mclose" onclick="closeM('modalContract')">✕</button>
+    </div>
+    <div id="contractPrintArea"></div>
+    <div class="macts">
+      <button class="btn-s" onclick="closeM('modalContract')">Fermer</button>
+      <button class="btn-p" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
     </div>
   </div>
 </div>
@@ -1378,10 +1417,10 @@ const DEFAULT_SETTINGS={
   dinnerEnabled:true,
   breakfastEnabled:true,
   rooms:[
-    {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'struct1',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
-    {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'struct1',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
-    {id:'ch3',name:'Chambre 3',short:'Ch.3',color:'#B57A8C',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'struct1',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
-    {id:'ch4',name:'Chambre 4',short:'Ch.4',color:'#8CB57A',maxPersons:4,babyCrib:true,babyCribPrice:15,group:'struct1',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(4)}]},
+    {id:'ch1',name:'Chambre 1',short:'Ch.1',color:'#7A8C65',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'struct1',description:'Chambre double avec salle de bain privative, literie 160×200 et vue sur le jardin.',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
+    {id:'ch2',name:'Chambre 2',short:'Ch.2',color:'#7A8CB5',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'struct1',description:'Chambre double avec salle de bain privative, literie 160×200 et vue sur le jardin.',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
+    {id:'ch3',name:'Chambre 3',short:'Ch.3',color:'#B57A8C',maxPersons:2,babyCrib:false,babyCribPrice:15,group:'struct1',description:'Chambre double avec salle de bain privative, literie 160×200 et vue sur le jardin.',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(2)}]},
+    {id:'ch4',name:'Chambre 4',short:'Ch.4',color:'#8CB57A',maxPersons:4,babyCrib:true,babyCribPrice:15,group:'struct1',description:'Chambre familiale pour 4 personnes, salle de bain privative et lit bébé disponible sur demande.',tariffHistory:[{id:'rt0',from:'2000-01-01',prices:defaultRoomPrices(4)}]},
   ],
   // Vide par défaut : une équipe de ménage est propre à chaque établissement,
   // pas d'exemple avec des prénoms de personnes réelles.
@@ -1431,7 +1470,17 @@ const DEFAULT_SETTINGS={
     {id:'booking',     label:'Booking',     color:'#9FA8DA',noRevenue:false},
     {id:'homexchange', label:'HomeExchange',color:'#E6C96A',noRevenue:true},
     {id:'ghost',       label:'Ghost',       color:'#888888',noRevenue:false},
-  ]
+  ],
+  // Champs du contrat de location généré depuis une résa (voir buildContractHTML).
+  // Pré-remplis avec un exemple directement utilisable — pas des champs vides à
+  // deviner — que chacun ajuste à sa situation réelle (identité, conditions).
+  contract:{
+    bailleurNom:'Jean Dupont',
+    bailleurAdresse:'12 rue des Tilleuls, 91000 Évry-Courcouronnes',
+    bailleurSiret:'',
+    conditionsAnnulation:"Toute annulation communiquée par écrit plus de 30 jours avant la date d'arrivée donne lieu au remboursement intégral des sommes versées. Entre 30 et 8 jours avant l'arrivée, l'acompte versé reste acquis au bailleur. À moins de 8 jours de l'arrivée, ou en cas de départ anticipé ou de non-présentation, l'intégralité du séjour reste due.",
+    depotGarantie:"Un dépôt de garantie de 200 € est demandé à l'arrivée (chèque ou espèces), non encaissé sauf dégradation. Il est restitué au départ après état des lieux, déduction faite le cas échéant du coût des réparations ou du remplacement du matériel endommagé.",
+  },
 };
 
 // Tarif global repas / petit-déjeuner (identique pour toutes les chambres), versionné par date.
@@ -2455,6 +2504,66 @@ function hideTip(){byId('tooltip').style.display='none';}
 document.addEventListener('mousemove',e=>{if(byId('tooltip').style.display==='block')moveTip(e);});
 
 // ═══════════════════════════════════════════════════════════════
+//  CONTRAT DE LOCATION
+// ═══════════════════════════════════════════════════════════════
+function escHtml(s){return (s||'').replace(/</g,'&lt;');}
+// Construit le contrat de location d'une résa à partir des champs saisis
+// dans Réglages → Contrat de location + la description de la chambre
+// (Réglages → Locations), et des données déjà présentes sur la résa (dates,
+// personnes, prix, taxe de séjour, client). Pas de signature électronique :
+// pensé pour être imprimé ou joint à un e-mail (voir openContractPreview).
+function buildContractHTML(bk){
+  const g=guest(bk.guestId)||{name:'—'};
+  const rm=room(bk.roomId)||{name:'—',description:''};
+  const ct=S.settings.contract||DEFAULT_SETTINGS.contract;
+  const nights=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
+  const pax=bk.nbPersons||2;
+  const total=getStayTotal(bk);
+  const tsAmount=getTaxeSejourAmount(bk);
+  const grandTotal=total+tsAmount;
+  const today=new Date().toLocaleDateString('fr-FR');
+  const bailleurLine=[ct.bailleurNom,ct.bailleurAdresse].filter(Boolean).map(escHtml).join(', ')
+    +(ct.bailleurSiret?` — SIRET ${escHtml(ct.bailleurSiret)}`:'');
+  const locataireLine=[g.name,g.phone,g.email].filter(Boolean).map(escHtml).join(' — ');
+
+  return `<div class="contract-doc">
+    <h1>Contrat de location saisonnière</h1>
+    <p>Entre les soussignés :</p>
+    <p><b>Le bailleur</b> : ${bailleurLine||'—'}, désigné ci-après « le bailleur »,</p>
+    <p><b>Le locataire</b> : ${locataireLine||'—'}, désigné ci-après « le locataire »,</p>
+    <p>Il a été convenu ce qui suit :</p>
+
+    <h2>Article 1 — Désignation du logement</h2>
+    <p>${escHtml(rm.name)}${rm.description?' — '+escHtml(rm.description):''}</p>
+
+    <h2>Article 2 — Durée du séjour</h2>
+    <p>Du ${fmtDate(bk.checkIn)} au ${fmtDate(bk.checkOut)} (${nights} nuit${nights>1?'s':''}), pour ${pax} personne${pax>1?'s':''} maximum.</p>
+
+    <h2>Article 3 — Prix</h2>
+    <p>Le prix du séjour est fixé à ${total.toLocaleString('fr-FR')} €.${tsAmount>0?` S'y ajoute la taxe de séjour, collectée pour le compte de la commune, d'un montant de ${tsAmount.toLocaleString('fr-FR')} €.<br>Total à régler : ${grandTotal.toLocaleString('fr-FR')} €.`:''}</p>
+
+    <h2>Article 4 — Dépôt de garantie</h2>
+    <p>${escHtml(ct.depotGarantie)||'—'}</p>
+
+    <h2>Article 5 — Conditions d'annulation</h2>
+    <p>${escHtml(ct.conditionsAnnulation)||'—'}</p>
+
+    <p style="margin-top:24px">Fait le ${today}, en deux exemplaires.</p>
+
+    <div class="contract-sign-row">
+      <div class="contract-sign"><span>Le bailleur</span></div>
+      <div class="contract-sign"><span>Le locataire</span></div>
+    </div>
+  </div>`;
+}
+function openContractPreview(bkId){
+  const bk=S.bookings.find(b=>b.id===bkId);
+  if(!bk){alert('Enregistrez la réservation avant de générer le contrat.');return;}
+  byId('contractPrintArea').innerHTML=buildContractHTML(bk);
+  byId('modalContract').style.display='flex';
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  BOOKING MODAL
 // ═══════════════════════════════════════════════════════════════
 function openAddModal(roomId,ds,dsOut){
@@ -2466,6 +2575,8 @@ function openAddModal(roomId,ds,dsOut){
   byId('bSaveBtn').disabled=false;
   byId('newGNameFg').style.display='none';
   byId('gSearch').value='';
+  // Le contrat se génère depuis une résa déjà enregistrée (a besoin d'un id).
+  byId('bContractSec').style.display='none';
 
   if(roomId) byId('bRoom').value=roomId;
   const ci=ds||todayISO();
@@ -2503,6 +2614,7 @@ function openEditModal(id){
   byId('freeRoomPicker').style.display='none';
   byId('bSaveBtn').disabled=false;
   byId('newGNameFg').style.display='none';
+  byId('bContractSec').style.display='block';
   byId('bRoom').value=b.roomId;
   byId('bIn').value=b.checkIn;
   byId('bOut').value=b.checkOut;
@@ -3424,6 +3536,7 @@ function loadSettings(){
   if(!S.settings.sources)S.settings.sources=[...DEFAULT_SETTINGS.sources];
   if(!S.settings.chargeCategories||!S.settings.chargeCategories.length)S.settings.chargeCategories=JSON.parse(JSON.stringify(DEFAULT_SETTINGS.chargeCategories));
   if(!S.settings.taxeSejourHistory||!S.settings.taxeSejourHistory.length)S.settings.taxeSejourHistory=JSON.parse(JSON.stringify(DEFAULT_SETTINGS.taxeSejourHistory));
+  if(!S.settings.contract)S.settings.contract=JSON.parse(JSON.stringify(DEFAULT_SETTINGS.contract));
   migrateCleaners();
   const ghostSrc=S.settings.sources.find(s=>s.id==='ghost');
   if(ghostSrc)ghostSrc.noRevenue=false;
@@ -3470,6 +3583,11 @@ function migrateRoomFields(){
   const defMap=new Map(DEFAULT_SETTINGS.rooms.map(r=>[r.id,r]));
   S.settings.rooms.forEach(r=>{
     if(r.group===undefined){const d=defMap.get(r.id);r.group=d?d.group||'sasu':'sasu';}
+    // Vide par défaut, même pour une chambre qui existait déjà avant l'ajout de ce
+    // champ : contrairement à l'exemple pré-rempli de DEFAULT_SETTINGS (utile pour
+    // un compte tout neuf), une description toute faite sur une vraie chambre
+    // déjà configurée serait fausse plutôt qu'utile.
+    if(r.description===undefined)r.description='';
   });
   const legacyHist=(S.settings.tariffHistory&&S.settings.tariffHistory.length)?S.settings.tariffHistory:DEFAULT_SETTINGS.tariffHistory;
   S.settings.rooms.forEach(r=>{
@@ -3782,6 +3900,10 @@ function renderSettings(){
           </select>
         </div>
       </div>
+      <div class="set-card-sub">
+        <div class="set-card-sub-title">Description (pour le contrat de location)</div>
+        <textarea class="set-fi" style="width:100%;min-height:52px;resize:vertical;font-family:inherit;box-sizing:border-box" placeholder="Description du logement…" onblur="updateRoom('${r.id}','description',this.value)">${(r.description||'').replace(/</g,'&lt;')}</textarea>
+      </div>
       ${roomTariffHTML(r)}
     </div>`;
   });
@@ -3864,6 +3986,36 @@ function renderSettings(){
   taxeSejourBody+=`<button class="set-add" onclick="addTaxeSejourRate()">+ Nouveau tarif à partir d'aujourd'hui</button>
     </div>`;
   h+=settingsPanel('taxesejour','Taxe de séjour',taxeSejourBody);
+
+  // — Contrat de location : champs réutilisés pour générer le contrat depuis une
+  // résa (voir buildContractHTML). Pré-remplis d'un exemple utilisable dès le
+  // départ (voir DEFAULT_SETTINGS.contract) plutôt que des champs vides.
+  const ct=st.contract||DEFAULT_SETTINGS.contract;
+  const contractBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Utilisés pour générer le contrat depuis une réservation (bouton « Générer le contrat »). Pré-remplis d'un exemple — à adapter à votre situation.</div>
+    <div class="set-card">
+      <div class="set-card-sub-title" style="margin-top:0">Bailleur</div>
+      <div class="fg" style="margin-bottom:8px">
+        <label class="fl">Nom</label>
+        <input class="set-fi" style="width:100%;box-sizing:border-box" value="${(ct.bailleurNom||'').replace(/"/g,'&quot;')}" placeholder="Nom du bailleur" onblur="updateContractField('bailleurNom',this.value)">
+      </div>
+      <div class="fg" style="margin-bottom:8px">
+        <label class="fl">Adresse</label>
+        <input class="set-fi" style="width:100%;box-sizing:border-box" value="${(ct.bailleurAdresse||'').replace(/"/g,'&quot;')}" placeholder="Adresse du bailleur" onblur="updateContractField('bailleurAdresse',this.value)">
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label class="fl">SIRET <span style="color:var(--gray);font-weight:400;text-transform:none">(optionnel)</span></label>
+        <input class="set-fi" style="width:100%;box-sizing:border-box" value="${(ct.bailleurSiret||'').replace(/"/g,'&quot;')}" placeholder="123 456 789 00012" onblur="updateContractField('bailleurSiret',this.value)">
+      </div>
+    </div>
+    <div class="set-card">
+      <div class="set-card-sub-title" style="margin-top:0">Dépôt de garantie</div>
+      <textarea class="set-fi" style="width:100%;min-height:70px;resize:vertical;font-family:inherit;box-sizing:border-box" onblur="updateContractField('depotGarantie',this.value)">${(ct.depotGarantie||'').replace(/</g,'&lt;')}</textarea>
+    </div>
+    <div class="set-card">
+      <div class="set-card-sub-title" style="margin-top:0">Conditions d'annulation</div>
+      <textarea class="set-fi" style="width:100%;min-height:70px;resize:vertical;font-family:inherit;box-sizing:border-box" onblur="updateContractField('conditionsAnnulation',this.value)">${(ct.conditionsAnnulation||'').replace(/</g,'&lt;')}</textarea>
+    </div>`;
+  h+=settingsPanel('contrat','Contrat de location',contractBody);
 
   // — Catalogue extras (boissons, options, lit bébé…), vendu à la nuit ou au séjour —
   const catCats=[...new Set(S.catalog.map(c=>c.cat))];
@@ -4022,6 +4174,13 @@ function updateTaxeSejourRate(id,field,val){
   // Le modal de réservation peut être ouvert avec la case déjà cochée : le montant
   // affiché doit refléter le nouveau taux sans attendre une fermeture/réouverture.
   if(byId('modalBooking').style.display==='flex')updateModalTotal();
+}
+
+// Contrat de location — champ simple (pas une liste), un seul objet à jour.
+function updateContractField(field,val){
+  if(!S.settings.contract)S.settings.contract={};
+  S.settings.contract[field]=val;
+  saveSettings();
 }
 
 // Room CRUD
