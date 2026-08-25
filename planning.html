@@ -1038,6 +1038,9 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
         ⚠️ Cette chambre est déjà prise sur ces dates
       </div>
       <div id="freeRoomPicker" style="display:none;background:#F0F7EE;border-radius:8px;padding:10px 12px;"></div>
+      <div id="bContractSec" style="display:none;margin-top:14px">
+        <button type="button" class="btn-p" style="width:100%" onclick="openContractPreview(editBid)">Générer le contrat de location</button>
+      </div>
     </div>
 
     <!-- ── Personnes ── -->
@@ -1131,15 +1134,6 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
       <div class="fg">
         <input type="text" class="fi" id="bNotes" placeholder="lit bébé, accès code, allergie…">
       </div>
-    </div>
-
-    <!-- ── Contrat ── -->
-    <div class="msec" id="bContractSec" style="display:none">
-      <div class="msec-title">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Contrat
-      </div>
-      <button type="button" class="btn-p" style="width:100%" onclick="openContractPreview(editBid)">Générer le contrat de location</button>
     </div>
 
     <div class="macts">
