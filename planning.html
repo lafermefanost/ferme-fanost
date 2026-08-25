@@ -19,7 +19,7 @@ html,body{height:100%;overflow:hidden;}
 /* ─── TOKENS ─────────────────────────────────────────────── */
 :root{
   --cream:#F5F0E8; --earth:#8B7355; --green:#3D5C35; --dark:#2C2C2C;
-  --gray:#6B6B6B; --light:#E8E4DC; --white:#FFF; --danger:#C0392B;
+  --gray:#6B6B6B; --light:#E8E4DC; --white:#FFF; --danger:#C0392B; --pending-red:#FF2D2D;
   --shadow:0 2px 10px rgba(0,0,0,.14); --r:6px;
   --hdr:52px; --bar:40px;
 }
@@ -222,6 +222,9 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 .blk.paid{background:#A0A0A0!important;}
 .blk.paid .bname,.blk.paid .bcont-init{color:#FFF!important;}
 .blk.paid .sdot{background:#777!important;}
+.blk.pending{background:var(--pending-red)!important;}
+.blk.pending .bname,.blk.pending .bcont-init{color:#FFF!important;}
+.blk.pending .sdot{background:#8B0000!important;}
 .blk.ghost{background:#1A1A1A!important;}
 .blk.ghost,.blk.ghost *{color:#1A1A1A!important;}
 .blk.ghost .sdot{background:#1A1A1A!important;}
@@ -2097,10 +2100,11 @@ function renderGrid(){
         const dot=bk.status==='opt'?'#FF9800':bk.status==='no'?'#F44336':'#4CAF50';
 
         const isPaid=bk.payment==='paid';
+        const isPending=bk.payment==='pending';
         const isGhost=bk.source==='ghost'||bk.ghost;
-        const dispCol=isGhost?'#1A1A1A':isPaid?'#A0A0A0':col;
+        const dispCol=isGhost?'#1A1A1A':isPending?'var(--pending-red)':isPaid?'#A0A0A0':col;
         const div=document.createElement('div');
-        div.className=`blk${isCin?' cin':''}${isCout?' cout':''} ${lbg?'lbg':'dbg'}${sc}${isPaid?' paid':''}${isGhost?' ghost':''}`;
+        div.className=`blk${isCin?' cin':''}${isCout?' cout':''} ${lbg?'lbg':'dbg'}${sc}${isPending?' pending':''}${isPaid?' paid':''}${isGhost?' ghost':''}`;
         div.style.background=dispCol;
         div.dataset.id=bk.id;
         div.draggable=true;
@@ -2126,7 +2130,7 @@ function renderGrid(){
         const co=S.bookings.find(b=>b.roomId===r.id&&isCO(b,ds));
         if(co){
           const g=guest(co.guestId);
-          const c=(co.source==='ghost'||co.ghost)?'#1A1A1A':co.payment==='paid'?'#A0A0A0':g?g.color:'#999';
+          const c=(co.source==='ghost'||co.ghost)?'#1A1A1A':co.payment==='pending'?'var(--pending-red)':co.payment==='paid'?'#A0A0A0':g?g.color:'#999';
           const d2=document.createElement('div');
           d2.className='co-half';
           d2.style.background=c;
@@ -2229,7 +2233,7 @@ function renderToday(){
   const extrasHTML=(b)=>extrasHTMLFor(b,ds);
 
   const card=(b,sub,showTotal=false)=>{
-    const g=guest(b.guestId);const col=g?g.color:'#999';const rm=room(b.roomId);
+    const g=guest(b.guestId);const col=b.payment==='pending'?'var(--pending-red)':g?g.color:'#999';const rm=room(b.roomId);
     const hasDin=b.dinnerNights&&b.dinnerNights[ds];
     const thBadge=hasDin?`<span class="dinner-badge" style="font-size:11px;color:var(--green);font-weight:600;flex-shrink:0;display:inline-flex;align-items:center;gap:3px">${MEAL_ICON_SM}${b.nbPersons||2}</span>`:'';
     const xd=getExtrasDayTotal(b,ds);
@@ -2319,8 +2323,9 @@ function renderToday(){
   const miniChip=(b,timeLabel)=>{
     const g=guest(b.guestId);const col=g?g.color:'#999';const rm=room(b.roomId);
     const isPaid=b.payment==='paid';
+    const isPending=b.payment==='pending';
     const isGhost=b.source==='ghost'||b.ghost;
-    const barCol=isGhost?'#1A1A1A':isPaid?'#A0A0A0':col;
+    const barCol=isGhost?'#1A1A1A':isPending?'var(--pending-red)':isPaid?'#A0A0A0':col;
     const sc=b.status==='opt'?' opt':b.status==='no'?' canc':'';
     const dot=b.status==='opt'?'#FF9800':b.status==='no'?'#F44336':'#4CAF50';
     const hasDin=b.dinnerNights&&b.dinnerNights[ds];
@@ -4567,8 +4572,9 @@ function renderWeek(){
     </div>`;
     h+=`<div class="wday-body">`;
     const wMiniChip=(b,timeLabel)=>{const g=guest(b.guestId);const rm=room(b.roomId);
+      const barCol=b.payment==='pending'?'var(--pending-red)':g?g.color:'#999';
       return`<div class="day-chip" onclick="openEditModal('${b.id}')">
-        <div class="tbar" style="background:${g?g.color:'#999'}"></div>
+        <div class="tbar" style="background:${barCol}"></div>
         <div class="day-chip-content">
           <span class="bname">${g?g.name:'?'}</span>
           <span class="bcont-init" style="flex:0 0 auto;opacity:.7">${rm?rm.short:''}</span>
