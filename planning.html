@@ -1139,7 +1139,7 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         Contrat
       </div>
-      <button type="button" class="btn-s" style="width:100%" onclick="openContractPreview(editBid)">Générer le contrat de location</button>
+      <button type="button" class="btn-p" style="width:100%" onclick="openContractPreview(editBid)">Générer le contrat de location</button>
     </div>
 
     <div class="macts">
@@ -1160,7 +1160,7 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
     <div id="contractPrintArea"></div>
     <div class="macts">
       <button class="btn-s" onclick="closeM('modalContract')">Fermer</button>
-      <button class="btn-p" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
+      <button class="btn-p" id="contractPdfBtn" onclick="downloadContractPDF()">📄 Télécharger en PDF</button>
     </div>
   </div>
 </div>
@@ -2507,12 +2507,12 @@ document.addEventListener('mousemove',e=>{if(byId('tooltip').style.display==='bl
 //  CONTRAT DE LOCATION
 // ═══════════════════════════════════════════════════════════════
 function escHtml(s){return (s||'').replace(/</g,'&lt;');}
-// Construit le contrat de location d'une résa à partir des champs saisis
-// dans Réglages → Contrat de location + la description de la chambre
-// (Réglages → Locations), et des données déjà présentes sur la résa (dates,
-// personnes, prix, taxe de séjour, client). Pas de signature électronique :
-// pensé pour être imprimé ou joint à un e-mail (voir openContractPreview).
-function buildContractHTML(bk){
+// Contenu du contrat sous forme de blocs de texte brut (pas de HTML ici) —
+// source unique réutilisée à la fois pour l'aperçu HTML (buildContractHTML)
+// et pour le PDF (downloadContractPDF), pour ne jamais avoir deux versions
+// du texte légal qui divergent. Un \n dans un paragraphe = retour à la ligne
+// (les deux rendus le traitent chacun à leur façon).
+function buildContractBlocks(bk){
   const g=guest(bk.guestId)||{name:'—'};
   const rm=room(bk.roomId)||{name:'—',description:''};
   const ct=S.settings.contract||DEFAULT_SETTINGS.contract;
@@ -2522,34 +2522,41 @@ function buildContractHTML(bk){
   const tsAmount=getTaxeSejourAmount(bk);
   const grandTotal=total+tsAmount;
   const today=new Date().toLocaleDateString('fr-FR');
-  const bailleurLine=[ct.bailleurNom,ct.bailleurAdresse].filter(Boolean).map(escHtml).join(', ')
-    +(ct.bailleurSiret?` — SIRET ${escHtml(ct.bailleurSiret)}`:'');
-  const locataireLine=[g.name,g.phone,g.email].filter(Boolean).map(escHtml).join(' — ');
+  const bailleurLine=[ct.bailleurNom,ct.bailleurAdresse].filter(Boolean).join(', ')
+    +(ct.bailleurSiret?` — SIRET ${ct.bailleurSiret}`:'');
+  // Adresse du locataire piochée dans sa fiche client (Réglages → Clients),
+  // si elle a été renseignée là-bas.
+  const locataireLine=[g.name,g.address,g.phone,g.email].filter(Boolean).join(' — ');
+  const prixText=`Le prix du séjour est fixé à ${total.toLocaleString('fr-FR')} €.`
+    +(tsAmount>0?`\nS'y ajoute la taxe de séjour, collectée pour le compte de la commune, d'un montant de ${tsAmount.toLocaleString('fr-FR')} €.\nTotal à régler : ${grandTotal.toLocaleString('fr-FR')} €.`:'');
 
+  return{
+    title:'Contrat de location saisonnière',
+    intro:[
+      'Entre les soussignés :',
+      `Le bailleur : ${bailleurLine||'—'}, désigné ci-après « le bailleur »,`,
+      `Le locataire : ${locataireLine||'—'}, désigné ci-après « le locataire »,`,
+      "Il a été convenu ce qui suit :",
+    ],
+    articles:[
+      {h:'Article 1 — Désignation du logement',p:`${rm.name}${rm.description?' — '+rm.description:''}`},
+      {h:'Article 2 — Durée du séjour',p:`Du ${fmtDate(bk.checkIn)} au ${fmtDate(bk.checkOut)} (${nights} nuit${nights>1?'s':''}), pour ${pax} personne${pax>1?'s':''} maximum.`},
+      {h:'Article 3 — Prix',p:prixText},
+      {h:'Article 4 — Dépôt de garantie',p:ct.depotGarantie||'—'},
+      {h:"Article 5 — Conditions d'annulation",p:ct.conditionsAnnulation||'—'},
+    ],
+    closing:`Fait le ${today}, en deux exemplaires.`,
+  };
+}
+// Rendu HTML (aperçu à l'écran + base pour l'impression navigateur).
+function buildContractHTML(bk){
+  const c=buildContractBlocks(bk);
+  const p=t=>escHtml(t).replace(/\n/g,'<br>');
   return `<div class="contract-doc">
-    <h1>Contrat de location saisonnière</h1>
-    <p>Entre les soussignés :</p>
-    <p><b>Le bailleur</b> : ${bailleurLine||'—'}, désigné ci-après « le bailleur »,</p>
-    <p><b>Le locataire</b> : ${locataireLine||'—'}, désigné ci-après « le locataire »,</p>
-    <p>Il a été convenu ce qui suit :</p>
-
-    <h2>Article 1 — Désignation du logement</h2>
-    <p>${escHtml(rm.name)}${rm.description?' — '+escHtml(rm.description):''}</p>
-
-    <h2>Article 2 — Durée du séjour</h2>
-    <p>Du ${fmtDate(bk.checkIn)} au ${fmtDate(bk.checkOut)} (${nights} nuit${nights>1?'s':''}), pour ${pax} personne${pax>1?'s':''} maximum.</p>
-
-    <h2>Article 3 — Prix</h2>
-    <p>Le prix du séjour est fixé à ${total.toLocaleString('fr-FR')} €.${tsAmount>0?` S'y ajoute la taxe de séjour, collectée pour le compte de la commune, d'un montant de ${tsAmount.toLocaleString('fr-FR')} €.<br>Total à régler : ${grandTotal.toLocaleString('fr-FR')} €.`:''}</p>
-
-    <h2>Article 4 — Dépôt de garantie</h2>
-    <p>${escHtml(ct.depotGarantie)||'—'}</p>
-
-    <h2>Article 5 — Conditions d'annulation</h2>
-    <p>${escHtml(ct.conditionsAnnulation)||'—'}</p>
-
-    <p style="margin-top:24px">Fait le ${today}, en deux exemplaires.</p>
-
+    <h1>${escHtml(c.title)}</h1>
+    ${c.intro.map(t=>`<p>${p(t)}</p>`).join('')}
+    ${c.articles.map(a=>`<h2>${escHtml(a.h)}</h2><p>${p(a.p)}</p>`).join('')}
+    <p style="margin-top:24px">${escHtml(c.closing)}</p>
     <div class="contract-sign-row">
       <div class="contract-sign"><span>Le bailleur</span></div>
       <div class="contract-sign"><span>Le locataire</span></div>
@@ -2561,6 +2568,75 @@ function openContractPreview(bkId){
   if(!bk){alert('Enregistrez la réservation avant de générer le contrat.');return;}
   byId('contractPrintArea').innerHTML=buildContractHTML(bk);
   byId('modalContract').style.display='flex';
+}
+// Charge jsPDF à la demande (uniquement au moment d'exporter, pas au chargement
+// de la page) depuis un CDN — nécessite une connexion internet à ce moment-là.
+// Si le chargement échoue (hors-ligne notamment), on retombe sur l'impression
+// navigateur classique plutôt que de laisser le bouton ne rien faire.
+let jsPDFLoadPromise=null;
+function ensureJsPDF(){
+  if(window.jspdf&&window.jspdf.jsPDF)return Promise.resolve();
+  if(jsPDFLoadPromise)return jsPDFLoadPromise;
+  jsPDFLoadPromise=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';
+    s.onload=()=>resolve();
+    s.onerror=()=>{jsPDFLoadPromise=null;reject(new Error('jsPDF non chargé'));};
+    document.head.appendChild(s);
+  });
+  return jsPDFLoadPromise;
+}
+async function downloadContractPDF(){
+  const bk=S.bookings.find(b=>b.id===editBid);
+  if(!bk)return;
+  const btn=byId('contractPdfBtn');
+  const origLabel=btn?btn.textContent:'';
+  if(btn){btn.textContent='Génération…';btn.disabled=true;}
+  try{
+    await ensureJsPDF();
+    const{jsPDF}=window.jspdf;
+    const doc=new jsPDF({unit:'mm',format:'a4'});
+    const pageW=210,pageH=297,margin=20,maxW=pageW-margin*2;
+    let y=margin;
+    const ensureRoom=(need)=>{if(y+need>pageH-margin){doc.addPage();y=margin;}};
+    const para=(text,size,style,gapAfter)=>{
+      doc.setFont('helvetica',style);doc.setFontSize(size);
+      text.split('\n').forEach(line=>{
+        const wrapped=doc.splitTextToSize(line,maxW);
+        ensureRoom(wrapped.length*(size*.42)+2);
+        doc.text(wrapped,margin,y);
+        y+=wrapped.length*(size*.42)+2;
+      });
+      y+=gapAfter||0;
+    };
+    const c=buildContractBlocks(bk);
+    doc.setFont('helvetica','bold');doc.setFontSize(15);
+    doc.text(c.title.toUpperCase(),pageW/2,y,{align:'center'});
+    y+=12;
+    c.intro.forEach(t=>para(t,11,'normal',4));
+    c.articles.forEach(a=>{
+      ensureRoom(14);
+      para(a.h.toUpperCase(),11,'bold',2);
+      para(a.p,11,'normal',6);
+    });
+    para(c.closing,11,'normal',20);
+    ensureRoom(20);
+    const colW=(maxW-16)/2;
+    doc.setLineWidth(.2);
+    doc.line(margin,y,margin+colW,y);
+    doc.line(margin+colW+16,y,margin+colW*2+16,y);
+    doc.setFontSize(10);
+    doc.text('Le bailleur',margin+colW/2,y+5,{align:'center'});
+    doc.text('Le locataire',margin+colW+16+colW/2,y+5,{align:'center'});
+    const g=guest(bk.guestId);
+    const safe=(g?.name||'contrat').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'-');
+    doc.save(`contrat-${safe}-${bk.checkIn}.pdf`);
+  }catch(err){
+    console.error('Génération PDF impossible, impression navigateur à la place :',err);
+    window.print();
+  }finally{
+    if(btn){btn.textContent=origLabel;btn.disabled=false;}
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
