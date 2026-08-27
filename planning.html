@@ -511,10 +511,6 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
   margin-top:10px;padding-top:10px;border-top:1px solid var(--light);
   font-size:12px;color:var(--gray);font-weight:500;}
 .mocc-taxe span:last-child{font-weight:700;color:var(--dark);}
-.mocc-clean-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;}
-.mocc-clean-name{color:var(--dark);font-weight:500;flex:0 0 auto;}
-.mocc-clean-detail{color:var(--gray);flex:1;}
-.mocc-clean-cost{color:var(--dark);font-weight:700;flex-shrink:0;}
 .month-bklist{background:#fff;border-radius:12px;padding:14px;border:1.5px solid var(--light);}
 .mbk-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
   color:var(--gray);margin-bottom:10px;}
@@ -5131,41 +5127,6 @@ function renderMonth(){
     <div class="wsm-row" style="grid-template-columns:repeat(${mRevItems.length},1fr)">${mRevItems.join('')}</div>
   </div>`;
 
-  // Ménage réel du mois — heures et coût saisis progressivement, jour par jour,
-  // par les femmes de ménage (vue Semaine → volet Ménage), au tarif horaire de
-  // chacune (Réglages → Équipe ménage). Indépendant du relevé bancaire
-  // ci-dessous : c'est la donnée saisie directement, pas une catégorie
-  // retrouvée dans un import. Placé avant les autres sections financières.
-  if(CLEANERS.length){
-    const cleaningByPerson={};
-    for(let i=0;i<daysInMonth;i++){
-      const ds=addDays(mStart,i);
-      (S.cleaning[ds]||[]).forEach(c=>{
-        const hours=c.hours||0;
-        if(hours<=0)return;
-        const rate=CLEANERS.find(cl=>cl.name===c.name)?.rate??15;
-        if(!cleaningByPerson[c.name])cleaningByPerson[c.name]={hours:0,cost:0,rate};
-        cleaningByPerson[c.name].hours+=hours;
-        cleaningByPerson[c.name].cost+=hours*rate;
-      });
-    }
-    const cleanRows=Object.entries(cleaningByPerson);
-    const cleanHoursTotal=cleanRows.reduce((s,[,v])=>s+v.hours,0);
-    const cleanCostTotal=cleanRows.reduce((s,[,v])=>s+v.cost,0);
-    h+=`<div class="month-occ">
-      <div class="mocc-title">Ménage</div>`;
-    h+=cleanRows.length
-      ? cleanRows.map(([name,v])=>`<div class="mocc-clean-row">
-          <span class="mocc-clean-name">${name}</span>
-          <span class="mocc-clean-detail">${v.hours.toLocaleString('fr-FR')} h × ${v.rate} €</span>
-          <span class="mocc-clean-cost">${v.cost.toLocaleString('fr-FR')} €</span>
-        </div>`).join('')
-      : `<div class="tsec-empty">Aucune heure enregistrée</div>`;
-    h+=`<div class="mocc-taxe">
-        <span>Total ménage — ${cleanHoursTotal.toLocaleString('fr-FR')} h</span><span>${cleanCostTotal>0?cleanCostTotal.toLocaleString('fr-FR')+' €':'—'}</span>
-      </div>
-    </div>`;
-  }
 
   // Financial summary (charges + marge) — only if charges configured
   const bankCharges=variableChargesForMonth(mStart,mEndExact);
@@ -5275,7 +5236,37 @@ function renderMonth(){
       <span class="yr-regl-chev">▾</span>
     </div>
     <div class="yr-regl-body" style="margin-top:10px">`;
-  let anyBankTx=false;
+  // Ménage — première catégorie du panel, avant les groupes par structure
+  // (SASU, LMNP…). Heures et coût saisis progressivement, jour par jour, par
+  // les femmes de ménage (vue Semaine → volet Ménage), au tarif horaire de
+  // chacune (Réglages → Équipe ménage) — pas une catégorie retrouvée dans un
+  // import bancaire, mais une vraie charge, incluse dans le total ci-dessous.
+  let cleanCostTotal=0;
+  if(CLEANERS.length){
+    const cleaningByPerson={};
+    for(let i=0;i<daysInMonth;i++){
+      const ds=addDays(mStart,i);
+      (S.cleaning[ds]||[]).forEach(c=>{
+        const hours=c.hours||0;
+        if(hours<=0)return;
+        const rate=CLEANERS.find(cl=>cl.name===c.name)?.rate??15;
+        if(!cleaningByPerson[c.name])cleaningByPerson[c.name]={hours:0,cost:0,rate};
+        cleaningByPerson[c.name].hours+=hours;
+        cleaningByPerson[c.name].cost+=hours*rate;
+      });
+    }
+    const cleanRows=Object.entries(cleaningByPerson);
+    cleanCostTotal=cleanRows.reduce((s,[,v])=>s+v.cost,0);
+    h+=`<div class="mch-group-hd"><span class="mch-group-name">Ménage</span></div>`;
+    h+=cleanRows.length
+      ? cleanRows.map(([name,v])=>`<div class="mch-row">
+          <span style="flex:1;font-size:13px;color:var(--dark)">${name} <span style="color:var(--gray);font-size:11px">(${v.hours.toLocaleString('fr-FR')} h × ${v.rate} €)</span></span>
+          <span style="font-size:13px;font-weight:600;color:var(--dark)">${v.cost.toLocaleString('fr-FR')} €</span>
+        </div>`).join('')
+      : `<div style="font-size:12px;color:#bbb;padding:2px 0 6px">Aucune heure enregistrée pour ce mois.</div>`;
+    h+=`<div class="mch-subtotal-row"><span>Sous-total Ménage</span><span>${cleanCostTotal.toLocaleString('fr-FR')} €</span></div>`;
+  }
+  let anyBankTx=cleanCostTotal>0;
   monthStructs.map(s=>[s.id,s.name]).forEach(([gid,label])=>{
     const bc=variableChargesForMonth(mStart,mEndExact,gid);
     const catRows=Object.entries(bc.byCat).filter(([id,v])=>v.count>0).sort((a,b)=>b[1].total-a[1].total);
@@ -5322,7 +5313,7 @@ function renderMonth(){
   if(anyBankTx){
     h+=`<div class="mch-total-row">
       <span>Total charges réelles</span>
-      <span class="mch-total-val">${Math.round(bankCharges.total).toLocaleString('fr-FR')} € / mois</span>
+      <span class="mch-total-val">${Math.round(bankCharges.total+cleanCostTotal).toLocaleString('fr-FR')} € / mois</span>
     </div>`;
   }
   h+=`</div></div>`;
