@@ -4897,7 +4897,7 @@ function renderWeek(){
   const weekEvs=S.events.filter(ev=>ev.startDate<wEnd&&ev.endDate>=S.wStart);
   const weekPrefillDate=(today>=S.wStart&&today<wEnd)?today:S.wStart;
   const weekEvAddBtn=`<div class="tsec-add" onclick="event.stopPropagation();openEventEdit(null,'${weekPrefillDate}')">+ Ajouter un événement</div>`;
-  h+=`<div class="tsec-panel ev${weekEvs.length===0?' collapsed':''}">
+  h+=`<div class="tsec-panel ev collapsed">
     <div class="tsec-hd${weekEvs.length>0?' has-items':''}" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
       ${EVENT_ICON} Événements<span class="tsec-count"><span>${weekEvs.length}</span></span><span class="tsec-chev">▾</span>
     </div>
