@@ -551,11 +551,10 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 .mch-total-val{font-weight:600;color:var(--earth);}
 .mch-pie-block{display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;
   margin-top:16px;padding-top:16px;border-top:1px solid var(--light);}
-.mch-pie-svgwrap{position:relative;flex-shrink:0;}
-.mch-pie-total{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
-.mch-pie-total-val{font-size:16px;font-weight:700;color:var(--dark);}
-.mch-pie-total-lbl{font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.06em;}
-.mch-pie-legend{display:flex;flex-direction:column;gap:7px;flex:1;min-width:180px;}
+.mch-pie-svgwrap{flex-shrink:0;}
+.mch-pie-legend-col{flex:1;min-width:180px;}
+.mch-pie-total-line{font-size:12px;font-weight:700;color:var(--dark);margin-bottom:10px;}
+.mch-pie-legend{display:flex;flex-direction:column;gap:7px;}
 .mch-pie-row{display:flex;align-items:center;gap:8px;font-size:12px;}
 .mch-pie-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
 .mch-pie-label{flex:1;color:var(--dark);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -3874,13 +3873,15 @@ function importBankCSV(file,group){
 function monthTransactions(mStart,mEndExact){
   return S.transactions.filter(t=>t.date>=mStart&&t.date<mEndExact);
 }
-// Camembert (donut) de répartition des charges du mois — voir renderMonth,
-// section "Charges réelles". Segments à bouts arrondis (stroke-linecap
-// round) séparés d'un petit espace, technique du cercle en pointillés
-// (stroke-dasharray/-dashoffset, tourné de -90° pour démarrer à midi et
-// tourner dans le sens horaire) plutôt qu'un camembert plat classique.
-// Couleurs reprises de STRUCTURE_COLORS (déjà utilisées pour le graphe de
-// revenus en vue Année) pour rester cohérent avec le reste de l'appli.
+// Camembert de répartition des charges du mois — voir renderMonth, section
+// "Charges réelles". De vrais quartiers (chemins en secteur, du centre vers
+// l'arc), pas un anneau : chaque quartier a un petit espace avec ses voisins
+// et des angles légèrement arrondis (stroke de la même couleur que le
+// remplissage + stroke-linejoin:round), dans le même esprit géométrique doux
+// que le "5" du logo de l'app (lui aussi construit à partir d'un quart de
+// cercle). Couleurs reprises de STRUCTURE_COLORS (déjà utilisées pour le
+// graphe de revenus en vue Année) pour rester cohérent avec le reste de
+// l'appli.
 function buildChargesDonut(breakdown){
   const MAX_SLICES=6;
   let entries=Object.entries(breakdown).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
@@ -3891,22 +3892,27 @@ function buildChargesDonut(breakdown){
     entries=[...shown,['Autres',restTotal]];
   }
   const total=entries.reduce((s,[,v])=>s+v,0);
-  const size=168,strokeW=26,r=(size-strokeW)/2,cx=size/2,cy=size/2;
-  const circ=2*Math.PI*r;
-  const gap=Math.min(6,circ*0.015);
+  const size=168,r=size/2-6,cx=size/2,cy=size/2;
+  const gapDeg=entries.length>1?2.2:0;
+  // 0° = midi, sens horaire (comme un camembert classique) : x=sin,y=-cos.
+  const pt=deg=>{const rad=deg*Math.PI/180;return[cx+r*Math.sin(rad),cy-r*Math.cos(rad)];};
   let cursor=0;
   const segs=entries.map(([label,val],i)=>{
     const frac=val/total;
+    const span=frac*360;
+    const a0=cursor+gapDeg/2, a1=cursor+span-gapDeg/2;
+    cursor+=span;
     const color=label==='Autres'?'#C7C2B8':STRUCTURE_COLORS[i%STRUCTURE_COLORS.length];
-    const segLen=Math.max(0,frac*circ-gap);
-    const dashOffset=-cursor;
-    cursor+=frac*circ;
-    return{label,val,frac,color,segLen,dashOffset};
+    return{label,val,frac,color,a0,a1:Math.max(a1,a0+0.01)};
   });
-  const arcsHTML=segs.map(s=>`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}"
-    stroke-width="${strokeW}" stroke-linecap="round"
-    stroke-dasharray="${s.segLen.toFixed(2)} ${(circ-s.segLen).toFixed(2)}"
-    stroke-dashoffset="${s.dashOffset.toFixed(2)}"/>`).join('');
+  const pathsHTML=segs.length===1
+    ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${segs[0].color}"/>`
+    : segs.map(s=>{
+        const[x0,y0]=pt(s.a0),[x1,y1]=pt(s.a1);
+        const large=(s.a1-s.a0)>180?1:0;
+        return`<path d="M${cx},${cy} L${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${large} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z"
+          fill="${s.color}" stroke="${s.color}" stroke-width="5" stroke-linejoin="round"/>`;
+      }).join('');
   const legendHTML=segs.map(s=>`<div class="mch-pie-row">
     <span class="mch-pie-dot" style="background:${s.color}"></span>
     <span class="mch-pie-label">${s.label.replace(/</g,'&lt;')}</span>
@@ -3915,13 +3921,12 @@ function buildChargesDonut(breakdown){
   </div>`).join('');
   return`<div class="mch-pie-block">
     <div class="mch-pie-svgwrap" style="width:${size}px;height:${size}px">
-      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">${arcsHTML}</svg>
-      <div class="mch-pie-total">
-        <div class="mch-pie-total-val">${Math.round(total).toLocaleString('fr-FR')} €</div>
-        <div class="mch-pie-total-lbl">Total</div>
-      </div>
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${pathsHTML}</svg>
     </div>
-    <div class="mch-pie-legend">${legendHTML}</div>
+    <div class="mch-pie-legend-col">
+      <div class="mch-pie-total-line">${Math.round(total).toLocaleString('fr-FR')} € au total</div>
+      <div class="mch-pie-legend">${legendHTML}</div>
+    </div>
   </div>`;
 }
 function variableChargesForMonth(mStart,mEndExact,group){
