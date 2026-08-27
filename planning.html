@@ -1380,6 +1380,8 @@ const MON3 = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov
 // Pictogramme repas (fourchette + couteau), épuré comme les autres icônes du planning
 const MEAL_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>';
 const MEAL_ICON_SM='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;flex-shrink:0"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>';
+// Même pictogramme que le bouton "Événements" du header — au trait, pas d'emoji.
+const EVENT_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
 // Pictogramme petit-déjeuner (tasse), même famille visuelle que les autres icônes du planning
 const BREAKFAST_ICON_SM='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;flex-shrink:0"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>';
 
@@ -2454,7 +2456,7 @@ function renderToday(){
   // les autres (Arrivées, Départs…) : toujours affiché (pas seulement quand il
   // y a des événements), avec un ajout manuel possible directement dedans.
   const evAddBtn=`<div class="tsec-add" onclick="event.stopPropagation();openEventEdit(null,'${ds}')">+ Ajouter un événement</div>`;
-  h+=panel('ev','📅','Événements',dayEvs,evCard,evAddBtn);
+  h+=panel('ev',EVENT_ICON,'Événements',dayEvs,evCard,evAddBtn);
   const dm=getMenu(ds);
   const menuHas=!!(dm.entree||dm.plat||dm.dessert);
   const thCount=S.bookings
@@ -4865,6 +4867,43 @@ function renderWeek(){
     </div>
   </div>`;
 
+  // Volet Événements collectif pour toute la semaine (même design que la vue
+  // Jour) — un seul volet listant tous les événements qui chevauchent la
+  // semaine, plutôt qu'un bloc répété dans chaque jour.
+  const evDayBadge=(dds,col)=>{
+    const dd=new Date(dds+'T00:00:00');
+    const lc=light(col);
+    return`<div class="evdate-badge" style="background:${col};color:${lc?'#2C2C2C':'#fff'}">
+      <div class="evdate-day">${dd.getDate()}</div>
+      <div class="evdate-mon">${MON3[dd.getMonth()]}</div>
+    </div>`;
+  };
+  const evCard=ev=>{
+    const col=ev.color||'#A8C5A0';
+    const isSingle=ev.startDate===ev.endDate;
+    const dateHtml=isSingle
+      ? evDayBadge(ev.startDate,col)
+      : `<div class="evdate-range">${evDayBadge(ev.startDate,col)}<span class="evdate-arrow">→</span>${evDayBadge(ev.endDate,col)}</div>`;
+    const timeStr=ev.startTime?(ev.endTime?`${ev.startTime} – ${ev.endTime}`:ev.startTime):'';
+    return`<div class="evcard" onclick="openEventEdit('${ev.id}')">
+      ${dateHtml}
+      <div class="evcard-info">
+        <div class="evcard-title">${ev.title}</div>
+        ${timeStr?`<div class="evcard-time">${timeStr}</div>`:''}
+        ${ev.revenue>0?`<div class="evcard-time">${ev.revenue.toLocaleString('fr-FR')} € générés</div>`:''}
+      </div>
+    </div>`;
+  };
+  const weekEvs=S.events.filter(ev=>ev.startDate<wEnd&&ev.endDate>=S.wStart);
+  const weekPrefillDate=(today>=S.wStart&&today<wEnd)?today:S.wStart;
+  const weekEvAddBtn=`<div class="tsec-add" onclick="event.stopPropagation();openEventEdit(null,'${weekPrefillDate}')">+ Ajouter un événement</div>`;
+  h+=`<div class="tsec-panel ev${weekEvs.length===0?' collapsed':''}">
+    <div class="tsec-hd${weekEvs.length>0?' has-items':''}" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
+      ${EVENT_ICON} Événements<span class="tsec-count"><span>${weekEvs.length}</span></span><span class="tsec-chev">▾</span>
+    </div>
+    <div class="tsec-body">${weekEvs.length?weekEvs.map(evCard).join(''):'<div class="tsec-empty">Aucun</div>'}${weekEvAddBtn}</div>
+  </div>`;
+
   for(let i=0;i<7;i++){
     const ds=addDays(S.wStart,i);
     const d=new Date(ds+'T00:00:00');
@@ -4898,34 +4937,6 @@ function renderWeek(){
         <div class="tsec-body">${body}</div>
       </div>`;
     };
-
-    const wEvDayBadge=(dds,col)=>{
-      const dd=new Date(dds+'T00:00:00');
-      const lc=light(col);
-      return`<div class="evdate-badge" style="background:${col};color:${lc?'#2C2C2C':'#fff'}">
-        <div class="evdate-day">${dd.getDate()}</div>
-        <div class="evdate-mon">${MON3[dd.getMonth()]}</div>
-      </div>`;
-    };
-    const dayEvs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
-    if(dayEvs.length){
-      h+=`<div class="tsec-panel"><div class="tsec-body">`+dayEvs.map(ev=>{
-        const col=ev.color||'#A8C5A0';
-        const isSingle=ev.startDate===ev.endDate;
-        const dateHtml=isSingle
-          ? wEvDayBadge(ev.startDate,col)
-          : `<div class="evdate-range">${wEvDayBadge(ev.startDate,col)}<span class="evdate-arrow">→</span>${wEvDayBadge(ev.endDate,col)}</div>`;
-        const timeStr=ev.startTime?(ev.endTime?`${ev.startTime} – ${ev.endTime}`:ev.startTime):'';
-        return`<div class="evcard" onclick="openEventEdit('${ev.id}')">
-          ${dateHtml}
-          <div class="evcard-info">
-            <div class="evcard-title">${ev.title}</div>
-            ${timeStr?`<div class="evcard-time">${timeStr}</div>`:''}
-            ${ev.revenue>0?`<div class="evcard-time">${ev.revenue.toLocaleString('fr-FR')} € générés</div>`:''}
-          </div>
-        </div>`;
-      }).join('')+`</div></div>`;
-    }
 
     h+=`<div class="wday-cols">
       ${wpanel('arr','↓','Arrivées',arrs,b=>wMiniChip(b,b.arrivalTime||null))}
