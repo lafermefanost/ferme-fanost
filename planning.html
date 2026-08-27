@@ -3875,13 +3875,14 @@ function monthTransactions(mStart,mEndExact){
 }
 // Camembert de répartition des charges du mois — voir renderMonth, section
 // "Charges réelles". De vrais quartiers (chemins en secteur, du centre vers
-// l'arc), pas un anneau : chaque quartier a un petit espace avec ses voisins
-// et des angles légèrement arrondis (stroke de la même couleur que le
-// remplissage + stroke-linejoin:round), dans le même esprit géométrique doux
-// que le "5" du logo de l'app (lui aussi construit à partir d'un quart de
-// cercle). Couleurs reprises de STRUCTURE_COLORS (déjà utilisées pour le
-// graphe de revenus en vue Année) pour rester cohérent avec le reste de
-// l'appli.
+// l'arc), pas un anneau : chaque quartier a la forme d'un triangle (deux
+// rayons + un arc extérieur court, qui se lit comme un côté quasi droit sur
+// une part fine) séparé de ses voisins par un léger liseré blanc (stroke
+// blanc + stroke-linejoin:round, qui arrondit très légèrement la pointe
+// centrale et les deux coins extérieurs), dans le même esprit géométrique
+// que le quart de cercle du "5" du logo de l'app. Couleurs reprises de
+// STRUCTURE_COLORS (déjà utilisées pour le graphe de revenus en vue Année)
+// pour rester cohérent avec le reste de l'appli.
 function buildChargesDonut(breakdown){
   const MAX_SLICES=6;
   let entries=Object.entries(breakdown).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
@@ -3892,8 +3893,8 @@ function buildChargesDonut(breakdown){
     entries=[...shown,['Autres',restTotal]];
   }
   const total=entries.reduce((s,[,v])=>s+v,0);
-  const size=168,r=size/2-6,cx=size/2,cy=size/2;
-  const gapDeg=entries.length>1?2.2:0;
+  const size=168,strokeW=4,r=size/2-6-strokeW/2,cx=size/2,cy=size/2;
+  const gapDeg=entries.length>1?2.6:0;
   // 0° = midi, sens horaire (comme un camembert classique) : x=sin,y=-cos.
   const pt=deg=>{const rad=deg*Math.PI/180;return[cx+r*Math.sin(rad),cy-r*Math.cos(rad)];};
   let cursor=0;
@@ -3911,7 +3912,7 @@ function buildChargesDonut(breakdown){
         const[x0,y0]=pt(s.a0),[x1,y1]=pt(s.a1);
         const large=(s.a1-s.a0)>180?1:0;
         return`<path d="M${cx},${cy} L${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${large} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z"
-          fill="${s.color}" stroke="${s.color}" stroke-width="5" stroke-linejoin="round"/>`;
+          fill="${s.color}" stroke="#fff" stroke-width="${strokeW}" stroke-linejoin="round"/>`;
       }).join('');
   const legendHTML=segs.map(s=>`<div class="mch-pie-row">
     <span class="mch-pie-dot" style="background:${s.color}"></span>
