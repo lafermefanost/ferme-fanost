@@ -549,6 +549,18 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 .mch-add:hover{border-color:var(--green);color:var(--green);}
 .mch-total-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--light);font-size:12px;color:var(--gray);}
 .mch-total-val{font-weight:600;color:var(--earth);}
+.mch-pie-block{display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;
+  margin-top:16px;padding-top:16px;border-top:1px solid var(--light);}
+.mch-pie-svgwrap{position:relative;flex-shrink:0;}
+.mch-pie-total{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.mch-pie-total-val{font-size:16px;font-weight:700;color:var(--dark);}
+.mch-pie-total-lbl{font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.06em;}
+.mch-pie-legend{display:flex;flex-direction:column;gap:7px;flex:1;min-width:180px;}
+.mch-pie-row{display:flex;align-items:center;gap:8px;font-size:12px;}
+.mch-pie-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+.mch-pie-label{flex:1;color:var(--dark);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mch-pie-pct{color:var(--gray);flex-shrink:0;width:30px;text-align:right;}
+.mch-pie-val{font-weight:700;color:var(--dark);flex-shrink:0;width:64px;text-align:right;}
 .mch-group-hd{display:flex;align-items:center;justify-content:space-between;margin:14px 0 4px;padding-top:10px;border-top:1px dashed var(--light);}
 .mch-group-hd:first-of-type{margin-top:0;padding-top:0;border-top:none;}
 .mch-group-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);}
@@ -1380,6 +1392,10 @@ const MON3 = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov
 // Pictogramme repas (fourchette + couteau), épuré comme les autres icônes du planning
 const MEAL_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>';
 const MEAL_ICON_SM='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;flex-shrink:0"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>';
+// Palette "maison" des graphiques (revenus par structure en vue Année, camembert
+// des charges en vue Mois) — tons terre/vert cohérents avec le reste de
+// l'appli plutôt qu'une palette générique.
+const STRUCTURE_COLORS=['#3D5C35','#8B9D86','#B5A07A','#7A8CB5','#B57A8C','#8CB57A'];
 // Même pictogramme que le bouton "Événements" du header — au trait, pas d'emoji.
 const EVENT_ICON='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
 // Pictogramme petit-déjeuner (tasse), même famille visuelle que les autres icônes du planning
@@ -3858,6 +3874,56 @@ function importBankCSV(file,group){
 function monthTransactions(mStart,mEndExact){
   return S.transactions.filter(t=>t.date>=mStart&&t.date<mEndExact);
 }
+// Camembert (donut) de répartition des charges du mois — voir renderMonth,
+// section "Charges réelles". Segments à bouts arrondis (stroke-linecap
+// round) séparés d'un petit espace, technique du cercle en pointillés
+// (stroke-dasharray/-dashoffset, tourné de -90° pour démarrer à midi et
+// tourner dans le sens horaire) plutôt qu'un camembert plat classique.
+// Couleurs reprises de STRUCTURE_COLORS (déjà utilisées pour le graphe de
+// revenus en vue Année) pour rester cohérent avec le reste de l'appli.
+function buildChargesDonut(breakdown){
+  const MAX_SLICES=6;
+  let entries=Object.entries(breakdown).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length)return'';
+  if(entries.length>MAX_SLICES){
+    const shown=entries.slice(0,MAX_SLICES-1);
+    const restTotal=entries.slice(MAX_SLICES-1).reduce((s,[,v])=>s+v,0);
+    entries=[...shown,['Autres',restTotal]];
+  }
+  const total=entries.reduce((s,[,v])=>s+v,0);
+  const size=168,strokeW=26,r=(size-strokeW)/2,cx=size/2,cy=size/2;
+  const circ=2*Math.PI*r;
+  const gap=Math.min(6,circ*0.015);
+  let cursor=0;
+  const segs=entries.map(([label,val],i)=>{
+    const frac=val/total;
+    const color=label==='Autres'?'#C7C2B8':STRUCTURE_COLORS[i%STRUCTURE_COLORS.length];
+    const segLen=Math.max(0,frac*circ-gap);
+    const dashOffset=-cursor;
+    cursor+=frac*circ;
+    return{label,val,frac,color,segLen,dashOffset};
+  });
+  const arcsHTML=segs.map(s=>`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}"
+    stroke-width="${strokeW}" stroke-linecap="round"
+    stroke-dasharray="${s.segLen.toFixed(2)} ${(circ-s.segLen).toFixed(2)}"
+    stroke-dashoffset="${s.dashOffset.toFixed(2)}"/>`).join('');
+  const legendHTML=segs.map(s=>`<div class="mch-pie-row">
+    <span class="mch-pie-dot" style="background:${s.color}"></span>
+    <span class="mch-pie-label">${s.label.replace(/</g,'&lt;')}</span>
+    <span class="mch-pie-pct">${Math.round(s.frac*100)}%</span>
+    <span class="mch-pie-val">${Math.round(s.val).toLocaleString('fr-FR')} €</span>
+  </div>`).join('');
+  return`<div class="mch-pie-block">
+    <div class="mch-pie-svgwrap" style="width:${size}px;height:${size}px">
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">${arcsHTML}</svg>
+      <div class="mch-pie-total">
+        <div class="mch-pie-total-val">${Math.round(total).toLocaleString('fr-FR')} €</div>
+        <div class="mch-pie-total-lbl">Total</div>
+      </div>
+    </div>
+    <div class="mch-pie-legend">${legendHTML}</div>
+  </div>`;
+}
 function variableChargesForMonth(mStart,mEndExact,group){
   const cats=S.settings.chargeCategories||[];
   const byCat={};
@@ -5266,11 +5332,21 @@ function renderMonth(){
       : `<div style="font-size:12px;color:#bbb;padding:2px 0 6px">Aucune heure enregistrée pour ce mois.</div>`;
     h+=`<div class="mch-subtotal-row"><span>Sous-total Ménage</span><span>${cleanCostTotal.toLocaleString('fr-FR')} €</span></div>`;
   }
+  // Répartition par catégorie (toutes structures + Ménage confondues), pour le
+  // camembert en fin de panneau — alimentée au fil de la boucle ci-dessous,
+  // pas recalculée à part, pour rester exactement cohérente avec les
+  // sous-totaux affichés au-dessus.
+  const chargeBreakdown={};
+  if(cleanCostTotal>0)chargeBreakdown['Ménage']=cleanCostTotal;
   let anyBankTx=cleanCostTotal>0;
   monthStructs.map(s=>[s.id,s.name]).forEach(([gid,label])=>{
     const bc=variableChargesForMonth(mStart,mEndExact,gid);
     const catRows=Object.entries(bc.byCat).filter(([id,v])=>v.count>0).sort((a,b)=>b[1].total-a[1].total);
     if(catRows.length)anyBankTx=true;
+    catRows.forEach(([,v])=>{
+      if(v.excluded)return;
+      chargeBreakdown[v.label]=(chargeBreakdown[v.label]||0)+v.total;
+    });
     h+=`<div class="mch-group-hd">
       <span class="mch-group-name">${label}</span>
       <div>
@@ -5315,6 +5391,7 @@ function renderMonth(){
       <span>Total charges réelles</span>
       <span class="mch-total-val">${Math.round(bankCharges.total+cleanCostTotal).toLocaleString('fr-FR')} € / mois</span>
     </div>`;
+    h+=buildChargesDonut(chargeBreakdown);
   }
   h+=`</div></div>`;
 
@@ -5474,7 +5551,6 @@ function renderYear(){
   const today=todayISO();
   const structs=(S.settings?.structures&&S.settings.structures.length)?S.settings.structures:DEFAULT_SETTINGS.structures;
   const structThr=S.settings?.structureThresholds||DEFAULT_SETTINGS.structureThresholds;
-  const STRUCTURE_COLORS=['#3D5C35','#8B9D86','#B5A07A','#7A8CB5','#B57A8C','#8CB57A'];
   const structColor=i=>STRUCTURE_COLORS[i%STRUCTURE_COLORS.length];
 
   function getGroupRooms(g){return ROOMS.filter(r=>(r.group||structs[0].id)===g);}
