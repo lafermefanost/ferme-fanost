@@ -5839,6 +5839,40 @@ function renderYear(){
     </div>
   </div>`:'';
 
+  // Répartition des charges de l'année — même camembert que la vue Mois
+  // (section "Charges réelles"), mais agrégé sur les 12 mois : Ménage (saisi
+  // jour par jour, vue Semaine → volet Ménage) + toutes les catégories de
+  // charges bancaires, toutes structures confondues (variableChargesForMonth
+  // sans filtre de groupe additionne déjà tous les comptes importés).
+  let yearCleanCostTotal=0;
+  if(CLEANERS.length){
+    const nDaysYear=daysBetween(yStart,yEnd);
+    for(let i=0;i<nDaysYear;i++){
+      const ds=addDays(yStart,i);
+      (S.cleaning[ds]||[]).forEach(c=>{
+        const hours=c.hours||0;
+        if(hours<=0)return;
+        const rate=CLEANERS.find(cl=>cl.name===c.name)?.rate??15;
+        yearCleanCostTotal+=hours*rate;
+      });
+    }
+  }
+  const yearChargesBC=variableChargesForMonth(yStart,yEnd);
+  const yearChargeBreakdown={};
+  if(yearCleanCostTotal>0)yearChargeBreakdown['Ménage']=yearCleanCostTotal;
+  Object.values(yearChargesBC.byCat).filter(v=>v.count>0&&!v.excluded).forEach(v=>{
+    yearChargeBreakdown[v.label]=(yearChargeBreakdown[v.label]||0)+v.total;
+  });
+  const yearChargesGrandTotal=yearChargesBC.total+yearCleanCostTotal;
+  const yearChargesDonutHTML=Object.keys(yearChargeBreakdown).length?`<div class="yr-section">
+    <div class="yr-section-title">Répartition des charges — année</div>
+    <div class="mch-total-row" style="margin-top:0">
+      <span>Total annuel (banque + ménage)</span>
+      <span class="mch-total-val">${Math.round(yearChargesGrandTotal).toLocaleString('fr-FR')} € / an</span>
+    </div>
+    ${buildChargesDonut(yearChargeBreakdown)}
+  </div>`:'';
+
   // Regulatory — les seuils affichés viennent des seuils réellement configurés
   // (n'importe quelle structure, retrouvés par mot-clé dans leur libellé plutôt
   // que par un id de structure fixe 'sasu'/'lmnp' qui n'existe plus forcément :
@@ -5923,6 +5957,7 @@ function renderYear(){
     ${structureCardsHTML}
     ${chartHTML}
     ${taxeSejourYearHTML}
+    ${yearChargesDonutHTML}
     ${fiscalHTML}
     ${reglHTML}
   </div>`;
