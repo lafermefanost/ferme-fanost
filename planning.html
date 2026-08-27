@@ -3875,19 +3875,23 @@ function monthTransactions(mStart,mEndExact){
 }
 // Camembert de répartition des charges du mois — voir renderMonth, section
 // "Charges réelles". De vrais quartiers (chemins en secteur, du centre vers
-// l'arc), pas un anneau : chaque quartier est légèrement rétréci angulairement
-// (gapDeg) pour laisser un espace constant avec ses voisins du centre jusqu'au
-// bord — le blanc tournant — et ses deux coins extérieurs (où un rayon
-// rencontre l'arc) ainsi que sa pointe centrale (où les deux rayons se
-// rejoignent) sont directement arrondis dans le tracé du chemin, avec un
-// rayon fixe (en pixels) identique pour tous les quartiers, via une courbe
-// quadratique dont le point de contrôle est le coin d'origine (plutôt qu'un
-// stroke, qui gonflait de façon inégale selon l'angle de la part). Le rayon
-// d'arrondi ne dépendant pas de l'angle du quartier, l'espace et les angles
-// restent réguliers sur toutes les parts, fines ou larges — dans le même
-// esprit géométrique que le quart de cercle du "5" du logo de l'app.
-// Couleurs reprises de STRUCTURE_COLORS (déjà utilisées pour le graphe de
-// revenus en vue Année) pour rester cohérent avec le reste de l'appli.
+// l'arc), pas un anneau. L'écart blanc entre deux quartiers voisins est de
+// largeur CONSTANTE du centre jusqu'au bord (pas un simple écart angulaire,
+// qui serait fin au centre et large au bord) : chaque bord droit du quartier
+// est une droite parallèle à son rayon d'origine, translatée d'une distance
+// fixe en pixels vers l'intérieur du quartier (perpendiculairement au rayon).
+// La pointe du quartier est alors le point d'intersection de ses deux bords
+// ainsi décalés (et non plus exactement le centre du cercle). Ses deux coins
+// extérieurs (où un bord rencontre l'arc) et sa pointe sont ensuite arrondis
+// directement dans le tracé du chemin, avec un rayon fixe (en pixels)
+// identique pour tous les quartiers, via une courbe quadratique dont le
+// point de contrôle est le coin d'origine (plutôt qu'un stroke, qui gonflait
+// de façon inégale selon l'angle de la part). Tout étant en pixels constants
+// (jamais en degrés), l'écart et les angles restent réguliers sur toutes les
+// parts, fines ou larges — dans le même esprit géométrique que le quart de
+// cercle du "5" du logo de l'app. Couleurs reprises de STRUCTURE_COLORS
+// (déjà utilisées pour le graphe de revenus en vue Année) pour rester
+// cohérent avec le reste de l'appli.
 function buildChargesDonut(breakdown){
   const MAX_SLICES=6;
   let entries=Object.entries(breakdown).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
@@ -3900,18 +3904,27 @@ function buildChargesDonut(breakdown){
   const total=entries.reduce((s,[,v])=>s+v,0);
   const size=168,R=size/2-6,cx=size/2,cy=size/2;
   const CORNER_R=9,TIP_R=5; // rayons d'arrondi (px), identiques pour tous les quartiers
-  const gapDeg=entries.length>1?3.2:0; // espace angulaire entre quartiers voisins, du centre jusqu'au bord
+  const GAP_PX=entries.length>1?3:0; // écart CONSTANT (px, pas en degrés) entre deux quartiers voisins
   const toRad=deg=>deg*Math.PI/180;
   // 0° = midi, sens horaire (comme un camembert classique) : x=sin,y=-cos.
   const polar=(deg,rad)=>{const th=toRad(deg);return[cx+rad*Math.sin(th),cy-rad*Math.cos(th)];};
+  const dirOf=deg=>{const th=toRad(deg);return[Math.sin(th),-Math.cos(th)];};
+  // Tangente = dérivée de dirOf : perpendiculaire au rayon, dans le sens des angles croissants.
+  const tanOf=deg=>{const th=toRad(deg);return[Math.cos(th),Math.sin(th)];};
+  const lineIntersect=(p1,d1,p2,d2)=>{
+    const denom=d1[0]*d2[1]-d1[1]*d2[0];
+    if(Math.abs(denom)<1e-6)return null; // bords ~parallèles (quartier ~180°) : cas limite
+    const t=((p2[0]-p1[0])*d2[1]-(p2[1]-p1[1])*d2[0])/denom;
+    return[p1[0]+t*d1[0],p1[1]+t*d1[1]];
+  };
   let cursor=0;
   const segs=entries.map(([label,val],i)=>{
     const frac=val/total;
     const span=frac*360;
-    const a0=cursor+gapDeg/2,a1=cursor+span-gapDeg/2;
+    const a0=cursor,a1=cursor+span;
     cursor+=span;
     const color=label==='Autres'?'#C7C2B8':STRUCTURE_COLORS[i%STRUCTURE_COLORS.length];
-    return{label,val,frac,color,a0,a1:Math.max(a1,a0+0.01)};
+    return{label,val,frac,color,a0,a1};
   });
   const fmt=n=>n.toFixed(2);
   const pathsHTML=segs.length===1
@@ -3919,18 +3932,25 @@ function buildChargesDonut(breakdown){
     : segs.map(s=>{
         const spanRad=toRad(s.a1-s.a0);
         const arcLen=R*spanRad;
-        // Arrondis limités par la taille du quartier (jamais plus que ~40 % de
-        // l'arc ou du rayon), pour qu'une part très fine ne se déforme pas.
+        // Écart et arrondis limités par la taille du quartier (jamais plus
+        // qu'une fraction de son propre arc), pour qu'une part très fine ne
+        // se déforme pas ou ne s'inverse pas.
+        const hg=Math.max(0,Math.min(GAP_PX/2,arcLen*0.3));
         const cR=Math.max(0,Math.min(CORNER_R,arcLen*0.4));
         const tR=Math.max(0,Math.min(TIP_R,arcLen*0.4,R*0.3));
         const dA=cR>0?(cR/R)*(180/Math.PI):0;
         const aIn=s.a0+dA,aOut=s.a1-dA;
         const large=(aOut-aIn)>180?1:0;
-        const dirA=[Math.sin(toRad(s.a0)),-Math.cos(toRad(s.a0))];
-        const dirB=[Math.sin(toRad(s.a1)),-Math.cos(toRad(s.a1))];
-        const A=polar(s.a0,R),B=polar(s.a1,R);
-        const tipA=[cx+dirA[0]*tR,cy+dirA[1]*tR];
-        const tipB=[cx+dirB[0]*tR,cy+dirB[1]*tR];
+        const dirA=dirOf(s.a0),dirB=dirOf(s.a1);
+        const tanA=tanOf(s.a0),tanB=tanOf(s.a1);
+        // Bords droits décalés d'une distance constante hg vers l'intérieur du quartier.
+        const p0=[cx+tanA[0]*hg,cy+tanA[1]*hg];
+        const p1=[cx-tanB[0]*hg,cy-tanB[1]*hg];
+        const tip=lineIntersect(p0,dirA,p1,dirB)||[cx,cy];
+        const A=[p0[0]+dirA[0]*R,p0[1]+dirA[1]*R];
+        const B=[p1[0]+dirB[0]*R,p1[1]+dirB[1]*R];
+        const tipA=[tip[0]+dirA[0]*tR,tip[1]+dirA[1]*tR];
+        const tipB=[tip[0]+dirB[0]*tR,tip[1]+dirB[1]*tR];
         const nearA=[A[0]-dirA[0]*cR,A[1]-dirA[1]*cR];
         const nearB=[B[0]-dirB[0]*cR,B[1]-dirB[1]*cR];
         const arcA=polar(aIn,R),arcB=polar(aOut,R);
@@ -3938,7 +3958,7 @@ function buildChargesDonut(breakdown){
           Q${fmt(A[0])},${fmt(A[1])} ${fmt(arcA[0])},${fmt(arcA[1])}
           A${R},${R} 0 ${large} 1 ${fmt(arcB[0])},${fmt(arcB[1])}
           Q${fmt(B[0])},${fmt(B[1])} ${fmt(nearB[0])},${fmt(nearB[1])}
-          L${fmt(tipB[0])},${fmt(tipB[1])} Q${cx},${cy} ${fmt(tipA[0])},${fmt(tipA[1])} Z"
+          L${fmt(tipB[0])},${fmt(tipB[1])} Q${fmt(tip[0])},${fmt(tip[1])} ${fmt(tipA[0])},${fmt(tipA[1])} Z"
           fill="${s.color}"/>`;
       }).join('');
   const legendHTML=segs.map(s=>`<div class="mch-pie-row">
