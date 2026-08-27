@@ -5618,7 +5618,10 @@ function renderYear(){
     const elapsedCap=totalRooms*daysBetween(yStart,elapsedEnd);
     const occRate=elapsedCap>0?Math.round(realNights/elapsedCap*100):0;
     const yearCharges=variableChargesForMonth(yStart,yEnd).total;
-    return`<div class="yr-total">
+    return`<div class="yr-group yr-total">
+      <div class="yr-group-hd">
+        <div class="yr-group-name">Activité globale</div>
+      </div>
       <div class="yr-stats">
         <div class="mstat-card mstat-rev">
           <div class="mstat-val">${Math.round(realCA).toLocaleString('fr-FR')} €</div>
