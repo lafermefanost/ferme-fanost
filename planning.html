@@ -3875,14 +3875,19 @@ function monthTransactions(mStart,mEndExact){
 }
 // Camembert de répartition des charges du mois — voir renderMonth, section
 // "Charges réelles". De vrais quartiers (chemins en secteur, du centre vers
-// l'arc), pas un anneau : chaque quartier a la forme d'un triangle (deux
-// rayons + un arc extérieur court, qui se lit comme un côté quasi droit sur
-// une part fine) séparé de ses voisins par un léger liseré blanc (stroke
-// blanc + stroke-linejoin:round, qui arrondit très légèrement la pointe
-// centrale et les deux coins extérieurs), dans le même esprit géométrique
-// que le quart de cercle du "5" du logo de l'app. Couleurs reprises de
-// STRUCTURE_COLORS (déjà utilisées pour le graphe de revenus en vue Année)
-// pour rester cohérent avec le reste de l'appli.
+// l'arc), pas un anneau : chaque coin (les deux coins extérieurs où un rayon
+// rencontre l'arc, et la pointe centrale où les deux rayons se rejoignent)
+// est directement arrondi dans le tracé du chemin — un petit arrondi à rayon
+// fixe (en pixels) sur chaque coin, via une courbe quadratique dont le point
+// de contrôle est le coin d'origine — plutôt que via un stroke. Comme ce
+// rayon d'arrondi ne dépend pas de l'angle du quartier, l'épaisseur du
+// liseré blanc entre deux quartiers voisins (qui n'est autre que l'espace
+// laissé par les deux arrondis adjacents) reste rigoureusement constante
+// tout du tour, et les angles sont doux et réguliers sur toutes les parts,
+// fines ou larges — dans le même esprit géométrique que le quart de cercle
+// du "5" du logo de l'app. Couleurs reprises de STRUCTURE_COLORS (déjà
+// utilisées pour le graphe de revenus en vue Année) pour rester cohérent
+// avec le reste de l'appli.
 function buildChargesDonut(breakdown){
   const MAX_SLICES=6;
   let entries=Object.entries(breakdown).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
@@ -3893,26 +3898,47 @@ function buildChargesDonut(breakdown){
     entries=[...shown,['Autres',restTotal]];
   }
   const total=entries.reduce((s,[,v])=>s+v,0);
-  const size=168,strokeW=4,r=size/2-6-strokeW/2,cx=size/2,cy=size/2;
-  const gapDeg=entries.length>1?2.6:0;
+  const size=168,R=size/2-6,cx=size/2,cy=size/2;
+  const CORNER_R=9,TIP_R=5; // rayons d'arrondi (px), identiques pour tous les quartiers
+  const toRad=deg=>deg*Math.PI/180;
   // 0° = midi, sens horaire (comme un camembert classique) : x=sin,y=-cos.
-  const pt=deg=>{const rad=deg*Math.PI/180;return[cx+r*Math.sin(rad),cy-r*Math.cos(rad)];};
+  const polar=(deg,rad)=>{const th=toRad(deg);return[cx+rad*Math.sin(th),cy-rad*Math.cos(th)];};
   let cursor=0;
   const segs=entries.map(([label,val],i)=>{
     const frac=val/total;
     const span=frac*360;
-    const a0=cursor+gapDeg/2, a1=cursor+span-gapDeg/2;
+    const a0=cursor,a1=cursor+span;
     cursor+=span;
     const color=label==='Autres'?'#C7C2B8':STRUCTURE_COLORS[i%STRUCTURE_COLORS.length];
-    return{label,val,frac,color,a0,a1:Math.max(a1,a0+0.01)};
+    return{label,val,frac,color,a0,a1};
   });
+  const fmt=n=>n.toFixed(2);
   const pathsHTML=segs.length===1
-    ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${segs[0].color}"/>`
+    ? `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${segs[0].color}"/>`
     : segs.map(s=>{
-        const[x0,y0]=pt(s.a0),[x1,y1]=pt(s.a1);
-        const large=(s.a1-s.a0)>180?1:0;
-        return`<path d="M${cx},${cy} L${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${large} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z"
-          fill="${s.color}" stroke="#fff" stroke-width="${strokeW}" stroke-linejoin="round"/>`;
+        const spanRad=toRad(s.a1-s.a0);
+        const arcLen=R*spanRad;
+        // Arrondis limités par la taille du quartier (jamais plus que ~40 % de
+        // l'arc ou du rayon), pour qu'une part très fine ne se déforme pas.
+        const cR=Math.max(0,Math.min(CORNER_R,arcLen*0.4));
+        const tR=Math.max(0,Math.min(TIP_R,arcLen*0.4,R*0.3));
+        const dA=cR>0?(cR/R)*(180/Math.PI):0;
+        const aIn=s.a0+dA,aOut=s.a1-dA;
+        const large=(aOut-aIn)>180?1:0;
+        const dirA=[Math.sin(toRad(s.a0)),-Math.cos(toRad(s.a0))];
+        const dirB=[Math.sin(toRad(s.a1)),-Math.cos(toRad(s.a1))];
+        const A=polar(s.a0,R),B=polar(s.a1,R);
+        const tipA=[cx+dirA[0]*tR,cy+dirA[1]*tR];
+        const tipB=[cx+dirB[0]*tR,cy+dirB[1]*tR];
+        const nearA=[A[0]-dirA[0]*cR,A[1]-dirA[1]*cR];
+        const nearB=[B[0]-dirB[0]*cR,B[1]-dirB[1]*cR];
+        const arcA=polar(aIn,R),arcB=polar(aOut,R);
+        return`<path d="M${fmt(tipA[0])},${fmt(tipA[1])} L${fmt(nearA[0])},${fmt(nearA[1])}
+          Q${fmt(A[0])},${fmt(A[1])} ${fmt(arcA[0])},${fmt(arcA[1])}
+          A${R},${R} 0 ${large} 1 ${fmt(arcB[0])},${fmt(arcB[1])}
+          Q${fmt(B[0])},${fmt(B[1])} ${fmt(nearB[0])},${fmt(nearB[1])}
+          L${fmt(tipB[0])},${fmt(tipB[1])} Q${cx},${cy} ${fmt(tipA[0])},${fmt(tipA[1])} Z"
+          fill="${s.color}"/>`;
       }).join('');
   const legendHTML=segs.map(s=>`<div class="mch-pie-row">
     <span class="mch-pie-dot" style="background:${s.color}"></span>
