@@ -344,6 +344,9 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 .tsec-body{background:var(--white);padding:10px 10px 6px;}
 .tsec-panel.collapsed>.tsec-body{display:none;}
 .tsec-empty{font-size:12px;color:var(--gray);padding:8px 6px 4px;text-align:center;}
+.tsec-add{font-size:12px;color:var(--green);font-weight:600;text-align:center;
+  padding:9px 6px;margin-top:4px;border:1.5px dashed var(--light);border-radius:8px;cursor:pointer;}
+.tsec-add:hover{border-color:var(--green);background:#F7FAF6;}
 .tev-panel{display:flex;flex-direction:column;gap:6px;}
 .tsec-panel.menu .tsec-body{padding:12px 10px 4px;}
 .tev-card{display:flex;flex-direction:column;background:#fff;border-radius:10px;
@@ -2412,14 +2415,14 @@ function renderToday(){
     ${dinnerEnabled()?`<div class="tsm-item"><div class="tsm-val">${couverts||'—'}</div><div class="tsm-lbl">Repas</div></div>`:''}
   </div>`;
 
-  const panel=(cls,icon,title,items,cardFn)=>{
+  const panel=(cls,icon,title,items,cardFn,footerHtml)=>{
     const cnt=items.length;
     let body=cnt?items.map(cardFn).join(''):`<div class="tsec-empty">Aucun</div>`;
     return`<div class="tsec-panel ${cls}${cnt===0?' collapsed':''}">
       <div class="tsec-hd${cnt>0?' has-items':''}" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
         ${icon} ${title}<span class="tsec-count"><span>${cnt}</span></span><span class="tsec-chev">▾</span>
       </div>
-      <div class="tsec-body">${body}</div>
+      <div class="tsec-body">${body}${footerHtml||''}</div>
     </div>`;
   };
   const evDayBadge=(dds,col)=>{
@@ -2431,24 +2434,27 @@ function renderToday(){
     </div>`;
   };
   const dayEvs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
-  if(dayEvs.length){
-    h+=`<div class="tsec-panel"><div class="tsec-body">`+dayEvs.map(ev=>{
-      const col=ev.color||'#A8C5A0';
-      const isSingle=ev.startDate===ev.endDate;
-      const dateHtml=isSingle
-        ? evDayBadge(ev.startDate,col)
-        : `<div class="evdate-range">${evDayBadge(ev.startDate,col)}<span class="evdate-arrow">→</span>${evDayBadge(ev.endDate,col)}</div>`;
-      const timeStr=ev.startTime?(ev.endTime?`${ev.startTime} – ${ev.endTime}`:ev.startTime):'';
-      return`<div class="evcard" onclick="openEventEdit('${ev.id}')">
-        ${dateHtml}
-        <div class="evcard-info">
-          <div class="evcard-title">${ev.title}</div>
-          ${timeStr?`<div class="evcard-time">${timeStr}</div>`:''}
-          ${ev.revenue>0?`<div class="evcard-time">${ev.revenue.toLocaleString('fr-FR')} € générés</div>`:''}
-        </div>
-      </div>`;
-    }).join('')+`</div></div>`;
-  }
+  const evCard=ev=>{
+    const col=ev.color||'#A8C5A0';
+    const isSingle=ev.startDate===ev.endDate;
+    const dateHtml=isSingle
+      ? evDayBadge(ev.startDate,col)
+      : `<div class="evdate-range">${evDayBadge(ev.startDate,col)}<span class="evdate-arrow">→</span>${evDayBadge(ev.endDate,col)}</div>`;
+    const timeStr=ev.startTime?(ev.endTime?`${ev.startTime} – ${ev.endTime}`:ev.startTime):'';
+    return`<div class="evcard" onclick="openEventEdit('${ev.id}')">
+      ${dateHtml}
+      <div class="evcard-info">
+        <div class="evcard-title">${ev.title}</div>
+        ${timeStr?`<div class="evcard-time">${timeStr}</div>`:''}
+        ${ev.revenue>0?`<div class="evcard-time">${ev.revenue.toLocaleString('fr-FR')} € générés</div>`:''}
+      </div>
+    </div>`;
+  };
+  // Premier volet sous les carrés du résumé — même design/fonctionnement que
+  // les autres (Arrivées, Départs…) : toujours affiché (pas seulement quand il
+  // y a des événements), avec un ajout manuel possible directement dedans.
+  const evAddBtn=`<div class="tsec-add" onclick="event.stopPropagation();openEventEdit(null,'${ds}')">+ Ajouter un événement</div>`;
+  h+=panel('ev','📅','Événements',dayEvs,evCard,evAddBtn);
   const dm=getMenu(ds);
   const menuHas=!!(dm.entree||dm.plat||dm.dessert);
   const thCount=S.bookings
@@ -3330,12 +3336,18 @@ function saveEvent(){
     S.events.push({id:uid(),...data});
   }
   persist();closeM('modalEventEdit');renderGrid();
+  if(S.view==='today')renderToday();
+  if(S.view==='week')renderWeek();
+  if(S.view==='month')renderMonth();
 }
 
 function delEvent(){
   if(!editEvid)return;
   S.events=S.events.filter(e=>e.id!==editEvid);
   persist();closeM('modalEventEdit');renderGrid();
+  if(S.view==='today')renderToday();
+  if(S.view==='week')renderWeek();
+  if(S.view==='month')renderMonth();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4743,7 +4755,18 @@ function getBookingRevForPeriod(bk,pStart,pEnd){
 
 function chDay(n){S.todayDate=addDays(S.todayDate||todayISO(),n);renderToday();}
 function goTodayView(){S.todayDate=todayISO();renderToday();}
-function goToDay(ds){S.todayDate=ds;setView('today');}
+// Clic sur un jour dans la grille : direction la vue Jour, sur la section
+// Événements précisément (toujours dépliée, même sans événement, pour que le
+// "+ Ajouter un événement" soit visible tout de suite) plutôt que juste en
+// haut de la vue.
+function goToDay(ds){
+  S.todayDate=ds;
+  setView('today');
+  setTimeout(()=>{
+    const p=document.querySelector('.tsec-panel.ev');
+    if(p){p.classList.remove('collapsed');p.scrollIntoView({block:'start',behavior:'smooth'});}
+  },60);
+}
 
 function getMondayOf(ds){
   const d=new Date(ds+'T00:00:00');
