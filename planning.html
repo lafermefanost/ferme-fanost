@@ -2409,10 +2409,36 @@ function renderToday(){
     </div>`;
   };
 
+  // Personnes extérieures (ajoutées depuis la vue Repas) — affichées dans le
+  // volet "En séjour" avec le même bouton "Extras" que les réservations, pour
+  // pouvoir leur ajouter des consommations du catalogue depuis la vue Jour.
+  const extDinerCard=(e)=>{
+    const xd=getExtDinerExtrasTotal(e);
+    const extLabel=xd>0?`<span class="extbtn-total">${xd.toLocaleString('fr-FR')} €</span>`:`<span class="extbtn-add">+</span>`;
+    return`<div class="tcard">
+      <div class="tbar" style="background:#B5A07A"></div>
+      <div class="tcard-content">
+        <div class="tcard-header">
+          <div class="tcard-header-inner">
+            <div class="tinfo"><div class="tname">${e.name}</div>
+              <div class="tdetail">Personne extérieure</div></div>
+            <div class="troom">${e.count} pers.</div>
+          </div>
+        </div>
+        <div class="tcard-extbtn" onclick="event.stopPropagation();var x=document.getElementById('xe-ext-${e.id}');var show=x.style.display!=='block';x.style.display=show?'block':'none';openExtrasId=show?'ext-${e.id}':null;">
+          <span class="extbtn-label">Extras</span>${extLabel}
+        </div>
+        <div class="tcard-extras" id="xe-ext-${e.id}" onclick="event.stopPropagation()">${extDinerExtrasHTMLFor(ds,e)}</div>
+      </div>
+    </div>`;
+  };
+  const extDinersToday=(S.extDiners&&S.extDiners[ds])||[];
+
   const inHouse=stays
     .map(b=>({b,sub:`Départ le ${fmtDate(b.checkOut)}`}))
     .concat(arrs.map(b=>({b,sub:b.arrivalTime?`Arrivée aujourd'hui · ${b.arrivalTime}`:`Arrivée aujourd'hui`})))
-    .sort((x,y)=>(guest(x.b.guestId)?.name||'').localeCompare(guest(y.b.guestId)?.name||''));
+    .sort((x,y)=>(guest(x.b.guestId)?.name||'').localeCompare(guest(y.b.guestId)?.name||''))
+    .concat(extDinersToday.map(e=>({ext:e})));
 
   let h=`<div class="today-inner">
   <div class="vnav">
@@ -2491,7 +2517,7 @@ function renderToday(){
     ${panel('arr','↓','Arrivées',arrs,b=>miniChip(b,b.arrivalTime||null))}
     ${panel('dep','↑','Départs',deps,b=>miniChip(b,null))}
   </div>`;
-  h+=panel('stay','●','En séjour',inHouse,({b,sub})=>card(b,sub,true));
+  h+=panel('stay','●','En séjour',inHouse,item=>item.ext?extDinerCard(item.ext):card(item.b,item.sub,true));
   if(tArrs.length) h+=panel('tom','⏰','Demain',tArrs,b=>card(b,b.arrivalTime?`Demain ${b.arrivalTime}`:'Demain'));
   h+='</div>';
   byId('todayWrap').innerHTML=h;
@@ -3551,6 +3577,60 @@ function delExtDiner(ds,id){
   renderGrid();
   if(S.view==='week')renderWeek();
   renderTHBody(ds);
+}
+
+// Consommations du catalogue pour une personne extérieure — même principe que
+// setExtra/getExtrasDayTotal/extrasHTMLFor pour les réservations (voir plus
+// bas), mais l'entrée est déjà scopée à un seul jour (pas de sous-objet par
+// date à gérer). Ajouté depuis la vue Jour, pas depuis la vue Repas.
+function setExtDinerExtra(ds,extId,itemId,delta){
+  const list=S.extDiners[ds];
+  if(!list)return;
+  const e=list.find(x=>x.id===extId);
+  if(!e)return;
+  if(!e.extras)e.extras={};
+  const nv=Math.max(0,(e.extras[itemId]||0)+delta);
+  if(nv===0)delete e.extras[itemId];
+  else e.extras[itemId]=nv;
+  if(!Object.keys(e.extras).length)delete e.extras;
+  openExtrasId='ext-'+extId;
+  persist();
+  renderToday();
+  if(S.view==='week')renderWeek();
+  if(S.view==='month')renderMonth();
+}
+function getExtDinerExtrasTotal(e){
+  if(!e.extras)return 0;
+  return Object.entries(e.extras).reduce((s,[id,qty])=>{
+    const item=S.catalog.find(c=>c.id===id);return s+(item?item.price*qty:0);
+  },0);
+}
+function extDinerExtrasHTMLFor(ds,e){
+  const cats=[...new Set(S.catalog.map(c=>c.cat))];
+  let xh=`<div class="tcard-extras-hd">
+    <button class="catalog-link" onclick="event.stopPropagation();openCatalogSettings()">Modifier le catalogue</button>
+  </div>`;
+  cats.forEach(cat=>{
+    const items=S.catalog.filter(c=>c.cat===cat);
+    if(!items.length)return;
+    xh+=`<div class="extras-cat">${cat}</div><div class="extras-chips">`;
+    items.forEach(item=>{
+      const qty=(e.extras&&e.extras[item.id])||0;
+      xh+=`<button type="button" class="xchip${qty>0?' on':''}" onclick="event.stopPropagation();setExtDinerExtra('${ds}','${e.id}','${item.id}',1)">
+        ${item.emoji} ${item.name}<span class="xchip-price">${item.price}€</span>${qty>0?`<span class="xchip-qty" onclick="event.stopPropagation();setExtDinerExtra('${ds}','${e.id}','${item.id}',-1)">×${qty}</span>`:''}
+      </button>`;
+    });
+    xh+=`</div>`;
+  });
+  const dt=getExtDinerExtrasTotal(e);
+  if(dt>0)xh+=`<div class="extras-total-row"><span class="extras-total">Ce jour : ${dt.toLocaleString('fr-FR')} €</span></div>`;
+  return xh;
+}
+// Total des extras de toutes les personnes extérieures d'un jour donné — pour
+// les agrégats de revenus (semaine/mois), au même titre que getExtrasDayTotal
+// pour les réservations.
+function extDinersExtrasTotalForDate(ds){
+  return ((S.extDiners&&S.extDiners[ds])||[]).reduce((s,e)=>s+getExtDinerExtrasTotal(e),0);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4952,6 +5032,7 @@ function renderWeek(){
     const ds=addDays(S.wStart,i);
     totalRepas+=extDinersCount(ds);
     extDinersRevenueTotal+=extDinersRevenueForDate(ds);
+    totalExtras+=extDinersExtrasTotalForDate(ds);
   }
   // Table d'hôte désactivée : le CA repas est simplement replié dans "nuitées"
   // (le total général reste identique), et sa carte dédiée est masquée.
@@ -5187,6 +5268,7 @@ function renderMonth(){
     const ds=addDays(mStart,i);
     totalRepas+=extDinersCount(ds);
     extDinersRevenueTotal+=extDinersRevenueForDate(ds);
+    totalExtras+=extDinersExtrasTotalForDate(ds);
   }
   // Table d'hôte désactivée : le CA repas est simplement replié dans "nuitées"
   // (le total général reste identique), et sa carte dédiée est masquée.
