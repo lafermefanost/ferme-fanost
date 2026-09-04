@@ -1968,6 +1968,7 @@ function migrateExtDiners(){
         S.guests.push(ng);
         e.guestId=ng.id;
       }
+      if(e.dinner===undefined)e.dinner=true;
     });
   });
 }
@@ -3978,7 +3979,8 @@ function renderTHBody(ds){
   const active=S.bookings.filter(b=>activeOn(b,ds));
   const extList=(S.extDiners&&S.extDiners[ds])||[];
 
-  let bodyHtml=active.length?active.map(b=>{
+  let bodyHtml=`<div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Client interne</div>`;
+  bodyHtml+=active.length?active.map(b=>{
     const g=guest(b.guestId);
     const col=g?g.color:'#999';
     const rm=room(b.roomId);
@@ -3999,15 +4001,22 @@ function renderTHBody(ds){
   }).join(''):'<p style="color:var(--gray);text-align:center;padding:12px 0">Aucun client ce soir</p>';
 
   bodyHtml+=`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--light)">
-    <div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Personnes extérieures</div>`;
+    <div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Client externe</div>`;
   extList.forEach(e=>{
     const eg=guest(e.guestId);
+    const eon=e.dinner!==false;
     bodyHtml+=`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--light)">
       <div style="width:10px;height:36px;border-radius:3px;background:${eg?eg.color:'#999'};flex-shrink:0"></div>
       <div style="flex:1">
         <div style="font-weight:500;font-size:13px">${eg?eg.name:(e.name||'?')}</div>
         <div style="font-size:11px;color:var(--gray)">Personne extérieure${e.count>1?' · '+e.count+' pers.':''}</div>
       </div>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0">
+        <input type="checkbox" id="thx-${e.id}" ${eon?'checked':''}
+               onchange="toggleExtDinerMeal('${ds}','${e.id}',this.checked)"
+               style="width:18px;height:18px;accent-color:var(--green);cursor:pointer">
+        <span style="font-size:16px">${eon?MEAL_ICON:'—'}</span>
+      </label>
       <button type="button" class="set-del" onclick="delExtDiner('${ds}','${e.id}')">×</button>
     </div>`;
   });
@@ -4044,12 +4053,26 @@ function toggleDinnerNight(bid,ds,checked){
   renderTHBody(ds);
 }
 
+// Décoche = cette personne extérieure ne dort pas mais ne prend pas non plus
+// le repas ce soir-là : elle reste dans "En séjour" (pour d'autres consos)
+// mais ne compte plus dans le total table d'hôtes ni dans son chiffre
+// d'affaires (voir extDinersCount).
+function toggleExtDinerMeal(ds,id,checked){
+  const e=(S.extDiners&&S.extDiners[ds]||[]).find(x=>x.id===id);
+  if(!e)return;
+  e.dinner=checked;
+  persist();
+  renderGrid();
+  if(S.view==='week')renderWeek();
+  renderTHBody(ds);
+}
+
 // e.count n'existe que pour les entrées créées avant le passage à "une
 // personne = une entrée liée à un vrai client" (voir addExtDiner) — on le
 // respecte encore pour ne pas fausser l'historique déjà compté, mais une
 // entrée sans count (ajoutée depuis la nouvelle version) vaut 1 personne.
 function extDinersCount(ds){
-  return ((S.extDiners&&S.extDiners[ds])||[]).reduce((s,e)=>s+(e.count||1),0);
+  return ((S.extDiners&&S.extDiners[ds])||[]).filter(e=>e.dinner!==false).reduce((s,e)=>s+(e.count||1),0);
 }
 function extDinersRevenueForDate(ds){
   if(!extDinersCount(ds))return 0;
@@ -4067,7 +4090,7 @@ function addExtDiner(ds){
   const ng={id:uid(),name,color:nextColor(),phone:'',email:'',notes:''};
   S.guests.push(ng);
   if(!S.extDiners[ds])S.extDiners[ds]=[];
-  S.extDiners[ds].push({id:uid(),guestId:ng.id});
+  S.extDiners[ds].push({id:uid(),guestId:ng.id,dinner:true});
   nameInp.value='';
   persist();
   renderGrid();
