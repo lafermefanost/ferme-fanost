@@ -2794,17 +2794,16 @@ function openEditModal(id){
   byId('bSaveBtn').disabled=false;
   byId('newGNameFg').style.display='none';
   byId('bContractSec').style.display='block';
-  // Absente pour les réservations créées avant l'ajout de ce champ — on masque
-  // simplement la ligne plutôt que d'afficher une date inventée.
-  if(b.createdAt){
-    const cd=new Date(b.createdAt);
-    const dateStr=`${p(cd.getDate())}/${p(cd.getMonth()+1)}/${cd.getFullYear()}`;
-    const timeStr=`${p(cd.getHours())}:${p(cd.getMinutes())}`;
-    byId('bCreatedAt').textContent=`Réservation créée le ${dateStr} à ${timeStr}`;
-    byId('bCreatedAt').style.display='block';
-  }else{
-    byId('bCreatedAt').style.display='none';
-  }
+  // Absente pour les réservations créées avant l'ajout de ce champ — plutôt que
+  // de masquer la ligne (ce qui changerait la hauteur de la modale d'une résa à
+  // l'autre), on affiche simplement la date du jour dans ce cas, sans jamais
+  // l'écrire dans les données (b.createdAt reste undefined tant que la résa
+  // n'est pas ré-enregistrée).
+  const cd=b.createdAt?new Date(b.createdAt):new Date();
+  const dateStr=`${p(cd.getDate())}/${p(cd.getMonth()+1)}/${cd.getFullYear()}`;
+  const timeStr=`${p(cd.getHours())}:${p(cd.getMinutes())}`;
+  byId('bCreatedAt').textContent=`Réservation créée le ${dateStr} à ${timeStr}`;
+  byId('bCreatedAt').style.display='block';
   byId('bRoom').value=b.roomId;
   byId('bIn').value=b.checkIn;
   byId('bOut').value=b.checkOut;
