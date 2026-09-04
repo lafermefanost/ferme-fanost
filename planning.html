@@ -2587,39 +2587,11 @@ function renderToday(){
   };
   const extDinersToday=(S.extDiners&&S.extDiners[ds])||[];
 
-  // Événement actif ce jour — une seule carte, avec le même bouton Extras
-  // qu'une réservation. ds>=startDate&&ds<=endDate : intervalle inclusif
-  // propre aux événements. Nom du client si renseigné, sinon titre de
-  // l'événement. Aucun lien avec la table d'hôtes (séparée : voir
-  // S.extDiners) — juste les consommations au global sur l'événement.
-  const eventGuestCard=(ev)=>{
-    const g=ev.guestId?guest(ev.guestId):null;
-    const xd=getExtrasDayTotalEv(ev,ds);
-    const extLabel=xd>0?`<span class="extbtn-total">${xd.toLocaleString('fr-FR')} €</span>`:`<span class="extbtn-add">+</span>`;
-    return`<div class="tcard">
-      <div class="tbar" style="background:${g?g.color:'#999'}"></div>
-      <div class="tcard-content">
-        <div class="tcard-header" onclick="openEventEdit('${ev.id}')">
-          <div class="tcard-header-inner">
-            <div class="tinfo"><div class="tname">${g?g.name:ev.title}</div>
-              ${g?`<div class="tdetail">${ev.title}</div>`:''}</div>
-          </div>
-        </div>
-        <div class="tcard-extbtn" onclick="event.stopPropagation();var x=document.getElementById('xe-ev-${ev.id}');var show=x.style.display!=='block';x.style.display=show?'block':'none';openExtrasId=show?'ev-${ev.id}':null;">
-          <span class="extbtn-label">Extras</span>${extLabel}
-        </div>
-        <div class="tcard-extras" id="xe-ev-${ev.id}" onclick="event.stopPropagation()">${extrasHTMLForEv(ev,ds)}</div>
-      </div>
-    </div>`;
-  };
-  const eventGuestsToday=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
-
   const inHouse=stays
     .map(b=>({b,sub:`Départ le ${fmtDate(b.checkOut)}`}))
     .concat(arrs.map(b=>({b,sub:b.arrivalTime?`Arrivée aujourd'hui · ${b.arrivalTime}`:`Arrivée aujourd'hui`})))
     .sort((x,y)=>(guest(x.b.guestId)?.name||'').localeCompare(guest(y.b.guestId)?.name||''))
-    .concat(extDinersToday.map(e=>({ext:e})))
-    .concat(eventGuestsToday.map(ev=>({evg:ev})));
+    .concat(extDinersToday.map(e=>({ext:e})));
 
   let h=`<div class="today-inner">
   <div class="vnav">
@@ -2699,7 +2671,7 @@ function renderToday(){
     ${panel('arr','↓','Arrivées',arrs,b=>miniChip(b,b.arrivalTime||null))}
     ${panel('dep','↑','Départs',deps,b=>miniChip(b,null))}
   </div>`;
-  h+=panel('stay','●','En séjour',inHouse,item=>item.ext?extDinerCard(item.ext):item.evg?eventGuestCard(item.evg):card(item.b,item.sub,true));
+  h+=panel('stay','●','En séjour',inHouse,item=>item.ext?extDinerCard(item.ext):card(item.b,item.sub,true));
   if(tArrs.length) h+=panel('tom','⏰','Demain',tArrs,b=>card(b,b.arrivalTime?`Demain ${b.arrivalTime}`:'Demain'));
   h+='</div>';
   byId('todayWrap').innerHTML=h;
@@ -4030,10 +4002,12 @@ function renderTHBody(ds){
     <div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Personnes extérieures</div>`;
   extList.forEach(e=>{
     const eg=guest(e.guestId);
-    bodyHtml+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 0">
-      <span class="cdot" style="background:${eg?eg.color:'#999'}"></span>
-      <div style="flex:1;font-size:13px">${eg?eg.name:(e.name||'?')}</div>
-      ${e.count>1?`<div style="font-size:12px;color:var(--gray)">${e.count} pers.</div>`:''}
+    bodyHtml+=`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--light)">
+      <div style="width:10px;height:36px;border-radius:3px;background:${eg?eg.color:'#999'};flex-shrink:0"></div>
+      <div style="flex:1">
+        <div style="font-weight:500;font-size:13px">${eg?eg.name:(e.name||'?')}</div>
+        <div style="font-size:11px;color:var(--gray)">Personne extérieure${e.count>1?' · '+e.count+' pers.':''}</div>
+      </div>
       <button type="button" class="set-del" onclick="delExtDiner('${ds}','${e.id}')">×</button>
     </div>`;
   });
