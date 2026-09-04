@@ -735,6 +735,10 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
    simple filet entre deux barres consécutives. */
 .evmonth-group.collapsed .evmonth-sep{margin-top:2px;}
 .evmonth-group:first-child.collapsed .evmonth-sep{margin-top:0;}
+/* Le mois qui suit un mois replié n'a lui non plus rien d'autre qu'une barre
+   juste au-dessus (même s'il est lui-même ouvert) : même filet resserré,
+   plutôt que le grand écart resté par défaut. */
+.evmonth-group.collapsed+.evmonth-group .evmonth-sep{margin-top:2px;}
 .evmonth-chev{font-size:9px;opacity:.7;transition:transform .15s;flex-shrink:0;}
 .evmonth-group.collapsed .evmonth-chev{transform:rotate(-90deg);}
 .evmonth-group.collapsed .evmonth-body{display:none;}
@@ -1268,10 +1272,10 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
       <div class="mtitle">Événements</div>
       <button class="mclose" onclick="closeM('modalEvents')">✕</button>
     </div>
-    <div id="evList"></div>
-    <button class="btn-p" onclick="openEventEdit(null)" style="width:100%;margin-top:14px">
+    <button class="btn-p" onclick="openEventEdit(null)" style="width:100%;margin-bottom:14px">
       + Nouvel événement
     </button>
+    <div id="evList"></div>
   </div>
 </div>
 
