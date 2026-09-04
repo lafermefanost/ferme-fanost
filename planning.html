@@ -729,6 +729,12 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
   display:flex;align-items:center;justify-content:space-between;gap:8px;
   cursor:pointer;user-select:none;}
 .evmonth-group:first-child .evmonth-sep{margin-top:0;}
+/* Un mois replié n'a plus de contenu en dessous : le grand écart pensé pour
+   séparer une barre du volet précédent devient un vide superflu quand
+   plusieurs mois fermés se suivent ("bandes de prison") — on le réduit à un
+   simple filet entre deux barres consécutives. */
+.evmonth-group.collapsed .evmonth-sep{margin-top:2px;}
+.evmonth-group:first-child.collapsed .evmonth-sep{margin-top:0;}
 .evmonth-chev{font-size:9px;opacity:.7;transition:transform .15s;flex-shrink:0;}
 .evmonth-group.collapsed .evmonth-chev{transform:rotate(-90deg);}
 .evmonth-group.collapsed .evmonth-body{display:none;}
