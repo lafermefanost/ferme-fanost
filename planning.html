@@ -635,14 +635,6 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
   background:var(--white);font-family:'Jost',sans-serif;font-size:15px;font-weight:500;
   color:var(--gray);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
 .pax-btn.on{border-color:var(--green);background:var(--green);color:var(--white);}
-/* Compteur à flèches (nb personnes du modal événement) — plus adapté qu'une
-   rangée de bulles quand le nombre n'est pas plafonné à 5. */
-.qty-stepper{display:flex;align-items:center;gap:14px;margin-top:4px;}
-.qty-stepper button{width:34px;height:34px;border:1.5px solid var(--light);border-radius:50%;
-  background:var(--white);font-family:'Jost',sans-serif;font-size:18px;font-weight:600;line-height:1;
-  color:var(--dark);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
-.qty-stepper button:hover{border-color:var(--green);color:var(--green);}
-.qty-stepper span{font-size:17px;font-weight:700;color:var(--dark);min-width:20px;text-align:center;}
 .cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.1);}
 
 .macts{display:flex;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--light);}
@@ -1328,11 +1320,11 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
       <div class="frow">
         <div class="fg">
           <label class="fl">Début</label>
-          <input type="date" class="fi" id="evStart" onchange="renderDinnerListEv();renderModalExtrasEv()">
+          <input type="date" class="fi" id="evStart" onchange="renderModalExtrasEv()">
         </div>
         <div class="fg">
           <label class="fl">Fin</label>
-          <input type="date" class="fi" id="evEnd" onchange="renderDinnerListEv();renderModalExtrasEv()">
+          <input type="date" class="fi" id="evEnd" onchange="renderModalExtrasEv()">
         </div>
       </div>
       <div class="frow">
@@ -1348,31 +1340,6 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
       <div class="fg">
         <label class="fl">Couleur</label>
         <input type="color" class="fi" id="evColor" style="height:42px;padding:3px;" value="#A8C5A0">
-      </div>
-    </div>
-
-    <!-- ── Repas / Table d'hôtes ── Une seule source de vérité (nb personnes +
-         soirs cochés) qui alimente partout où la table d'hôtes affiche des
-         infos : badge repas, vue Jour (En séjour), modal Table d'hôtes de la
-         vue Grille. Pas de convives séparés du client — le nombre de
-         personnes suffit. -->
-    <div class="msec">
-      <div class="msec-title">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
-        Repas — Table d'hôtes
-      </div>
-      <div class="fg">
-        <label class="fl">Nb personnes</label>
-        <div class="qty-stepper">
-          <button type="button" onclick="incEvPersons(-1)">−</button>
-          <span id="evPersonsVal">1</span>
-          <button type="button" onclick="incEvPersons(1)">+</button>
-        </div>
-        <input type="hidden" id="evPersons" value="1">
-      </div>
-      <div class="fg" id="evDinnerListFg" style="display:none;margin-bottom:0">
-        <label class="fl">Soirs de l'événement</label>
-        <div id="evDinnerList" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
       </div>
     </div>
 
@@ -1400,12 +1367,22 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
       <div class="fg">
         <label class="fl">Prix <span style="font-weight:400;color:var(--gray)">(optionnel)</span></label>
         <div style="position:relative;">
-          <input type="number" class="fi" id="evPrixNet" placeholder="0" min="0" step="1" style="padding-right:26px;">
+          <input type="number" class="fi" id="evPrixNet" placeholder="0" min="0" step="1" style="padding-right:26px;" oninput="updateEvTotal()">
           <span style="position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--gray);pointer-events:none;">€</span>
         </div>
       </div>
-      <div id="evExtrasTotal" style="display:none;font-size:12px;color:var(--green);font-weight:600;">
-        Extras enregistrés : <span id="evExtrasTotalVal"></span>
+      <!-- Total = prix + consommations, même principe que "Total séjour" du
+           modal réservation (détail dépliable + copie de la note). -->
+      <div id="evTotalSec" style="display:none;border-top:1px solid var(--light);margin-top:2px;">
+        <div class="btot-row" onclick="toggleEvTot()">
+          <span class="btot-lbl" id="evTotLbl">Total</span>
+          <span class="btot-right">
+            <span class="btot-val" id="evTotVal"></span>
+            <span class="btot-chev" id="evTotChev">▾</span>
+          </span>
+        </div>
+        <div class="btot-detail" id="evTotDetail" style="display:none"></div>
+        <div class="conso-share-row" id="evConsoShare" style="display:none"></div>
       </div>
     </div>
 
@@ -1931,6 +1908,7 @@ function loadLocal(){
   migrateCleaning();
   S.menus=d.menus||{};
   S.extDiners=d.extDiners||{};
+  migrateExtDiners();
   S.transactions=d.transactions||[];
   // Migrate old tableDhotes (boolean) → dinnerNights (per night)
   S.bookings.forEach(b=>{
@@ -1956,27 +1934,41 @@ function migrateHomeExchangePrix(){
   return changed;
 }
 
-// Événements : ajout du client, de la table d'hôtes, du paiement et des
-// consommations — les événements créés avant cet ajout n'ont aucun de ces
-// champs. On les initialise à des valeurs neutres, et on reprend l'ancien
-// champ "revenue" (un simple montant) comme valeur de départ de prixNet, pour
-// ne pas perdre les montants déjà saisis. Les "convives supplémentaires"
-// (dinnerExtra), une notion abandonnée au profit d'un simple nombre de
-// personnes, sont repliés dans nbPersons pour ne pas perdre le total déjà
-// saisi, puis le champ est supprimé.
+// Événements : ajout du client, du paiement et des consommations — les
+// événements créés avant cet ajout n'ont aucun de ces champs. On les
+// initialise à des valeurs neutres, et on reprend l'ancien champ "revenue"
+// (un simple montant) comme valeur de départ de prixNet, pour ne pas perdre
+// les montants déjà saisis. La table d'hôtes n'existe plus sur un événement
+// (séparée : "événement c'est événement, table d'hôtes c'est table
+// d'hôtes") — les champs nbPersons/dinnerNights/dinnerExtra d'une éventuelle
+// version antérieure sont simplement retirés, sans tenter de les reporter
+// ailleurs (les vraies données de table d'hôtes vivent dans S.extDiners).
 function migrateEvents(){
   S.events.forEach(ev=>{
     if(ev.extras===undefined)ev.extras={};
-    if(ev.dinnerNights===undefined)ev.dinnerNights={};
-    if(ev.nbPersons===undefined)ev.nbPersons=1;
-    if(ev.dinnerExtra&&ev.dinnerExtra.length){
-      ev.nbPersons+=ev.dinnerExtra.reduce((s,e)=>s+(e.count||0),0);
-      delete ev.dinnerExtra;
-    }
+    delete ev.nbPersons;
+    delete ev.dinnerNights;
+    delete ev.dinnerExtra;
     if(ev.prixNet===undefined)ev.prixNet=ev.revenue||0;
     if(ev.notes===undefined)ev.notes='';
     if(ev.payment===undefined)ev.payment=null;
     if(ev.source===undefined)ev.source=ev.ghost?'ghost':'direct';
+  });
+}
+// Personnes extérieures (table d'hôtes, vue Grille) : depuis cette version,
+// ajouter une personne crée un vrai client (S.guests) et lie l'entrée par
+// guestId, plutôt qu'un simple nom en texte libre — pour qu'elle apparaisse
+// dans le carnet client et dans "En séjour". Les entrées créées avant ça
+// n'ont qu'un nom : on leur crée un client correspondant, une seule fois.
+function migrateExtDiners(){
+  Object.keys(S.extDiners||{}).forEach(ds=>{
+    S.extDiners[ds].forEach(e=>{
+      if(!e.guestId&&e.name){
+        const ng={id:uid(),name:e.name,color:nextColor(),phone:'',email:'',notes:''};
+        S.guests.push(ng);
+        e.guestId=ng.id;
+      }
+    });
   });
 }
 
@@ -2019,6 +2011,7 @@ function applyRemoteData(d,meta){
   migrateCleaning();
   S.menus=d.menus||{};
   S.extDiners=d.extDiners||{};
+  migrateExtDiners();
   S.transactions=d.transactions||[];
   if(d.catalog&&d.catalog.length){
     S.catalog=d.catalog;
@@ -2455,7 +2448,7 @@ function renderToday(){
   const DAY_NAMES=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   const allTonight=[...arrs,...stays].filter(b=>b.dinnerNights&&b.dinnerNights[ds]);
   const couverts=allTonight.reduce((s,b)=>s+(b.nbPersons||2),0)
-    +extDinersCount(ds)+eventsDinnerCouvertsForDate(ds);
+    +extDinersCount(ds);
 
   const extrasHTML=(b)=>extrasHTMLFor(b,ds);
 
@@ -2568,20 +2561,21 @@ function renderToday(){
     </div>`;
   };
 
-  // Personnes extérieures (ajoutées depuis la vue Repas) — affichées dans le
+  // Personnes extérieures (ajoutées depuis la Table d'hôtes, vue Grille) —
+  // liées à un vrai client du carnet depuis la refonte : affichées dans le
   // volet "En séjour" avec le même bouton "Extras" que les réservations, pour
   // pouvoir leur ajouter des consommations du catalogue depuis la vue Jour.
   const extDinerCard=(e)=>{
+    const eg=guest(e.guestId);
     const xd=getExtDinerExtrasTotal(e);
     const extLabel=xd>0?`<span class="extbtn-total">${xd.toLocaleString('fr-FR')} €</span>`:`<span class="extbtn-add">+</span>`;
     return`<div class="tcard">
-      <div class="tbar" style="background:#B5A07A"></div>
+      <div class="tbar" style="background:${eg?eg.color:'#B5A07A'}"></div>
       <div class="tcard-content">
-        <div class="tcard-header">
+        <div class="tcard-header"${eg?` onclick="openGuestEdit('${eg.id}')"`:''}>
           <div class="tcard-header-inner">
-            <div class="tinfo"><div class="tname">${e.name}</div>
-              <div class="tdetail">Personne extérieure</div></div>
-            <div class="troom">${e.count} pers.</div>
+            <div class="tinfo"><div class="tname">${eg?eg.name:(e.name||'?')}</div>
+              <div class="tdetail">Personne extérieure${e.count>1?' · '+e.count+' pers.':''}</div></div>
           </div>
         </div>
         <div class="tcard-extbtn" onclick="event.stopPropagation();var x=document.getElementById('xe-ext-${e.id}');var show=x.style.display!=='block';x.style.display=show?'block':'none';openExtrasId=show?'ext-${e.id}':null;">
@@ -2595,15 +2589,13 @@ function renderToday(){
 
   // Événement actif ce jour — une seule carte, avec le même bouton Extras
   // qu'une réservation. ds>=startDate&&ds<=endDate : intervalle inclusif
-  // propre aux événements (voir renderDinnerListEv). Nom du client si
-  // renseigné, sinon titre de l'événement — les consommations restent au
-  // global sur l'événement (ev.extras), pas de convives séparés.
+  // propre aux événements. Nom du client si renseigné, sinon titre de
+  // l'événement. Aucun lien avec la table d'hôtes (séparée : voir
+  // S.extDiners) — juste les consommations au global sur l'événement.
   const eventGuestCard=(ev)=>{
     const g=ev.guestId?guest(ev.guestId):null;
     const xd=getExtrasDayTotalEv(ev,ds);
     const extLabel=xd>0?`<span class="extbtn-total">${xd.toLocaleString('fr-FR')} €</span>`:`<span class="extbtn-add">+</span>`;
-    const hasDin=ev.dinnerNights&&ev.dinnerNights[ds];
-    const thBadge=hasDin?`<span class="dinner-badge" style="font-size:11px;color:var(--green);font-weight:600;flex-shrink:0;display:inline-flex;align-items:center;gap:3px">${MEAL_ICON_SM}${ev.nbPersons||1}</span>`:'';
     return`<div class="tcard">
       <div class="tbar" style="background:${g?g.color:'#999'}"></div>
       <div class="tcard-content">
@@ -2611,7 +2603,6 @@ function renderToday(){
           <div class="tcard-header-inner">
             <div class="tinfo"><div class="tname">${g?g.name:ev.title}</div>
               ${g?`<div class="tdetail">${ev.title}</div>`:''}</div>
-            ${thBadge}<div class="troom">${ev.nbPersons||1} pers.</div>
           </div>
         </div>
         <div class="tcard-extbtn" onclick="event.stopPropagation();var x=document.getElementById('xe-ev-${ev.id}');var show=x.style.display!=='block';x.style.display=show?'block':'none';openExtrasId=show?'ev-${ev.id}':null;">
@@ -2693,7 +2684,7 @@ function renderToday(){
   const thCount=S.bookings
     .filter(b=>activeOn(b,ds)&&b.dinnerNights&&b.dinnerNights[ds])
     .reduce((sum,b)=>sum+(b.nbPersons||2),0)
-    +eventsDinnerCouvertsForDate(ds);
+    +extDinersCount(ds);
   h+=`<div class="tsec-panel menu collapsed">
     <div class="tsec-hd${menuHas?' has-items':''}" onclick="this.closest('.tsec-panel').classList.toggle('collapsed')">
       ${MEAL_ICON} Menu du jour<span class="tsec-count"><span>${thCount} repas</span></span><span class="tsec-chev">▾</span>
@@ -3593,15 +3584,11 @@ function openEventEdit(id,prefillDate){
   byId('evNewGNameFg').style.display='none';
   renderGPickerEv();
 
-  setPaxEv(ev?ev.nbPersons||1:1);
-  renderDinnerListEv();
-
   resetPaymentUIEv(ev?ev.payment:null,ev?ev.ghost:false,ev?ev.depositAmount:null,ev?ev.source:null);
 
   evModalExtrasDay=null;
   renderModalExtrasEv();
-  if(ev)refreshEvExtrasTotal(ev);
-  else byId('evExtrasTotal').style.display='none';
+  updateEvTotal();
 
   closeM('modalEvents');byId('modalEventEdit').style.display='flex';
 }
@@ -3614,7 +3601,6 @@ function saveEvent(){
   if(sd>ed){alert('La date de fin doit être après le début');return;}
   const st=byId('evStartTime').value||null;
   const et=byId('evEndTime').value||null;
-  const np=parseInt(byId('evPersons').value)||1;
   const pay=evPayment;
   const depositAmt=pay==='deposit'?(parseFloat(byId('evDepositAmt').value)||0):0;
   const source=evSource;
@@ -3632,9 +3618,8 @@ function saveEvent(){
     }
   }
 
-  const dinnerNights=dinnerEnabled()?getDinnerNightsEv():(editEvid?S.events.find(e=>e.id===editEvid)?.dinnerNights||{}:{});
   const data={title:t,startDate:sd,endDate:ed,startTime:st,endTime:et,color:byId('evColor').value,
-    guestId:gid,nbPersons:np,dinnerNights,
+    guestId:gid,
     payment:pay,depositAmount:depositAmt,source,ghost,prixNet,notes};
   if(editEvid){
     const i=S.events.findIndex(e=>e.id===editEvid);
@@ -3722,65 +3707,6 @@ function pickNewEv(){
   renderGPickerEv();
 }
 
-// Compteur à flèches plutôt que des bulles (1-5) : le nombre de personnes
-// d'un événement peut dépasser 5 (groupe, séminaire…), et c'est le seul
-// chiffre qui compte pour la table d'hôtes — plus de convives séparés.
-function setPaxEv(n){
-  n=Math.max(1,n);
-  byId('evPersons').value=n;
-  byId('evPersonsVal').textContent=n;
-}
-function incEvPersons(delta){
-  setPaxEv((parseInt(byId('evPersons').value)||1)+delta);
-}
-
-// ── Table d'hôtes de l'événement — même mécanique que renderDinnerList (une
-// case par soir), mais sur l'intervalle [startDate,endDate] inclusif propre
-// aux événements (contrairement à checkIn/checkOut des réservations, la date
-// de fin d'un événement est bien un jour actif, pas un jour de départ).
-function renderDinnerListEv(){
-  const sd=byId('evStart').value;
-  const ed=byId('evEnd').value;
-  const fg=byId('evDinnerListFg');
-  const container=byId('evDinnerList');
-  if(!dinnerEnabled()||!sd||!ed||sd>ed){fg.style.display='none';return;}
-  fg.style.display='block';
-
-  const existing=editEvid?S.events.find(e=>e.id===editEvid)?.dinnerNights||{}:{};
-  const days=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-  let html='';
-  let cur=sd;
-  while(cur<=ed){
-    const d=new Date(cur+'T00:00:00');
-    const checked=existing[cur]?'checked':'';
-    const label=`${days[d.getDay()]} ${d.getDate()}`;
-    html+=`<label class="dn-chip${existing[cur]?' checked':''}" id="evdnc-${cur}">
-      <input type="checkbox" id="evdn-${cur}" value="${cur}" ${checked}
-             onchange="updateEvDinnerChip('${cur}',this.checked)">
-      <span class="dn-icon">${MEAL_ICON_SM}</span>${label}
-    </label>`;
-    cur=addDays(cur,1);
-  }
-  container.innerHTML=html;
-}
-function updateEvDinnerChip(ds,checked){
-  const chip=document.getElementById('evdnc-'+ds);
-  if(chip)chip.className='dn-chip'+(checked?' checked':'');
-}
-function getDinnerNightsEv(){
-  const sd=byId('evStart').value;
-  const ed=byId('evEnd').value;
-  if(!sd||!ed)return{};
-  const nights={};
-  let cur=sd;
-  while(cur<=ed){
-    const cb=document.getElementById('evdn-'+cur);
-    if(cb&&cb.checked)nights[cur]=true;
-    cur=addDays(cur,1);
-  }
-  return nights;
-}
-
 // ── Paiement de l'événement — dupliqué de setPayment/setSource/resetPaymentUI
 // (evPayment/evSource au lieu de bkPayment/bkSource) pour les mêmes raisons
 // d'ids DOM distincts.
@@ -3840,7 +3766,7 @@ function setExtraEv(evId,ds,itemId,delta){
   renderToday();
   if(byId('modalEventEdit').style.display==='flex'&&editEvid===evId){
     renderModalExtrasEv();
-    refreshEvExtrasTotal(ev);
+    updateEvTotal();
   }
   if(S.view==='week')renderWeek();
   if(S.view==='month')renderMonth();
@@ -3896,10 +3822,96 @@ function renderModalExtrasEv(){
   }).join('');
   byId('evExtrasDayBody').innerHTML=extrasHTMLForEv(ev,evModalExtrasDay);
 }
-function refreshEvExtrasTotal(ev){
-  const xt=getExtrasTotalEv(ev);
-  if(xt>0){byId('evExtrasTotal').style.display='block';byId('evExtrasTotalVal').textContent=xt.toLocaleString('fr-FR')+' €';}
-  else byId('evExtrasTotal').style.display='none';
+// Total d'un événement = prix (optionnel) + consommations — même principe
+// dépliable/copiable que "Total séjour" du modal réservation (updateModalTotal/
+// toggleBTot/buildStayNoteText/copyStayNote), mais sans nuits/tarifs/petit-déj
+// puisqu'un événement n'a ni chambre ni séjour.
+function updateEvTotal(){
+  const el=byId('evTotalSec');
+  const ev=editEvid?S.events.find(e=>e.id===editEvid):null;
+  const shareRow=byId('evConsoShare');
+  if(shareRow){shareRow.style.display='none';shareRow.innerHTML='';}
+  if(!ev){el.style.display='none';return;}
+  const prixNetRaw=byId('evPrixNet').value;
+  const price=prixNetRaw===''?0:(parseFloat(prixNetRaw)||0);
+  const extTotal=getExtrasTotalEv(ev);
+  const total=price+extTotal;
+  if(total<=0){el.style.display='none';return;}
+  el.style.display='block';
+  byId('evTotLbl').textContent='Total';
+  byId('evTotVal').textContent=total.toLocaleString('fr-FR')+' €';
+  let rows='';
+  if(price>0)rows+=`<div class="btot-line"><span>Prix</span><span>${price.toLocaleString('fr-FR')} €</span></div>`;
+  if(extTotal>0){
+    rows+=`<div class="btot-line"><span>Consommations</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
+    rows+=Object.keys(ev.extras||{}).sort().map(ds=>{
+      const dayTotal=getExtrasDayTotalEv(ev,ds);
+      if(dayTotal<=0)return'';
+      const itemLines=Object.entries(ev.extras[ds]).filter(([,qty])=>qty).map(([id,qty])=>{
+        const item=S.catalog.find(c=>c.id===id);
+        if(!item)return'';
+        return `<div class="btot-line btot-subitem"><span>${qty}× ${item.emoji||''} ${item.name}</span><span>${(item.price*qty).toLocaleString('fr-FR')} €</span></div>`;
+      }).join('');
+      return `<div class="btot-line btot-subline"><span>${fmtDate(ds)}</span><span>${dayTotal.toLocaleString('fr-FR')} €</span></div>${itemLines}`;
+    }).join('');
+  }
+  if(price>0&&extTotal>0)rows+=`<div class="btot-line sep"><span>Total</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
+  byId('evTotDetail').innerHTML=rows;
+  if(shareRow)renderEvConsoShareRow(shareRow,ev);
+}
+function toggleEvTot(){
+  const d=byId('evTotDetail'),c=byId('evTotChev');
+  const show=d.style.display!=='block';
+  d.style.display=show?'block':'none';
+  if(c)c.style.transform=show?'rotate(180deg)':'';
+}
+function buildEventNoteText(ev){
+  const g=ev.guestId?guest(ev.guestId):null;
+  const lines=[`Note — ${ev.title}`];
+  if(g)lines.push(`Client : ${g.name}`);
+  lines.push(ev.startDate===ev.endDate?`Le ${fmtDate(ev.startDate)}`:`Du ${fmtDate(ev.startDate)} au ${fmtDate(ev.endDate)}`,'');
+  const price=ev.prixNet||0;
+  const extTotal=getExtrasTotalEv(ev);
+  if(price>0)lines.push(`Prix : ${price.toLocaleString('fr-FR')} €`);
+  if(extTotal>0){
+    lines.push('','Consommations :');
+    Object.keys(ev.extras||{}).sort().forEach(ds=>{
+      const dayTotal=getExtrasDayTotalEv(ev,ds);
+      if(dayTotal<=0)return;
+      lines.push(fmtDate(ds));
+      Object.entries(ev.extras[ds]).filter(([,qty])=>qty).forEach(([id,qty])=>{
+        const item=S.catalog.find(c=>c.id===id);
+        if(!item)return;
+        lines.push(`  ${qty}× ${item.emoji||''} ${item.name} — ${(item.price*qty).toLocaleString('fr-FR')} €`);
+      });
+      lines.push(`  Sous-total : ${dayTotal.toLocaleString('fr-FR')} €`);
+    });
+  }
+  lines.push('',`Total : ${(price+extTotal).toLocaleString('fr-FR')} €`);
+  return lines.join('\n');
+}
+function renderEvConsoShareRow(el,ev){
+  const icoCopy=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+  el.innerHTML=`<button type="button" class="gcontact-btn copy" onclick="copyEventNote('${ev.id}',this)">${icoCopy} Copier la note</button>`;
+  el.style.display='flex';
+}
+// Même contrainte que copyStayNote : copie presse-papiers uniquement, pas de
+// partage ni de téléchargement.
+function copyEventNote(evId,btn){
+  const ev=S.events.find(e=>e.id===evId);
+  if(!ev)return;
+  const txt=buildEventNoteText(ev);
+  const done=ok=>{
+    if(!btn)return;
+    const orig=btn.innerHTML;
+    btn.innerHTML=ok?'✓ Copié':'Échec de la copie';
+    setTimeout(()=>{btn.innerHTML=orig;},1500);
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>done(true)).catch(()=>fallbackCopy(txt,done));
+  } else {
+    fallbackCopy(txt,done);
+  }
 }
 // ═══════════════════════════════════════════════════════════════
 //  RANGE SELECTION (sélection de plage sur la grille)
@@ -4017,38 +4029,18 @@ function renderTHBody(ds){
   bodyHtml+=`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--light)">
     <div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Personnes extérieures</div>`;
   extList.forEach(e=>{
+    const eg=guest(e.guestId);
     bodyHtml+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 0">
-      <div style="flex:1;font-size:13px">${e.name}</div>
-      <div style="font-size:12px;color:var(--gray)">${e.count} pers.</div>
+      <span class="cdot" style="background:${eg?eg.color:'#999'}"></span>
+      <div style="flex:1;font-size:13px">${eg?eg.name:(e.name||'?')}</div>
+      ${e.count>1?`<div style="font-size:12px;color:var(--gray)">${e.count} pers.</div>`:''}
       <button type="button" class="set-del" onclick="delExtDiner('${ds}','${e.id}')">×</button>
     </div>`;
   });
   bodyHtml+=`<div style="display:flex;gap:6px;margin-top:6px">
     <input class="fi" id="extDinerName" placeholder="Nom" style="flex:1" onkeydown="if(event.key==='Enter'){addExtDiner('${ds}');event.preventDefault();}">
-    <input class="fi" id="extDinerCount" type="number" min="1" value="1" style="width:56px;text-align:center">
     <button type="button" class="btn-s" style="padding:6px 12px;font-size:12px" onclick="addExtDiner('${ds}')">Ajouter</button>
   </div></div>`;
-
-  // Événements dont la table d'hôtes est cochée ce soir (coché depuis le
-  // modal événement lui-même — pas de case à cocher ici, en lecture seule,
-  // comme pour les personnes extérieures). Le client de l'événement est
-  // optionnel : nom du client si renseigné, sinon titre de l'événement.
-  const evParticipants=S.events.filter(ev=>ev.dinnerNights&&ev.dinnerNights[ds]&&ds>=ev.startDate&&ds<=ev.endDate);
-  if(evParticipants.length){
-    bodyHtml+=`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--light)">
-      <div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Événements</div>`;
-    evParticipants.forEach(ev=>{
-      const g=ev.guestId?guest(ev.guestId):null;
-      bodyHtml+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 0">
-        <div style="width:10px;height:36px;border-radius:3px;background:${g?g.color:'#999'};flex-shrink:0"></div>
-        <div style="flex:1">
-          <div style="font-weight:500;font-size:13px">${g?g.name:ev.title}</div>
-          <div style="font-size:11px;color:var(--gray)">${g?ev.title+' · ':''}${ev.nbPersons||1} pers.</div>
-        </div>
-      </div>`;
-    });
-    bodyHtml+=`</div>`;
-  }
 
   const dm=getMenu(ds);
   bodyHtml+=`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--light)">
@@ -4062,9 +4054,8 @@ function renderTHBody(ds){
   byId('th-menu-entree').value=dm.entree||'';
   byId('th-menu-plat').value=dm.plat||'';
   byId('th-menu-dessert').value=dm.dessert||'';
-  const evCouverts=evParticipants.reduce((s,ev)=>s+(ev.nbPersons||1),0);
   const tot=active.filter(b=>b.dinnerNights&&b.dinnerNights[ds]).reduce((s,b)=>s+(b.nbPersons||2),0)
-    + extDinersCount(ds) + evCouverts;
+    + extDinersCount(ds);
   byId('thTotal').textContent=tot>0?`Total : ${tot} couvert${tot>1?'s':''}`:' ';
 }
 
@@ -4079,23 +4070,34 @@ function toggleDinnerNight(bid,ds,checked){
   renderTHBody(ds);
 }
 
+// e.count n'existe que pour les entrées créées avant le passage à "une
+// personne = une entrée liée à un vrai client" (voir addExtDiner) — on le
+// respecte encore pour ne pas fausser l'historique déjà compté, mais une
+// entrée sans count (ajoutée depuis la nouvelle version) vaut 1 personne.
 function extDinersCount(ds){
-  return ((S.extDiners&&S.extDiners[ds])||[]).reduce((s,e)=>s+(e.count||0),0);
+  return ((S.extDiners&&S.extDiners[ds])||[]).reduce((s,e)=>s+(e.count||1),0);
 }
 function extDinersRevenueForDate(ds){
   if(!extDinersCount(ds))return 0;
   return extDinersCount(ds)*getTariffForDate(ds).th;
 }
+// Ajouter une personne extérieure crée directement un client dans le carnet
+// (comme "+ Nouveau client" ailleurs dans l'appli) et le lie à ce jour — elle
+// apparaît alors aussi bien ici que dans "En séjour" (vue Jour), où ses
+// consommations peuvent être ajoutées. Une personne à la fois, plus de champ
+// nombre : pour plusieurs personnes, on répète l'ajout.
 function addExtDiner(ds){
   const nameInp=byId('extDinerName');
-  const cntInp=byId('extDinerCount');
   const name=(nameInp.value||'').trim();
   if(!name)return;
-  const count=parseInt(cntInp.value)||1;
+  const ng={id:uid(),name,color:nextColor(),phone:'',email:'',notes:''};
+  S.guests.push(ng);
   if(!S.extDiners[ds])S.extDiners[ds]=[];
-  S.extDiners[ds].push({id:uid(),name,count});
+  S.extDiners[ds].push({id:uid(),guestId:ng.id});
+  nameInp.value='';
   persist();
   renderGrid();
+  if(S.view==='today')renderToday();
   if(S.view==='week')renderWeek();
   renderTHBody(ds);
 }
@@ -4162,21 +4164,11 @@ function extDinerExtrasHTMLFor(ds,e){
 function extDinersExtrasTotalForDate(ds){
   return ((S.extDiners&&S.extDiners[ds])||[]).reduce((s,e)=>s+getExtDinerExtrasTotal(e),0);
 }
-// Événements — couverts/revenu table d'hôtes et extras d'un jour donné, pour
-// les mêmes agrégats de revenus (semaine/mois) : mêmes principes que pour les
-// personnes extérieures (couverts × tarif du jour, indépendamment du champ
-// "Prix" propre à l'événement), et pour les réservations (extras par jour).
-// Le client de l'événement est optionnel : nbPersons compte qu'il y en ait un
-// ou non — le client n'est qu'une commodité pour retrouver l'historique/
-// contact, pas une condition pour compter des couverts.
-function eventsDinnerCouvertsForDate(ds){
-  return S.events.filter(ev=>ev.dinnerNights&&ev.dinnerNights[ds]&&ds>=ev.startDate&&ds<=ev.endDate)
-    .reduce((s,ev)=>s+(ev.nbPersons||1),0);
-}
-function eventsDinnerRevenueForDate(ds){
-  const n=eventsDinnerCouvertsForDate(ds);
-  return n>0?n*getTariffForDate(ds).th:0;
-}
+// Consommations d'un événement pour un jour donné — pour les mêmes agrégats
+// de revenus (semaine/mois), au même titre que les extras des réservations.
+// Un événement ne participe plus à la table d'hôtes (séparée : voir
+// S.extDiners) donc pas de couverts/revenu repas ici, juste les
+// consommations du catalogue.
 function eventsExtrasTotalForDate(ds){
   return S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate).reduce((s,ev)=>s+getExtrasDayTotalEv(ev,ds),0);
 }
@@ -5578,8 +5570,8 @@ function renderWeek(){
   let extDinersRevenueTotal=0;
   for(let i=0;i<7;i++){
     const ds=addDays(S.wStart,i);
-    totalRepas+=extDinersCount(ds)+eventsDinnerCouvertsForDate(ds);
-    extDinersRevenueTotal+=extDinersRevenueForDate(ds)+eventsDinnerRevenueForDate(ds);
+    totalRepas+=extDinersCount(ds);
+    extDinersRevenueTotal+=extDinersRevenueForDate(ds);
     totalExtras+=extDinersExtrasTotalForDate(ds)+eventsExtrasTotalForDate(ds);
   }
   // Table d'hôte désactivée : le CA repas est simplement replié dans "nuitées"
@@ -5814,8 +5806,8 @@ function renderMonth(){
   let extDinersRevenueTotal=0;
   for(let i=0;i<daysInMonth;i++){
     const ds=addDays(mStart,i);
-    totalRepas+=extDinersCount(ds)+eventsDinnerCouvertsForDate(ds);
-    extDinersRevenueTotal+=extDinersRevenueForDate(ds)+eventsDinnerRevenueForDate(ds);
+    totalRepas+=extDinersCount(ds);
+    extDinersRevenueTotal+=extDinersRevenueForDate(ds);
     totalExtras+=extDinersExtrasTotalForDate(ds)+eventsExtrasTotalForDate(ds);
   }
   // Table d'hôte désactivée : le CA repas est simplement replié dans "nuitées"
