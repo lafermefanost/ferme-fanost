@@ -1000,6 +1000,7 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
       <div class="mtitle" id="mBookTitle">Nouvelle réservation</div>
       <button class="mclose" onclick="closeM('modalBooking')">✕</button>
     </div>
+    <div id="bCreatedAt" style="display:none;font-size:11px;color:var(--gray);margin:-10px 0 12px;padding:0 2px"></div>
 
     <!-- ── Client ── -->
     <div class="msec">
@@ -2753,6 +2754,8 @@ function openAddModal(roomId,ds,dsOut){
   byId('gSearch').value='';
   // Le contrat se génère depuis une résa déjà enregistrée (a besoin d'un id).
   byId('bContractSec').style.display='none';
+  // Pas encore de date de création tant que la résa n'est pas enregistrée.
+  byId('bCreatedAt').style.display='none';
 
   if(roomId) byId('bRoom').value=roomId;
   const ci=ds||todayISO();
@@ -2791,6 +2794,17 @@ function openEditModal(id){
   byId('bSaveBtn').disabled=false;
   byId('newGNameFg').style.display='none';
   byId('bContractSec').style.display='block';
+  // Absente pour les réservations créées avant l'ajout de ce champ — on masque
+  // simplement la ligne plutôt que d'afficher une date inventée.
+  if(b.createdAt){
+    const cd=new Date(b.createdAt);
+    const dateStr=`${p(cd.getDate())}/${p(cd.getMonth()+1)}/${cd.getFullYear()}`;
+    const timeStr=`${p(cd.getHours())}:${p(cd.getMinutes())}`;
+    byId('bCreatedAt').textContent=`Réservation créée le ${dateStr} à ${timeStr}`;
+    byId('bCreatedAt').style.display='block';
+  }else{
+    byId('bCreatedAt').style.display='none';
+  }
   byId('bRoom').value=b.roomId;
   byId('bIn').value=b.checkIn;
   byId('bOut').value=b.checkOut;
@@ -3062,7 +3076,7 @@ function saveBooking(){
     // on lit quand même les cases de la modale au cas où l'utilisateur en aurait
     // décoché avant même la première sauvegarde.
     const nbf=getNoBreakfastNights();
-    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,taxeSejour});
+    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,taxeSejour,createdAt:new Date().toISOString()});
   }
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
