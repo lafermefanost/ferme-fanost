@@ -719,10 +719,19 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
 }
 
 /* Events modal */
+/* Barre de mois plus fine et discrète, alignée sur le style des séparateurs de
+   mois de la grille principale (.msep-label) plutôt qu'un bandeau épais — et
+   cliquable pour replier/déplier le mois (fermé par défaut pour les mois
+   antérieurs au mois en cours). */
 .evmonth-sep{background:var(--dark);color:#F0EBE0;font-family:'Jost',sans-serif;
-  font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
-  padding:6px 18px;margin:16px -18px 2px;}
-.evmonth-sep:first-child{margin-top:0;}
+  font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  padding:4px 18px;margin:14px -18px 0;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  cursor:pointer;user-select:none;}
+.evmonth-group:first-child .evmonth-sep{margin-top:0;}
+.evmonth-chev{font-size:9px;opacity:.7;transition:transform .15s;flex-shrink:0;}
+.evmonth-group.collapsed .evmonth-chev{transform:rotate(-90deg);}
+.evmonth-group.collapsed .evmonth-body{display:none;}
 .evcard{display:flex;align-items:center;gap:12px;padding:10px 0;
   border-bottom:1px solid var(--light);cursor:pointer;transition:opacity .15s;}
 .evcard:last-child{border-bottom:none;}
@@ -3335,30 +3344,49 @@ function renderEvList(){
   // Regroupe par mois de début — un événement à cheval sur plusieurs mois
   // reste rangé sous son mois de départ, son badge de dates (départ → fin)
   // montrant déjà clairement qu'il déborde sur le(s) mois suivant(s).
-  let html='';
-  let prevKey=null;
+  // Clé numérique (année×12+mois) plutôt qu'une simple chaîne "année-mois" :
+  // une comparaison alphabétique aurait mal classé les mois à un chiffre
+  // (ex: "2026-9" > "2026-10" en tri de chaînes).
+  const todayD=new Date(todayISO()+'T00:00:00');
+  const todayKey=todayD.getFullYear()*12+todayD.getMonth();
+  const groups=[];
+  let curGroup=null;
   sorted.forEach(ev=>{
     const sd=new Date(ev.startDate+'T00:00:00');
-    const key=`${sd.getFullYear()}-${sd.getMonth()}`;
-    if(key!==prevKey){
-      html+=`<div class="evmonth-sep">${MON[sd.getMonth()]} ${sd.getFullYear()}</div>`;
-      prevKey=key;
+    const key=sd.getFullYear()*12+sd.getMonth();
+    if(!curGroup||curGroup.key!==key){
+      curGroup={key,label:`${MON[sd.getMonth()]} ${sd.getFullYear()}`,events:[]};
+      groups.push(curGroup);
     }
-    const col=ev.color||'#A8C5A0';
-    const isSingle=ev.startDate===ev.endDate;
-    const dateHtml=isSingle
-      ? badge(ev.startDate,col)
-      : `<div class="evdate-range">${badge(ev.startDate,col)}<span class="evdate-arrow">→</span>${badge(ev.endDate,col)}</div>`;
-    const timeStr=ev.startTime?(ev.endTime?`${ev.startTime} – ${ev.endTime}`:ev.startTime):'';
-    html+=`<div class="evcard" onclick="openEventEdit('${ev.id}')">
-      ${dateHtml}
-      <div class="evcard-info">
-        <div class="evcard-title">${ev.title}</div>
-        ${timeStr?`<div class="evcard-time">${timeStr}</div>`:''}
-        ${ev.revenue>0?`<div class="evcard-time">${ev.revenue.toLocaleString('fr-FR')} € générés</div>`:''}
-      </div>
-    </div>`;
+    curGroup.events.push(ev);
   });
+  // Replié par défaut pour les mois déjà passés — dépliable au clic ; le mois
+  // en cours et les mois à venir restent ouverts d'emblée.
+  let html=groups.map(g=>{
+    const isPast=g.key<todayKey;
+    const cardsHtml=g.events.map(ev=>{
+      const col=ev.color||'#A8C5A0';
+      const isSingle=ev.startDate===ev.endDate;
+      const dateHtml=isSingle
+        ? badge(ev.startDate,col)
+        : `<div class="evdate-range">${badge(ev.startDate,col)}<span class="evdate-arrow">→</span>${badge(ev.endDate,col)}</div>`;
+      const timeStr=ev.startTime?(ev.endTime?`${ev.startTime} – ${ev.endTime}`:ev.startTime):'';
+      return`<div class="evcard" onclick="openEventEdit('${ev.id}')">
+        ${dateHtml}
+        <div class="evcard-info">
+          <div class="evcard-title">${ev.title}</div>
+          ${timeStr?`<div class="evcard-time">${timeStr}</div>`:''}
+          ${ev.revenue>0?`<div class="evcard-time">${ev.revenue.toLocaleString('fr-FR')} € générés</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+    return`<div class="evmonth-group${isPast?' collapsed':''}">
+      <div class="evmonth-sep" onclick="this.parentElement.classList.toggle('collapsed')">
+        <span>${g.label}</span><span class="evmonth-chev">▾</span>
+      </div>
+      <div class="evmonth-body">${cardsHtml}</div>
+    </div>`;
+  }).join('');
   byId('evList').innerHTML=html;
 }
 
