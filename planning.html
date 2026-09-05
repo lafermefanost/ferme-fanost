@@ -1553,7 +1553,7 @@ const DEFAULT_SETTINGS={
   // Vide par défaut : une équipe de ménage est propre à chaque établissement,
   // pas d'exemple avec des prénoms de personnes réelles.
   cleaners:[],
-  tariffHistory:[{id:'t0',from:'2000-01-01',th:25,bf:5}],
+  tariffHistory:[{id:'t0',from:'2000-01-01',th:25,bf:5,thExt:30}],
   // Taxe de séjour, versionnée par date comme les tarifs ci-dessus. Collectée
   // pour le compte de la commune : volontairement tenue à l'écart du chiffre
   // d'affaires (voir getTaxeSejourAmount). type:'fixed' (€/pers/nuit, le cas des
@@ -1613,7 +1613,7 @@ const DEFAULT_SETTINGS={
 
 // Tarif global repas / petit-déjeuner (identique pour toutes les chambres), versionné par date.
 function getTariffForDate(ds){
-  const hist=(S.settings&&S.settings.tariffHistory)||[{from:'2000-01-01',th:25,bf:5}];
+  const hist=(S.settings&&S.settings.tariffHistory)||[{from:'2000-01-01',th:25,bf:5,thExt:30}];
   const sorted=[...hist].sort((a,b)=>a.from.localeCompare(b.from));
   let t=sorted[0];
   for(const h of sorted){if(h.from<=ds)t=h;}
@@ -4074,9 +4074,12 @@ function toggleExtDinerMeal(ds,id,checked){
 function extDinersCount(ds){
   return ((S.extDiners&&S.extDiners[ds])||[]).filter(e=>e.dinner!==false).reduce((s,e)=>s+(e.count||1),0);
 }
+// Tarif dédié aux personnes extérieures (Réglages → Services), distinct du
+// tarif repas des clients en séjour : par défaut 30 € contre 25 € pour ces
+// derniers, mais chacun ajuste les deux indépendamment.
 function extDinersRevenueForDate(ds){
   if(!extDinersCount(ds))return 0;
-  return extDinersCount(ds)*getTariffForDate(ds).th;
+  return extDinersCount(ds)*getTariffForDate(ds).thExt;
 }
 // Ajouter une personne extérieure crée directement un client dans le carnet
 // (comme "+ Nouveau client" ailleurs dans l'appli) et le lie à ce jour — elle
@@ -4315,6 +4318,16 @@ function loadSettings(){
   if(ghostSrc)ghostSrc.noRevenue=false;
   migrateStructures();
   migrateRoomFields();
+  migrateTariffFields();
+}
+// Tarif repas personnes extérieures (thExt) : ajouté après coup, distinct du
+// tarif repas des clients en séjour (th) — 30 € par défaut sur les tarifs déjà
+// enregistrés qui n'ont pas encore ce champ, pour ne rien changer au comptage
+// historique tant que personne ne l'ajuste dans Réglages → Services.
+function migrateTariffFields(){
+  (S.settings.tariffHistory||[]).forEach(t=>{
+    if(t.thExt===undefined)t.thExt=30;
+  });
 }
 // Migration : ancien format groupNames{sasu,lmnp} + thresholds{tva,lmnp,platformNights}
 // (fixe, 2 structures imposées) → liste libre de structures, chacune avec sa propre liste
@@ -4802,19 +4815,21 @@ function renderSettings(){
       </label>
     </div>
     <div style="font-size:11px;color:var(--gray);margin:-2px 0 12px 2px">Décochez pour les hébergements sans prestation petit-déjeuner (ex : gîtes) : masque l'option dans les réservations. Les données déjà enregistrées ne sont pas supprimées.</div>
-    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Tarifs communs à toutes les chambres, appliqués selon la date de début du séjour. « Repas € » n'est utilisé que si la table d'hôte est activée ci-dessus. « P-déj € » (montant déduit par nuit lorsqu'il est décoché — voir tarif nuitée dans chaque chambre) n'est utilisé que si le petit-déjeuner est activé.</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:8px;">Tarifs communs à toutes les chambres, appliqués selon la date de début du séjour. « Repas € » n'est utilisé que si la table d'hôte est activée ci-dessus, pour les clients en séjour. « Repas ext. € » est le tarif appliqué aux personnes extérieures (ne dormant pas sur place) cochées pour le repas dans le modal Table d'hôtes. « P-déj € » (montant déduit par nuit lorsqu'il est décoché — voir tarif nuitée dans chaque chambre) n'est utilisé que si le petit-déjeuner est activé.</div>
     <div class="set-card">
-    <div class="set-tariff-hd" style="grid-template-columns:1fr 60px 60px 24px">
-      <span>À partir du</span><span>Repas €</span><span>P-déj €</span><span></span>
+    <div class="set-tariff-hd" style="grid-template-columns:1fr 48px 48px 48px 24px">
+      <span>À partir du</span><span>Repas €</span><span>Repas ext. €</span><span>P-déj €</span><span></span>
     </div>`;
   const tariffs=[...(st.tariffHistory||[])].sort((a,b)=>a.from.localeCompare(b.from));
   tariffs.forEach((t,i)=>{
     const canDel=tariffs.length>1;
-    tarifsBody+=`<div class="set-tariff-row" style="grid-template-columns:1fr 60px 60px 24px">
+    tarifsBody+=`<div class="set-tariff-row" style="grid-template-columns:1fr 48px 48px 48px 24px">
       <input class="set-fi" type="date" value="${t.from}"
         onblur="updateTariff('${t.id}','from',this.value)">
       <input class="set-fi-sm" type="number" value="${t.th}"
         onblur="updateTariff('${t.id}','th',+this.value)">
+      <input class="set-fi-sm" type="number" value="${t.thExt!=null?t.thExt:30}"
+        onblur="updateTariff('${t.id}','thExt',+this.value)">
       <input class="set-fi-sm" type="number" value="${t.bf!=null?t.bf:5}"
         onblur="updateTariff('${t.id}','bf',+this.value)">
       <button class="set-del" ${canDel?'':'disabled style="opacity:.3"'} onclick="delTariff('${t.id}')">×</button>
@@ -5014,7 +5029,7 @@ function toggleTaxeSejourEnabled(checked){
 
 // Tariff CRUD
 function addTariff(){
-  S.settings.tariffHistory.push({id:uid(),from:todayISO(),th:25,bf:5});
+  S.settings.tariffHistory.push({id:uid(),from:todayISO(),th:25,bf:5,thExt:30});
   saveSettings();renderSettings();
 }
 function delTariff(id){
