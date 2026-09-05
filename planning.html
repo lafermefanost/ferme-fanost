@@ -1645,12 +1645,21 @@ const DEFAULT_SETTINGS={
 };
 
 // Tarif global repas / petit-déjeuner (identique pour toutes les chambres), versionné par date.
+// Défauts (th/bf/thExt) toujours comblés au retour, quelle que soit l'entrée
+// trouvée : un ancien tarif enregistré avant l'ajout d'un champ (ex. thExt),
+// ou resynchronisé depuis un appareil qui n'avait pas encore la migration
+// correspondante (voir migrateTariffFields, pas systématiquement rejouée sur
+// chaque chemin de chargement — applyRemoteData notamment), ne doit jamais
+// renvoyer undefined ici : ça se propage en NaN dans tous les calculs de
+// revenus qui multiplient par ce tarif (ex. extDinersRevenueForDate), et un
+// total NaN s'affiche comme "—" plutôt qu'une vraie erreur visible — silencieux
+// et donc particulièrement pernicieux.
 function getTariffForDate(ds){
   const hist=(S.settings&&S.settings.tariffHistory)||[{from:'2000-01-01',th:25,bf:5,thExt:30}];
   const sorted=[...hist].sort((a,b)=>a.from.localeCompare(b.from));
   let t=sorted[0];
   for(const h of sorted){if(h.from<=ds)t=h;}
-  return t;
+  return{th:25,bf:5,thExt:30,...t};
 }
 // Taxe de séjour, versionnée par date — même logique que getTariffForDate. Deux
 // régimes possibles selon la commune (voir getTaxeSejourAmount) : {type:'fixed',
@@ -2137,6 +2146,7 @@ function applyRemoteData(d,meta){
     if(ghostSrc)ghostSrc.noRevenue=false;
     migrateStructures();
     migrateRoomFields();
+    migrateTariffFields();
     localStorage.setItem('ff2_settings',JSON.stringify(S.settings));
     applySettings();
   }
