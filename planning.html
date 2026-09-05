@@ -5157,7 +5157,105 @@ function renderSettings(){
   chargesBody+=`<button class="mch-add" onclick="addChargeCategory()">+ Ajouter une catégorie</button>`;
   h+=settingsPanel('charges','Catégories — relevé bancaire',chargesBody);
 
+  // — Export CSV —
+  const exportBody=`<div style="font-size:11px;color:var(--gray);margin-bottom:10px;">Fichiers CSV (compatibles Excel/Google Sheets), un par catégorie de données. « Chiffres » reprend, mois par mois, le même détail que la vue Mois (nuitées, repas, extras, événements, remplissage).</div>
+    <button class="btn-s" style="width:100%;margin-bottom:8px" onclick="exportClientsCSV()">📇 Exporter les clients (CSV)</button>
+    <button class="btn-s" style="width:100%;margin-bottom:8px" onclick="exportBookingsCSV()">🛏️ Exporter les réservations (CSV)</button>
+    <button class="btn-s" style="width:100%;margin-bottom:8px" onclick="exportEventsCSV()">🎉 Exporter les événements (CSV)</button>
+    <button class="btn-s" style="width:100%" onclick="exportFiguresCSV()">📊 Exporter les chiffres (CSV)</button>`;
+  h+=settingsPanel('export','Export',exportBody);
+
   byId('settingsBody').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EXPORTS CSV (Réglages → Export)
+// ═══════════════════════════════════════════════════════════════
+// Point-virgule plutôt que virgule : Excel en français importe un CSV
+// séparé par point-virgule directement (une virgule serait lue comme
+// séparateur décimal). Nombres en points décimaux (pas de virgule/espace de
+// milliers) pour rester sans ambiguïté quel que soit le tableur. BOM UTF-8
+// en tête du fichier pour qu'Excel affiche correctement les accents.
+function csvField(v){
+  const s=v===null||v===undefined?'':String(v);
+  return/[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+}
+function downloadCSV(filename,rows){
+  const csv=rows.map(r=>r.map(csvField).join(';')).join('\r\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+const STATUS_LABELS={ok:'Confirmée',opt:'Option',no:'Annulée'};
+const PAYMENT_LABELS={paid:'Payé',pending:'En attente',deposit:'Acompte versé'};
+function sourceLabel(id){
+  const s=(S.settings.sources||DEFAULT_SETTINGS.sources).find(x=>x.id===id);
+  return s?s.label:(id||'Direct');
+}
+
+function exportClientsCSV(){
+  const rows=[['Nom','Téléphone','Email','Adresse','Prix nuit personnalisé (€)','Notes','Nombre de séjours','CA total (€)']];
+  [...S.guests].sort((a,b)=>a.name.localeCompare(b.name)).forEach(g=>{
+    const gBookings=S.bookings.filter(b=>b.guestId===g.id);
+    const totalCA=gBookings.reduce((s,bk)=>s+getStayTotal(bk),0);
+    rows.push([g.name,g.phone||'',g.email||'',g.address||'',g.price||'',g.notes||'',gBookings.length,Math.round(totalCA)]);
+  });
+  downloadCSV('clients.csv',rows);
+}
+
+function exportBookingsCSV(){
+  const rows=[['Client','Chambre','Arrivée','Départ','Nuits','Personnes','Statut','Source','Paiement','Acompte (€)','Prix personnalisé (€)','Repas (nuits)','Total séjour (€)','Notes']];
+  [...S.bookings].sort((a,b)=>a.checkIn.localeCompare(b.checkIn)).forEach(bk=>{
+    const g=guest(bk.guestId);
+    const rm=room(bk.roomId);
+    const nights=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
+    const dinnerCount=Object.values(bk.dinnerNights||{}).filter(Boolean).length;
+    rows.push([
+      g?g.name:'?', rm?rm.name:'', fmtDate(bk.checkIn), fmtDate(bk.checkOut), nights, bk.nbPersons||2,
+      STATUS_LABELS[bk.status]||'Confirmée', sourceLabel(bk.source), PAYMENT_LABELS[bk.payment]||'',
+      bk.payment==='deposit'?(bk.depositAmount||0):'', bk.prixNet!=null?bk.prixNet:'', dinnerCount,
+      Math.round(getStayTotal(bk)), bk.notes||'',
+    ]);
+  });
+  downloadCSV('reservations.csv',rows);
+}
+
+function exportEventsCSV(){
+  const rows=[['Titre','Date début','Date fin','Heure début','Heure fin','Client','Source','Paiement','Prix net (€)','Extras (€)','Total (€)','Notes']];
+  [...S.events].sort((a,b)=>a.startDate.localeCompare(b.startDate)).forEach(ev=>{
+    const g=ev.guestId?guest(ev.guestId):null;
+    const extras=getExtrasTotalEv(ev);
+    rows.push([
+      ev.title, fmtDate(ev.startDate), fmtDate(ev.endDate), ev.startTime||'', ev.endTime||'',
+      g?g.name:'', sourceLabel(ev.source), PAYMENT_LABELS[ev.payment]||'',
+      ev.prixNet||0, Math.round(extras), Math.round((ev.prixNet||0)+extras), ev.notes||'',
+    ]);
+  });
+  downloadCSV('evenements.csv',rows);
+}
+
+// Un mois par ligne, du premier au dernier mois où il existe une réservation
+// ou un événement — plutôt qu'une plage à choisir, pour rester utilisable
+// tout de suite. Mêmes chiffres que la vue Mois (voir getMonthStats),
+// jamais un calcul recalculé séparément qui pourrait diverger.
+function exportFiguresCSV(){
+  const dates=[...S.bookings.map(b=>b.checkIn),...S.events.map(e=>e.startDate)];
+  const rows=[['Année','Mois','Nuitées','Revenu nuitées (€)','Repas (couverts)','Revenu repas (€)','Extras (€)','Revenu événements (€)','Revenu total (€)','Remplissage (%)']];
+  if(!dates.length){downloadCSV('chiffres.csv',rows);return;}
+  const minD=dates.reduce((a,b)=>a<b?a:b),maxD=dates.reduce((a,b)=>a>b?a:b);
+  let y=parseInt(minD.slice(0,4),10),m=parseInt(minD.slice(5,7),10)-1;
+  const endY=parseInt(maxD.slice(0,4),10),endM=parseInt(maxD.slice(5,7),10)-1;
+  while(y<endY||(y===endY&&m<=endM)){
+    const st=getMonthStats(y,m);
+    rows.push([y,MON[m],st.totalNights,Math.round(st.nightsRevenue),st.totalRepas,Math.round(st.repasRevenue),
+      Math.round(st.totalExtras),Math.round(st.eventsRevenue),Math.round(st.totalRev),st.occPct]);
+    m++;if(m>11){m=0;y++;}
+  }
+  downloadCSV('chiffres.csv',rows);
 }
 
 // Interrupteur global "table d'hôte" (réglages → Services)
@@ -5960,20 +6058,19 @@ function chMonth(d){
   renderMonth();
 }
 
-function renderMonth(){
-  const y=S.mYear, m=S.mMonth;
+// Stats globales d'un mois (nuitées / repas / extras / événements) — extrait
+// de renderMonth pour être réutilisé tel quel par l'export CSV "chiffres"
+// (Réglages → Export) : les deux doivent toujours raconter exactement la
+// même histoire, jamais deux calculs séparés qui pourraient diverger.
+function getMonthStats(y,m){
   const daysInMonth=new Date(y,m+1,0).getDate();
   const mStart=`${y}-${String(m+1).padStart(2,'0')}-01`;
-  const mEnd=`${y}-${String(m+1).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`;
-  const mEndEx=`${y}-${String(m+2).padStart(2,'0')}-01`; // exclusive end (first of next month, handles year wrap below)
-  // Compute exclusive month end properly
   const nextMonthDate=new Date(y,m+1,1);
   const mEndExact=iso(nextMonthDate);
 
   // All bookings overlapping this month
   const bks=S.bookings.filter(b=>b.checkIn<mEndExact&&b.checkOut>mStart);
 
-  // Global stats — revenue breakdown (nuitées / repas / extras / événements), même logique que la vue semaine
   const totalPossible=daysInMonth*ROOMS.length;
   let totalNights=0,periodRevTotal=0,totalExtras=0,totalRepas=0,repasRevenueFromBookings=0,taxeSejourTotal=0;
   bks.forEach(bk=>{
@@ -6016,6 +6113,16 @@ function renderMonth(){
   const eventsRevenue=S.events.filter(ev=>ev.prixNet>0&&ev.startDate>=mStart&&ev.startDate<mEndExact).reduce((s,ev)=>s+ev.prixNet,0);
   const totalRev=nightsRevenue+(dinnerEnabled()?repasRevenue:0)+totalExtras+eventsRevenue;
   const occPct=totalPossible>0?Math.round(totalNights/totalPossible*100):0;
+  return{y,m,daysInMonth,mStart,mEndExact,bks,totalPossible,totalNights,periodRevTotal,
+    totalExtras,totalRepas,repasRevenueFromBookings,taxeSejourTotal,extDinersRevenueTotal,
+    nightsRevenue,repasRevenue,eventsRevenue,totalRev,occPct};
+}
+
+function renderMonth(){
+  const y=S.mYear, m=S.mMonth;
+  const{daysInMonth,mStart,mEndExact,bks,totalPossible,totalNights,periodRevTotal,
+    totalExtras,totalRepas,repasRevenueFromBookings,taxeSejourTotal,extDinersRevenueTotal,
+    nightsRevenue,repasRevenue,eventsRevenue,totalRev,occPct}=getMonthStats(y,m);
 
   // Per-room occupancy
   const roomOcc=ROOMS.map(r=>{
