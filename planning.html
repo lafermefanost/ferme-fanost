@@ -676,6 +676,15 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
    tout le haut (champ de recherche, bouton +) se déplace à l'écran, ce
    qui perturbe la lecture pendant la frappe. Défile en interne au-delà. */
 #gList,#evList{height:min(52vh,420px);overflow-y:auto;}
+/* overflow-y:auto force aussi overflow-x en "auto" (les deux doivent être
+   non-"visible" ensemble — règle CSS) : la bande de mois d'#evList, pensée
+   pour déborder jusqu'aux bords de la modale via une marge négative relative
+   au padding de .modal, se faisait donc rogner par ce nouveau conteneur de
+   défilement, plus étroit. On déplace le débord sur #evList lui-même (marge
+   négative + padding qui compense, à l'identique de ce que faisait
+   .evmonth-sep) : la bande de .evmonth-sep n'a alors plus qu'à rejoindre le
+   bord d'#evList, pas au-delà — donc jamais rognée par son overflow. */
+#evList{margin:0 -18px;padding:0 18px;box-sizing:border-box;}
 
 /* Guest list */
 .gline{display:flex;align-items:center;gap:10px;padding:9px 0;
