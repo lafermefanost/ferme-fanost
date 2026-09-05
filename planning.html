@@ -6111,41 +6111,72 @@ function renderMonth(){
   </div>`;
 
   // Booking list — grouped by client, sorted by revenue desc
-  if(bks.length){
-    const byGuest={};
-    bks.forEach(bk=>{
-      const gid=bk.guestId||'?';
-      if(!byGuest[gid]) byGuest[gid]={gid,bkCount:0,nights:0,rev:0};
-      const oStart=bk.checkIn>mStart?bk.checkIn:mStart;
-      const oEnd=bk.checkOut<mEndExact?bk.checkOut:mEndExact;
-      const n=daysBetween(oStart,oEnd);
-      byGuest[gid].bkCount++;
-      byGuest[gid].nights+=n;
-      byGuest[gid].rev+=getBookingRevForPeriod(bk,mStart,mEndExact);
-    });
-    const clientRows=Object.values(byGuest).sort((a,b)=>b.rev-a.rev);
+  const byGuest={};
+  bks.forEach(bk=>{
+    const gid=bk.guestId||'?';
+    if(!byGuest[gid]) byGuest[gid]={gid,bkCount:0,nights:0,rev:0};
+    const oStart=bk.checkIn>mStart?bk.checkIn:mStart;
+    const oEnd=bk.checkOut<mEndExact?bk.checkOut:mEndExact;
+    const n=daysBetween(oStart,oEnd);
+    byGuest[gid].bkCount++;
+    byGuest[gid].nights+=n;
+    byGuest[gid].rev+=getBookingRevForPeriod(bk,mStart,mEndExact);
+  });
+  const clientRows=Object.values(byGuest).sort((a,b)=>b.rev-a.rev);
 
-    // Source breakdown — from settings
-    const srcDef=S.settings.sources||DEFAULT_SETTINGS.sources;
-    const srcMap={};
-    srcDef.forEach(s=>{srcMap[s.id]={n:0,rev:0};});
-    bks.forEach(bk=>{
-      const src=bk.source||'direct';
-      const key=srcMap[src]!==undefined?src:'direct';
-      srcMap[key].n++;
-      srcMap[key].rev+=getBookingRevForPeriod(bk,mStart,mEndExact);
-    });
-    const srcActive=srcDef.filter(s=>srcMap[s.id]&&srcMap[s.id].n>0);
-    const maxN=Math.max(1,...srcActive.map(s=>srcMap[s.id].n));
+  // Source breakdown — couvre maintenant tout le CA du mois (pas seulement les
+  // nuitées/repas des réservations comme avant), pour que la somme des d.rev
+  // par source retombe exactement sur "revenus totaux du mois" et que les %
+  // (une part de revenu désormais, plus une part de nombre de résas) totalisent
+  // 100. Trois attributions : les extras d'une réservation suivent sa propre
+  // source ; les personnes extérieures (aucune notion de source pour un
+  // passage sans réservation) sont rattachées à Direct ; les événements ont
+  // déjà leur propre source (ev.source), utilisée telle quelle.
+  const srcDef=S.settings.sources||DEFAULT_SETTINGS.sources;
+  const srcMap={};
+  srcDef.forEach(s=>{srcMap[s.id]={n:0,rev:0};});
+  const addSrcRev=(srcId,amount)=>{
+    if(!amount)return;
+    const key=srcMap[srcId]!==undefined?srcId:'direct';
+    if(srcMap[key])srcMap[key].rev+=amount;
+  };
+  bks.forEach(bk=>{
+    const src=bk.source||'direct';
+    const key=srcMap[src]!==undefined?src:'direct';
+    srcMap[key].n++;
+    let bkExtras=0;
+    for(let i=0;i<daysInMonth;i++)bkExtras+=getExtrasDayTotal(bk,addDays(mStart,i));
+    addSrcRev(src,getBookingRevForPeriod(bk,mStart,mEndExact)+bkExtras);
+  });
+  for(let i=0;i<daysInMonth;i++){
+    const dds=addDays(mStart,i);
+    addSrcRev('direct',extDinersRevenueForDate(dds)+extDinersExtrasTotalForDate(dds));
+  }
+  S.events.forEach(ev=>{
+    const src=ev.source||'direct';
+    let evRev=(ev.prixNet>0&&ev.startDate>=mStart&&ev.startDate<mEndExact)?ev.prixNet:0;
+    for(let i=0;i<daysInMonth;i++){
+      const dds=addDays(mStart,i);
+      if(dds>=ev.startDate&&dds<=ev.endDate)evRev+=getExtrasDayTotalEv(ev,dds);
+    }
+    addSrcRev(src,evRev);
+  });
+  // Actif dès qu'une source a du revenu, même sans réservation ce mois-ci
+  // (ex. un événement Airbnb sans nuitée) — sinon son CA disparaîtrait de la
+  // liste tout en restant compté dans le total, cassant l'égalité recherchée.
+  const srcActive=srcDef.filter(s=>srcMap[s.id]&&(srcMap[s.id].n>0||srcMap[s.id].rev>0));
+  const srcRevTotal=srcActive.reduce((s,x)=>s+srcMap[x.id].rev,0);
+  const maxRev=Math.max(1,...srcActive.map(s=>srcMap[s.id].rev));
 
+  if(bks.length||srcActive.length){
     h+=`<div class="month-bklist yr-regl${monthBklistOpen?' open':''}" onclick="toggleMonthPanel('bklist')">
     <div class="mbk-title" style="cursor:pointer;margin-bottom:0;display:flex;justify-content:space-between;align-items:center">${bks.length} réservation${bks.length>1?'s':''}<span class="yr-regl-chev">▾</span></div>
     <div class="yr-regl-body" style="margin-top:10px">
     <div class="src-breakdown">`;
     srcActive.forEach(s=>{
       const d=srcMap[s.id];
-      const pct=Math.round(d.n/bks.length*100);
-      const barW=Math.round(d.n/maxN*100);
+      const pct=srcRevTotal>0?Math.round(d.rev/srcRevTotal*100):0;
+      const barW=Math.round(d.rev/maxRev*100);
       h+=`<div class="src-bk-row">
         <div class="src-bk-dot" style="background:${s.color}"></div>
         <div class="src-bk-name">${s.label}</div>
