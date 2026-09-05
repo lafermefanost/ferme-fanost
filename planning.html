@@ -2740,13 +2740,26 @@ function renderToday(){
     </div>`;
   };
   const dayEvs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
+  // Jour férié : même volet Événements que les événements ajoutés à la main,
+  // en tête de liste (contexte du jour), en lecture seule.
+  const dayHolidayName=getHolidayName(ds);
+  if(dayHolidayName)dayEvs.unshift({id:'holiday-'+ds,title:dayHolidayName,startDate:ds,endDate:ds,isHoliday:true});
   const evCard=ev=>{
-    const col=ev.color||'#A8C5A0';
+    const col=ev.isHoliday?'#6B6B6B':(ev.color||'#A8C5A0');
     const isSingle=ev.startDate===ev.endDate;
     const dateHtml=isSingle
       ? evDayBadge(ev.startDate,col)
       : `<div class="evdate-range">${evDayBadge(ev.startDate,col)}<span class="evdate-arrow">→</span>${evDayBadge(ev.endDate,col)}</div>`;
     const timeStr=ev.startTime?(ev.endTime?`${ev.startTime} – ${ev.endTime}`:ev.startTime):'';
+    if(ev.isHoliday){
+      return`<div class="evcard evcard-holiday">
+        ${dateHtml}
+        <div class="evcard-info">
+          <div class="evcard-title">${ev.title}</div>
+          <div class="evcard-time">Jour férié</div>
+        </div>
+      </div>`;
+    }
     return`<div class="evcard" onclick="openEventEdit('${ev.id}')">
       ${dateHtml}
       <div class="evcard-info">
@@ -5777,12 +5790,21 @@ function renderWeek(){
     </div>`;
   };
   const evCard=ev=>{
-    const col=ev.color||'#A8C5A0';
+    const col=ev.isHoliday?'#6B6B6B':(ev.color||'#A8C5A0');
     const isSingle=ev.startDate===ev.endDate;
     const dateHtml=isSingle
       ? evDayBadge(ev.startDate,col)
       : `<div class="evdate-range">${evDayBadge(ev.startDate,col)}<span class="evdate-arrow">→</span>${evDayBadge(ev.endDate,col)}</div>`;
     const timeStr=ev.startTime?(ev.endTime?`${ev.startTime} – ${ev.endTime}`:ev.startTime):'';
+    if(ev.isHoliday){
+      return`<div class="evcard evcard-holiday">
+        ${dateHtml}
+        <div class="evcard-info">
+          <div class="evcard-title">${ev.title}</div>
+          <div class="evcard-time">Jour férié</div>
+        </div>
+      </div>`;
+    }
     return`<div class="evcard" onclick="openEventEdit('${ev.id}')">
       ${dateHtml}
       <div class="evcard-info">
@@ -5793,6 +5815,15 @@ function renderWeek(){
     </div>`;
   };
   const weekEvs=S.events.filter(ev=>ev.startDate<wEnd&&ev.endDate>=S.wStart);
+  // Jours fériés de la semaine : même volet, en lecture seule, avant les
+  // événements ajoutés à la main — parcouru à l'envers pour qu'un éventuel
+  // deuxième jour férié dans la semaine (rare, ex. Ascension + pont) reste
+  // dans l'ordre chronologique une fois chacun mis en tête par unshift.
+  for(let i=6;i>=0;i--){
+    const dds=addDays(S.wStart,i);
+    const hn=getHolidayName(dds);
+    if(hn)weekEvs.unshift({id:'holiday-'+dds,title:hn,startDate:dds,endDate:dds,isHoliday:true});
+  }
   const weekPrefillDate=(today>=S.wStart&&today<wEnd)?today:S.wStart;
   const weekEvAddBtn=`<div class="tsec-add" onclick="event.stopPropagation();openEventEdit(null,'${weekPrefillDate}')">+ Ajouter un événement</div>`;
   h+=`<div class="tsec-panel ev collapsed">
