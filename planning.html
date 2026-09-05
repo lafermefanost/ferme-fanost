@@ -670,6 +670,13 @@ input[type="date"].fi{-webkit-appearance:none;appearance:none;}
 .conso-share-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
 .gcontact-btn.copy{background:var(--green);border:none;cursor:pointer;font-family:'Jost',sans-serif;transition:background .15s;}
 
+/* Listes avec recherche (clients, événements) : hauteur fixe plutôt que
+   dictée par le nombre de résultats — sans ça, sur mobile la modale
+   (ancrée en bas de l'écran) change de hauteur à chaque lettre tapée et
+   tout le haut (champ de recherche, bouton +) se déplace à l'écran, ce
+   qui perturbe la lecture pendant la frappe. Défile en interne au-delà. */
+#gList,#evList{height:min(52vh,420px);overflow-y:auto;}
+
 /* Guest list */
 .gline{display:flex;align-items:center;gap:10px;padding:9px 0;
   border-bottom:1px solid var(--light);cursor:pointer;}
@@ -1275,6 +1282,8 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
     <button class="btn-p" onclick="openEventEdit(null)" style="width:100%;margin-bottom:14px">
       + Nouvel événement
     </button>
+    <input class="fi" id="evListSearch" placeholder="Rechercher un événement…" autocomplete="off"
+      style="margin-bottom:10px" oninput="renderEvList(this.value)">
     <div id="evList"></div>
   </div>
 </div>
@@ -3474,14 +3483,25 @@ function delGuest(){
 //  EVENTS MODAL
 // ═══════════════════════════════════════════════════════════════
 function openEventsModal(){
+  byId('evListSearch').value='';
   renderEvList();byId('modalEvents').style.display='flex';
 }
 
-function renderEvList(){
+function renderEvList(term){
+  term=(term||'').trim().toLowerCase();
   if(!S.events.length){
     byId('evList').innerHTML='<p style="text-align:center;color:var(--gray);padding:20px">Aucun événement</p>';return;
   }
-  const sorted=[...S.events].sort((a,b)=>a.startDate.localeCompare(b.startDate));
+  let sorted=[...S.events].sort((a,b)=>a.startDate.localeCompare(b.startDate));
+  if(term){
+    sorted=sorted.filter(ev=>{
+      const g=ev.guestId?guest(ev.guestId):null;
+      return ev.title.toLowerCase().includes(term)||(g&&g.name.toLowerCase().includes(term));
+    });
+  }
+  if(!sorted.length){
+    byId('evList').innerHTML='<p style="text-align:center;color:var(--gray);padding:20px">Aucun événement</p>';return;
+  }
   const badge=(ds,col)=>{
     const d=new Date(ds+'T00:00:00');
     const lc=light(col);
@@ -3511,8 +3531,11 @@ function renderEvList(){
   });
   // Replié par défaut pour les mois déjà passés — dépliable au clic ; le mois
   // en cours et les mois à venir restent ouverts d'emblée.
+  // En recherche, les mois passés restent dépliés (un résultat filtré cliqué
+  // par accident sous un chevron replié ne serait pas trouvé) — seule la
+  // navigation normale (sans recherche) replie les mois déjà passés.
   let html=groups.map(g=>{
-    const isPast=g.key<todayKey;
+    const isPast=!term&&g.key<todayKey;
     const cardsHtml=g.events.map(ev=>{
       const col=ev.color||'#A8C5A0';
       const isSingle=ev.startDate===ev.endDate;
