@@ -773,6 +773,10 @@ body.no-taxe-sejour #taxeSejourFg{display:none!important;}
   border-bottom:1px solid var(--light);cursor:pointer;transition:opacity .15s;}
 .evcard:last-child{border-bottom:none;}
 .evcard:hover{opacity:.75;}
+/* Jour férié dans la liste : pas un vrai événement à éditer/supprimer, donc
+   pas de survol interactif (le calcul reste en lecture seule). */
+.evcard.evcard-holiday{cursor:default;}
+.evcard.evcard-holiday:hover{opacity:1;}
 .evdate-badge{width:40px;border-radius:8px;padding:7px 4px;display:flex;flex-direction:column;
   align-items:center;justify-content:center;flex-shrink:0;}
 .evdate-day{font-size:20px;font-weight:700;line-height:1;}
@@ -1943,6 +1947,22 @@ function getFrenchHolidays(year){
 }
 function getHolidayName(ds){
   return getFrenchHolidays(parseInt(ds.slice(0,4),10))[ds];
+}
+// Pour que les jours fériés aient une vraie existence dans le modal
+// Événements (pas juste un repère dans la grille) : des pseudo-événements en
+// lecture seule (jamais dans S.events, jamais éditables/supprimables),
+// couvrant l'année en cours et la suivante — une fenêtre glissante plutôt
+// qu'un flux infini, suffisante pour anticiper les tarifs/ponts à venir.
+function getHolidayPseudoEvents(){
+  const y=new Date().getFullYear();
+  const list=[];
+  [y,y+1].forEach(year=>{
+    const map=getFrenchHolidays(year);
+    Object.keys(map).forEach(ds=>{
+      list.push({id:'holiday-'+ds,title:map[ds],startDate:ds,endDate:ds,isHoliday:true});
+    });
+  });
+  return list;
 }
 
 function light(hex){
@@ -3568,12 +3588,12 @@ function openEventsModal(){
 
 function renderEvList(term){
   term=(term||'').trim().toLowerCase();
-  if(!S.events.length){
-    byId('evList').innerHTML='<p style="text-align:center;color:var(--gray);padding:20px">Aucun événement</p>';return;
-  }
-  let sorted=[...S.events].sort((a,b)=>a.startDate.localeCompare(b.startDate));
+  // Les jours fériés ont une vraie existence dans cette liste (pas juste un
+  // repère dans la grille), à côté des événements ajoutés à la main.
+  let sorted=[...S.events,...getHolidayPseudoEvents()].sort((a,b)=>a.startDate.localeCompare(b.startDate));
   if(term){
     sorted=sorted.filter(ev=>{
+      if(ev.isHoliday)return ev.title.toLowerCase().includes(term);
       const g=ev.guestId?guest(ev.guestId):null;
       return ev.title.toLowerCase().includes(term)||(g&&g.name.toLowerCase().includes(term));
     });
@@ -3616,12 +3636,21 @@ function renderEvList(term){
   let html=groups.map(g=>{
     const isPast=!term&&g.key<todayKey;
     const cardsHtml=g.events.map(ev=>{
-      const col=ev.color||'#A8C5A0';
+      const col=ev.isHoliday?'#6B6B6B':(ev.color||'#A8C5A0');
       const isSingle=ev.startDate===ev.endDate;
       const dateHtml=isSingle
         ? badge(ev.startDate,col)
         : `<div class="evdate-range">${badge(ev.startDate,col)}<span class="evdate-arrow">→</span>${badge(ev.endDate,col)}</div>`;
       const timeStr=ev.startTime?(ev.endTime?`${ev.startTime} – ${ev.endTime}`:ev.startTime):'';
+      if(ev.isHoliday){
+        return`<div class="evcard evcard-holiday">
+          ${dateHtml}
+          <div class="evcard-info">
+            <div class="evcard-title">${ev.title}</div>
+            <div class="evcard-time">Jour férié</div>
+          </div>
+        </div>`;
+      }
       return`<div class="evcard" onclick="openEventEdit('${ev.id}')">
         ${dateHtml}
         <div class="evcard-info">
