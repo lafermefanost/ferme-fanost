@@ -2480,6 +2480,7 @@ function renderToday(){
           const autoTotal=nights*rate-bfDeduction+dinCount*pax*tariff.th+cribRev;
           rows+=`<div class="ttd-line"><span>Prix personnalisé</span><span>${b.prixNet.toLocaleString('fr-FR')} €</span></div>`;
           if(autoTotal>0) rows+=`<div class="ttd-line" style="opacity:.5;font-style:italic"><span>Calcul auto (hors extras) : ${autoTotal.toLocaleString('fr-FR')} €</span><span></span></div>`;
+          if(dinCount>0) rows+=`<div class="ttd-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${(dinCount*pax*tariff.th).toLocaleString('fr-FR')} €</span></div>`;
           if(extTotal>0){
             rows+=`<div class="ttd-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
             rows+=Object.keys(b.extras).sort().map(eds=>{
@@ -2492,8 +2493,8 @@ function renderToday(){
               }).join('');
               return `<div class="ttd-line ttd-subline"><span>${fmtDate(eds)}</span><span>${dayTotal.toLocaleString('fr-FR')} €</span></div>${itemLines}`;
             }).join('');
-            rows+=`<div class="ttd-line ttd-sep"><span>Total séjour</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
           }
+          if(dinCount>0||extTotal>0) rows+=`<div class="ttd-line ttd-sep"><span>Total séjour</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
         } else {
           rows+=`<div class="ttd-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
           if(noBfCount>0) rows+=`<div class="ttd-line"><span>${noBfCount} nuit${noBfCount>1?'s':''} sans petit-déj</span><span>-${bfDeduction.toLocaleString('fr-FR')} €</span></div>`;
@@ -2514,7 +2515,7 @@ function renderToday(){
           }
           rows+=`<div class="ttd-line ttd-sep"><span>Total séjour</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
         }
-        const lbl=isCustom&&extTotal<=0?'Prix personnalisé':'Total séjour';
+        const lbl=isCustom&&extTotal<=0&&dinCount<=0?'Prix personnalisé':'Total séjour';
         totalHtml=`<div class="tcard-total" onclick="event.stopPropagation();(function(el){var d=document.getElementById('${tid}');var show=d.style.display!=='block';d.style.display=show?'block':'none';var c=el.querySelector('.tcard-total-chev');if(c)c.style.transform=show?'rotate(180deg)':''})(this)">
           <span class="tcard-total-lbl">${lbl} — ${nights} nuit${nights>1?'s':''}</span>
           <span class="tcard-total-right"><span class="tcard-total-val">${total.toLocaleString('fr-FR')} €</span><span class="tcard-total-chev">▾</span></span>
@@ -3227,9 +3228,12 @@ function saveBooking(){
   }else{
     // Le petit-déjeuner est inclus par défaut (checkboxes cochées à la création) :
     // on lit quand même les cases de la modale au cas où l'utilisateur en aurait
-    // décoché avant même la première sauvegarde.
+    // décoché avant même la première sauvegarde. Idem pour la table d'hôte, qui
+    // peut très bien être cochée dès la création plutôt qu'après un premier
+    // enregistrement.
     const nbf=getNoBreakfastNights();
-    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:{},noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,taxeSejour,createdAt:new Date().toISOString()});
+    const dn=dinnerEnabled()?getDinnerNights():{};
+    S.bookings.push({id:uid(),roomId:rid,checkIn:ci,checkOut:co,arrivalTime:at,status:st,nbPersons:np,dinnerNights:dn,noBreakfast:nbf,notes:nt,guestId:gid,payment:pay,depositAmount:depositAmt,source,ghost,prixNet,taxeSejour,createdAt:new Date().toISOString()});
   }
   persist();closeM('modalBooking');renderGrid();
   if(S.view==='today')renderToday();
@@ -5330,6 +5334,7 @@ function buildStayNoteText(bk){
   const lines=[`Note de séjour — ${name}`,`Séjour du ${fmtDate(bk.checkIn)} au ${fmtDate(bk.checkOut)} — ${nights} nuit${nights>1?'s':''}`,''];
   if(isCustom){
     lines.push(`Prix personnalisé : ${bk.prixNet.toLocaleString('fr-FR')} €`,'');
+    if(dinCount>0)lines.push(`${dinCount} repas × ${pax} pers × ${tariff.th} € — ${thRevenue.toLocaleString('fr-FR')} €`);
   } else {
     if(rate>0)lines.push(`${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €${breakfastEnabled()?' (petit-déj inclus)':''} — ${(nights*rate).toLocaleString('fr-FR')} €`);
     if(noBfCount>0)lines.push(`${noBfCount} nuit${noBfCount>1?'s':''} sans petit-déj — -${bfDeduction.toLocaleString('fr-FR')} €`);
@@ -5427,18 +5432,24 @@ function updateModalTotal(){
   const cribPrice=tempBk.babyCrib?getBabyCribRevenue(tempBk):0;
   const extTotal=bk?getExtrasTotal(bk):0;
   const isCustom=prixNetVal!=null;
-  const autoTotal=nights*rate-bfDeduction+dinCount*pax*tariff.th+extTotal+cribPrice+tsAmount;
-  const total=isCustom?(prixNetVal+extTotal+tsAmount):autoTotal;
-  const autoNoExtras=nights*rate-bfDeduction+dinCount*pax*tariff.th+cribPrice;
+  const dinRevenue=dinCount*pax*tariff.th;
+  const autoTotal=nights*rate-bfDeduction+dinRevenue+extTotal+cribPrice+tsAmount;
+  // Prix personnalisé = prix de la nuitée fixé à la main, mais la table
+  // d'hôte et les extras restent en plus (comme pour un prix automatique),
+  // pas supposés déjà inclus dedans — cocher un repas doit bien faire
+  // bouger le total affiché, même sur une résa à prix personnalisé.
+  const total=isCustom?(prixNetVal+dinRevenue+extTotal+tsAmount):autoTotal;
+  const autoNoExtras=nights*rate-bfDeduction+dinRevenue+cribPrice;
   byId('prixNetHint').textContent=autoTotal>0&&!isCustom?`(auto : ${autoTotal.toLocaleString('fr-FR')} €)`:'';
   if(total<=0&&!isCustom){el.style.display='none';return;}
   el.style.display='block';
-  byId('bTotLbl').textContent=(isCustom&&extTotal<=0?'Prix personnalisé':'Total séjour')+' — '+nights+' nuit'+(nights>1?'s':'');
+  byId('bTotLbl').textContent=(isCustom&&extTotal<=0&&dinCount<=0?'Prix personnalisé':'Total séjour')+' — '+nights+' nuit'+(nights>1?'s':'');
   byId('bTotVal').textContent=total.toLocaleString('fr-FR')+' €';
   let rows='';
   if(isCustom){
     rows+=`<div class="btot-line"><span>Prix personnalisé</span><span>${prixNetVal.toLocaleString('fr-FR')} €</span></div>`;
     if(autoNoExtras>0)rows+=`<div class="btot-line" style="opacity:.55;font-style:italic"><span>Calcul auto (hors extras)</span><span>${autoNoExtras.toLocaleString('fr-FR')} €</span></div>`;
+    if(dinCount>0)rows+=`<div class="btot-line"><span>${dinCount} repas × ${pax} pers × ${tariff.th} €</span><span>${dinRevenue.toLocaleString('fr-FR')} €</span></div>`;
     if(tsAmount>0)rows+=`<div class="btot-line"><span>Taxe de séjour</span><span>${tsAmount.toLocaleString('fr-FR')} €</span></div>`;
     if(extTotal>0){
       rows+=`<div class="btot-line"><span>Extras</span><span>${extTotal.toLocaleString('fr-FR')} €</span></div>`;
@@ -5453,7 +5464,7 @@ function updateModalTotal(){
         return `<div class="btot-line btot-subline"><span>${fmtDate(ds)}</span><span>${dayTotal.toLocaleString('fr-FR')} €</span></div>${itemLines}`;
       }).join('');
     }
-    if(extTotal>0||tsAmount>0)rows+=`<div class="btot-line sep"><span>Total</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
+    if(extTotal>0||tsAmount>0||dinCount>0)rows+=`<div class="btot-line sep"><span>Total</span><span>${total.toLocaleString('fr-FR')} €</span></div>`;
   } else {
     if(rate>0)rows+=`<div class="btot-line"><span>${nights} nuit${nights>1?'s':''} × ${rate.toLocaleString('fr-FR')} €${breakfastEnabled()?' <span style="opacity:.6">(petit-déj inclus)</span>':''}</span><span>${(nights*rate).toLocaleString('fr-FR')} €</span></div>`;
     if(noBfCount>0)rows+=`<div class="btot-line"><span>${noBfCount} nuit${noBfCount>1?'s':''} sans petit-déj</span><span>-${bfDeduction.toLocaleString('fr-FR')} €</span></div>`;
@@ -5490,7 +5501,10 @@ function getExtrasTotal(bk){
   return Object.keys(bk.extras).reduce((s,ds)=>s+getExtrasDayTotal(bk,ds),0);
 }
 function getStayTotal(bk){
-  if(bk.prixNet!=null) return bk.prixNet+getExtrasTotal(bk);
+  // Prix personnalisé = prix de la nuitée fixé à la main, mais la table
+  // d'hôte et les extras restent des prestations à part, comptées en plus
+  // (comme pour un prix automatique) plutôt que supposées déjà incluses dedans.
+  if(bk.prixNet!=null) return bk.prixNet+getThRevenue(bk,bk.checkIn,bk.checkOut)+getExtrasTotal(bk);
   const nights=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
   return nights*getNightlyRate(bk)-getBreakfastDeduction(bk,bk.checkIn,bk.checkOut)+getThRevenue(bk,bk.checkIn,bk.checkOut)+getExtrasTotal(bk)+getBabyCribRevenue(bk);
 }
@@ -5501,7 +5515,8 @@ function getBookingRevForPeriod(bk,pStart,pEnd){
   if(n<=0) return 0;
   if(bk.prixNet!=null){
     const total=Math.round((new Date(bk.checkOut)-new Date(bk.checkIn))/86400000);
-    return total>0?Math.round(bk.prixNet*n/total):0;
+    const proratedPrice=total>0?Math.round(bk.prixNet*n/total):0;
+    return proratedPrice+getThRevenue(bk,pStart,pEnd);
   }
   return n*getNightlyRate(bk)-getBreakfastDeduction(bk,pStart,pEnd)+getThRevenue(bk,pStart,pEnd);
 }
