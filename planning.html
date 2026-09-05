@@ -151,11 +151,13 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
   display:flex;align-items:center;justify-content:center;margin:auto;font-size:10px;}
 .ev-circle{width:20px;height:20px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;margin:auto;font-size:10px;font-weight:600;}
-/* Jour férié sans événement ce jour-là : juste l'anneau, sans remplissage —
-   encore plus discret qu'un événement, qui lui a déjà un fond de couleur. */
+/* Jour férié sans événement ce jour-là : même principe de pastille pleine
+   qu'un événement, mais toujours dans la même couleur neutre plutôt qu'une
+   couleur par événement — reste discret par la couleur, pas par la forme. */
 .holiday-daynum{width:20px;height:20px;border-radius:50%;
+  background:var(--gray);color:var(--white);
   display:flex;align-items:center;justify-content:center;margin:auto;
-  font-size:11px;font-weight:500;box-shadow:inset 0 0 0 1.5px var(--earth);}
+  font-size:10px;font-weight:600;}
 .pt td.c-wk{font-size:9px;color:#B0A898;text-align:center;
   min-width:24px;max-width:24px;background:var(--cream);}
 
@@ -2361,20 +2363,18 @@ function renderGrid(){
     dayTd.addEventListener('click',e=>{e.stopPropagation();goToDay(ds);});
     const dayEvs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
     const holidayName=getHolidayName(ds);
-    // Jour férié : un simple anneau discret (pas un remplissage), dans une
-    // seule couleur dédiée — bien plus sobre que les pastilles d'événement
-    // pleines et colorées différemment pour chacun. Se superpose sans
-    // remplacer le cercle "aujourd'hui" ou un événement du jour : les deux
-    // indications restent lisibles en même temps.
-    const holidayRing=holidayName?';box-shadow:inset 0 0 0 1.5px var(--earth)':'';
-    const holidayTitle=holidayName?(dayEvs.length?' — '+holidayName:holidayName):'';
+    // Jour férié : une pastille pleine comme un événement, mais toujours
+    // dans la même couleur neutre (var(--gray)) plutôt qu'une couleur par
+    // événement — reste discret sans mélanger deux indications sur le même
+    // cercle. Un événement personnel ce jour-là prend simplement le dessus,
+    // comme n'importe quel autre jour : pas de combinaison des deux.
     if(isToday){
-      dayTd.innerHTML=`<div class="today-circle" style="${holidayRing.slice(1)}" title="${holidayName||''}">${date.getDate()}</div>`;
+      dayTd.innerHTML=`<div class="today-circle">${date.getDate()}</div>`;
     } else if(dayEvs.length){
       const ec=dayEvs[0].color||'#A8C5A0';
       const lc=light(ec);
-      const evTitles=dayEvs.map(ev=>ev.title).join(', ')+holidayTitle;
-      dayTd.innerHTML=`<div class="ev-circle" style="background:${ec};color:${lc?'#2C2C2C':'#fff'}${holidayRing}" title="${evTitles}">${date.getDate()}</div>`;
+      const evTitles=dayEvs.map(ev=>ev.title).join(', ');
+      dayTd.innerHTML=`<div class="ev-circle" style="background:${ec};color:${lc?'#2C2C2C':'#fff'}" title="${evTitles}">${date.getDate()}</div>`;
     } else if(holidayName){
       dayTd.innerHTML=`<div class="holiday-daynum" title="${holidayName}">${date.getDate()}</div>`;
     } else {
@@ -2488,13 +2488,12 @@ function renderGrid(){
     const evTd=document.createElement('td');
     evTd.className='c-event';
     const evs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
-    let evTdHtml=holidayName?`<span class="holiday-tag">${holidayName}</span> `:'';
-    if(evs.length){
-      evTdHtml+=evs.map(ev=>{
-        const lc=light(ev.color||'#E8E4DC');
-        return`<span class="etag" style="background:${ev.color||'#E8E4DC'};color:${lc?'#2C2C2C':'#FFF'}">${ev.title}</span>`;
-      }).join(' ');
-    }
+    // Un événement personnel ce jour-là prend le dessus sur le tag du jour
+    // férié, à l'identique de la pastille du numéro de jour — pas de mélange.
+    let evTdHtml=evs.length?evs.map(ev=>{
+      const lc=light(ev.color||'#E8E4DC');
+      return`<span class="etag" style="background:${ev.color||'#E8E4DC'};color:${lc?'#2C2C2C':'#FFF'}">${ev.title}</span>`;
+    }).join(' '):(holidayName?`<span class="holiday-tag">${holidayName}</span>`:'');
     evTd.innerHTML=evTdHtml;
     tr.appendChild(evTd);
 
