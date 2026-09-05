@@ -151,6 +151,11 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
   display:flex;align-items:center;justify-content:center;margin:auto;font-size:10px;}
 .ev-circle{width:20px;height:20px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;margin:auto;font-size:10px;font-weight:600;}
+/* Jour férié sans événement ce jour-là : juste l'anneau, sans remplissage —
+   encore plus discret qu'un événement, qui lui a déjà un fond de couleur. */
+.holiday-daynum{width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;margin:auto;
+  font-size:11px;font-weight:500;box-shadow:inset 0 0 0 1.5px var(--earth);}
 .pt td.c-wk{font-size:9px;color:#B0A898;text-align:center;
   min-width:24px;max-width:24px;background:var(--cream);}
 
@@ -296,6 +301,10 @@ header{height:var(--hdr);background:var(--green);color:var(--cream);
 .etag{display:inline-block;border-radius:3px;padding:1px 6px;
   font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis;max-width:125px;}
+/* Jour férié : même sobriété que .mtag (fond neutre, texte "earth") plutôt
+   que la couleur pleine et propre à chaque événement de .etag. */
+.holiday-tag{display:inline-block;background:var(--light);border-radius:3px;
+  padding:1px 6px;font-size:10px;font-weight:500;color:var(--earth);}
 
 /* ─── DINNER NIGHT CHIPS ───────────────────────────────────── */
 .dn-chip{display:flex;align-items:center;gap:5px;padding:5px 9px;border-radius:20px;
@@ -1884,6 +1893,56 @@ function addDays(ds,n){
 function fmtDate(s){const[y,m,d]=s.split('-');return`${d}/${m}/${y}`;}
 function fmtDateShort(s){const[,m,d]=s.split('-');return`${parseInt(d)}/${parseInt(m)}`;}
 
+// ═══════════════════════════════════════════════════════════════
+//  JOURS FÉRIÉS FRANÇAIS — repère de contexte pour la location courte
+//  durée (arrivées/départs autour d'un pont, tarifs, disponibilité du
+//  ménage…), affiché en lecture seule dans le calendrier : ce ne sont
+//  pas des événements créés par l'utilisateur (pas dans S.events, jamais
+//  éditables/supprimables), juste une indication calculée à la volée.
+// ═══════════════════════════════════════════════════════════════
+// Dimanche de Pâques (algorithme de Meeus/Jones/Butcher, calendrier
+// grégorien) — sert de base aux jours fériés mobiles ci-dessous.
+function computeEasterDate(year){
+  const a=year%19,b=Math.floor(year/100),c=year%100;
+  const d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25);
+  const g=Math.floor((b-f+1)/3);
+  const h=(19*a+b-d-g+15)%30;
+  const i=Math.floor(c/4),k=c%4;
+  const l=(32+2*e+2*i-h-k)%7;
+  const m=Math.floor((a+11*h+22*l)/451);
+  const month=Math.floor((h+l-7*m+114)/31); // 3=mars, 4=avril
+  const day=((h+l-7*m+114)%31)+1;
+  return new Date(year,month-1,day);
+}
+const frHolidaysCache={};
+function getFrenchHolidays(year){
+  if(frHolidaysCache[year])return frHolidaysCache[year];
+  const map={};
+  const add=(m,d,name)=>{map[`${year}-${p(m)}-${p(d)}`]=name;};
+  add(1,1,"Jour de l'An");
+  add(5,1,'Fête du Travail');
+  add(5,8,'Victoire 1945');
+  add(7,14,'Fête nationale');
+  add(8,15,'Assomption');
+  add(11,1,'Toussaint');
+  add(11,11,'Armistice');
+  add(12,25,'Noël');
+  const easter=computeEasterDate(year);
+  const addOffset=(offsetDays,name)=>{
+    const dt=new Date(easter);
+    dt.setDate(dt.getDate()+offsetDays);
+    map[iso(dt)]=name;
+  };
+  addOffset(1,'Lundi de Pâques');
+  addOffset(39,'Ascension');
+  addOffset(50,'Lundi de Pentecôte');
+  frHolidaysCache[year]=map;
+  return map;
+}
+function getHolidayName(ds){
+  return getFrenchHolidays(parseInt(ds.slice(0,4),10))[ds];
+}
+
 function light(hex){
   if(!hex||hex.length<7)return true;
   const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
@@ -2301,13 +2360,23 @@ function renderGrid(){
     dayTd.style.cursor='pointer';
     dayTd.addEventListener('click',e=>{e.stopPropagation();goToDay(ds);});
     const dayEvs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
+    const holidayName=getHolidayName(ds);
+    // Jour férié : un simple anneau discret (pas un remplissage), dans une
+    // seule couleur dédiée — bien plus sobre que les pastilles d'événement
+    // pleines et colorées différemment pour chacun. Se superpose sans
+    // remplacer le cercle "aujourd'hui" ou un événement du jour : les deux
+    // indications restent lisibles en même temps.
+    const holidayRing=holidayName?';box-shadow:inset 0 0 0 1.5px var(--earth)':'';
+    const holidayTitle=holidayName?(dayEvs.length?' — '+holidayName:holidayName):'';
     if(isToday){
-      dayTd.innerHTML=`<div class="today-circle">${date.getDate()}</div>`;
+      dayTd.innerHTML=`<div class="today-circle" style="${holidayRing.slice(1)}" title="${holidayName||''}">${date.getDate()}</div>`;
     } else if(dayEvs.length){
       const ec=dayEvs[0].color||'#A8C5A0';
       const lc=light(ec);
-      const evTitles=dayEvs.map(ev=>ev.title).join(', ');
-      dayTd.innerHTML=`<div class="ev-circle" style="background:${ec};color:${lc?'#2C2C2C':'#fff'}" title="${evTitles}">${date.getDate()}</div>`;
+      const evTitles=dayEvs.map(ev=>ev.title).join(', ')+holidayTitle;
+      dayTd.innerHTML=`<div class="ev-circle" style="background:${ec};color:${lc?'#2C2C2C':'#fff'}${holidayRing}" title="${evTitles}">${date.getDate()}</div>`;
+    } else if(holidayName){
+      dayTd.innerHTML=`<div class="holiday-daynum" title="${holidayName}">${date.getDate()}</div>`;
     } else {
       dayTd.innerHTML=date.getDate();
     }
@@ -2419,12 +2488,14 @@ function renderGrid(){
     const evTd=document.createElement('td');
     evTd.className='c-event';
     const evs=S.events.filter(ev=>ds>=ev.startDate&&ds<=ev.endDate);
+    let evTdHtml=holidayName?`<span class="holiday-tag">${holidayName}</span> `:'';
     if(evs.length){
-      evTd.innerHTML=evs.map(ev=>{
+      evTdHtml+=evs.map(ev=>{
         const lc=light(ev.color||'#E8E4DC');
         return`<span class="etag" style="background:${ev.color||'#E8E4DC'};color:${lc?'#2C2C2C':'#FFF'}">${ev.title}</span>`;
       }).join(' ');
     }
+    evTd.innerHTML=evTdHtml;
     tr.appendChild(evTd);
 
     prevM=m;prevW=w;
