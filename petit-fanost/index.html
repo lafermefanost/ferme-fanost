@@ -39,10 +39,21 @@
     }
 
     .page {
+      width: 100%;
       max-width: 480px;
       margin: 0 auto;
       padding: 0 0 60px;
       background: var(--cream);
+    }
+    /* Au-delà du format mobile pour lequel la page a été pensée, 480px fixe
+       laissait un large vide de chaque côté (effet "page zoomée/rétrécie").
+       On élargit la carte par paliers au lieu de la laisser figée — le
+       mobile (l'usage principal, via QR code en chambre) est inchangé. */
+    @media (min-width: 600px) {
+      .page { max-width: 600px; }
+    }
+    @media (min-width: 900px) {
+      .page { max-width: 760px; }
     }
 
     /* ─── Header ─── */
