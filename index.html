@@ -103,9 +103,9 @@
             "description": "Chambre simple avec salle de bain privative, WiFi, TV. Petit-déjeuner inclus.",
             "offers": {
               "@type": "Offer",
-              "price": "100",
+              "price": "110",
               "priceCurrency": "EUR",
-              "description": "Prix par nuit, petit-déjeuner inclus"
+              "description": "Prix par nuit TTC (TVA 10 %), petit-déjeuner inclus"
             }
           },
           {
@@ -114,9 +114,9 @@
             "description": "Chambre double avec salle de bain privative, WiFi, TV. Petit-déjeuner inclus.",
             "offers": {
               "@type": "Offer",
-              "price": "125",
+              "price": "137.50",
               "priceCurrency": "EUR",
-              "description": "Prix par nuit, petit-déjeuner inclus"
+              "description": "Prix par nuit TTC (TVA 10 %), petit-déjeuner inclus"
             }
           }
         ]
@@ -136,16 +136,16 @@
           "addressRegion": "Essonne",
           "addressCountry": "FR"
         },
-        "priceRange": "À partir de 150€/nuit"
+        "priceRange": "À partir de 165€ TTC/nuit"
       },
       {
         "@type": "FoodEstablishment",
         "@id": "https://www.lafermefanost.com/#tablehotes",
         "name": "Table d'hôtes La Ferme Fanost",
-        "description": "Table d'hôtes du lundi au jeudi, menu unique bio et de saison, 25€ par personne.",
+        "description": "Table d'hôtes du lundi au jeudi, menu unique bio et de saison, 27,50€ TTC par personne.",
         "url": "https://www.lafermefanost.com/#table",
         "servesCuisine": ["Française", "Bio", "Locale", "De saison"],
-        "priceRange": "25€",
+        "priceRange": "27,50€ TTC",
         "openingHoursSpecification": [
           {
             "@type": "OpeningHoursSpecification",
@@ -184,7 +184,7 @@
         "name": "Quel est le prix des chambres à La Ferme Fanost ?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Les chambres d'hôtes sont à partir de 100 € par nuit pour une chambre simple et 125 € pour une chambre double, petit-déjeuner inclus."
+          "text": "Les chambres d'hôtes sont à partir de 100 € HT (110 € TTC) par nuit pour une chambre simple et 125 € HT (137,50 € TTC) pour une chambre double, petit-déjeuner inclus, TVA 10 %."
         }
       },
       {
@@ -208,7 +208,7 @@
         "name": "La Ferme Fanost propose-t-elle une table d'hôtes ?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Oui, la table d'hôtes est ouverte du lundi au jeudi soir à partir de 19h30. Menu unique bio et de saison à 25 € par personne, réservation obligatoire."
+          "text": "Oui, la table d'hôtes est ouverte du lundi au jeudi soir à partir de 19h30. Menu unique bio et de saison à 25 € HT (27,50 € TTC) par personne, réservation obligatoire."
         }
       },
       {
@@ -232,7 +232,7 @@
         "name": "Qu'est-ce que Le Petit Fanost ?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Le Petit Fanost est un gîte indépendant situé à Wissous (91320), à 5 minutes d'Orly. Il comprend 2 chambres, un jardin privatif et une cuisine équipée, à partir de 150 € par nuit."
+          "text": "Le Petit Fanost est un gîte indépendant situé à Wissous (91320), à 5 minutes d'Orly. Il comprend 2 chambres, un jardin privatif et une cuisine équipée, à partir de 150 € HT (165 € TTC) par nuit."
         }
       }
     ]
@@ -264,31 +264,7 @@
       --fb: 'Jost', sans-serif;
 
       --nav-h: 64px;
-      --banner-h: 40px;
-    }
-
-    /* ─── Bandeau congés ─── */
-    .vacation-banner {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 101;
-      height: var(--banner-h);
-      background: #3D4F32;
-      color: #F2EDE4;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--fb);
-      font-size: 12px;
-      font-weight: 400;
-      letter-spacing: 0.08em;
-      text-align: center;
-      padding: 0 20px;
-      gap: 10px;
-    }
-    .vacation-banner .vb-dot { opacity: 0.45; font-size: 10px; }
-    @media (max-width: 600px) {
-      .vacation-banner { font-size: 11px; letter-spacing: 0.04em; height: auto; min-height: var(--banner-h); padding: 8px 16px; }
+      --banner-h: 0px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -708,6 +684,16 @@
     .price-card:hover .price-card-name   { color: rgba(247,242,234,.85); transition: color .3s; }
     .price-card:hover .price-card-label  { color: rgba(247,242,234,.65); transition: color .3s; }
     .price-card:hover .price-card-incl   { color: rgba(247,242,234,.55); transition: color .3s; }
+    .price-card:hover .price-card-ttc    { color: rgba(247,242,234,.8); transition: color .3s; }
+    .price-card-ttc {
+      font-family: var(--fb);
+      font-size: 13px;
+      letter-spacing: .08em;
+      color: var(--earth);
+      margin-top: 8px;
+      display: block;
+    }
+    .price-card-ttc small { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
 
     .price-card-label {
       font-family: var(--fb);
@@ -1649,16 +1635,6 @@
 </head>
 <body>
 
-  <!-- ═══════════════════ BANDEAU CONGÉS ═══════════════════ -->
-  <div class="vacation-banner" id="vacationBanner">
-    <span class="vb-dot">✦</span>
-    <span>
-      <span class="fr">Nous sommes en congés du 28 juillet au 28 août — Nous serons heureux de retrouver tous nos clients à la rentrée en septembre. Merci pour votre compréhension et à très vite !</span>
-      <span class="en">We are on holiday from July 28 to August 28 — We look forward to welcoming all our guests back in September. Thank you for your understanding, see you soon!</span>
-    </span>
-    <span class="vb-dot">✦</span>
-  </div>
-
   <!-- ═══════════════════ NAV ═══════════════════ -->
   <nav class="nav" id="mainNav">
     <span class="nav-logo">La Ferme Fanost</span>
@@ -1859,19 +1835,22 @@
       <div class="price-cards">
         <div class="price-card">
           <span class="price-card-label"><span class="fr">Solo / Professionnel</span><span class="en">Solo / Business</span></span>
-          <span class="price-card-amount"><span class="price-card-currency">€</span>100</span>
+          <span class="price-card-amount"><span class="price-card-currency">€</span>100 <small style="font-size:16px;letter-spacing:.1em;"><span class="fr">HT</span><span class="en">excl. VAT</span></small></span>
+          <span class="price-card-ttc">110 € <small><span class="fr">TTC (TVA 10 %)</span><span class="en">incl. 10 % VAT</span></small></span>
           <span class="price-card-name"><span class="fr">Nuitée simple</span><span class="en">Single night</span></span>
           <span class="price-card-incl"><span class="fr">Petit-déjeuner inclus</span><span class="en">Breakfast included</span></span>
         </div>
         <div class="price-card">
           <span class="price-card-label"><span class="fr">En couple</span><span class="en">Double room</span></span>
-          <span class="price-card-amount"><span class="price-card-currency">€</span>125</span>
+          <span class="price-card-amount"><span class="price-card-currency">€</span>125 <small style="font-size:16px;letter-spacing:.1em;"><span class="fr">HT</span><span class="en">excl. VAT</span></small></span>
+          <span class="price-card-ttc">137,50 € <small><span class="fr">TTC (TVA 10 %)</span><span class="en">incl. 10 % VAT</span></small></span>
           <span class="price-card-name"><span class="fr">Nuitée double</span><span class="en">Double night</span></span>
           <span class="price-card-incl"><span class="fr">Petit-déjeuner inclus</span><span class="en">Breakfast included</span></span>
         </div>
         <div class="price-card featured">
           <span class="price-card-label"><span class="fr">Le plus populaire</span><span class="en">Most popular</span></span>
-          <span class="price-card-amount"><span class="price-card-currency">€</span>125</span>
+          <span class="price-card-amount"><span class="price-card-currency">€</span>125 <small style="font-size:16px;letter-spacing:.1em;"><span class="fr">HT</span><span class="en">excl. VAT</span></small></span>
+          <span class="price-card-ttc">137,50 € <small><span class="fr">TTC (TVA 10 %)</span><span class="en">incl. 10 % VAT</span></small></span>
           <span class="price-card-name"><span class="fr">Soirée étape</span><span class="en">Business stay</span></span>
           <span class="price-card-incl"><span class="fr">Table d'hôtes + nuit + pdj</span><span class="en">Dinner + night + breakfast</span></span>
         </div>
@@ -1993,7 +1972,8 @@
         </p>
 
         <div style="margin-top:20px;padding:18px 0;border-top:1px solid var(--rule-l);">
-          <span style="font-family:var(--fd);font-size:clamp(28px,3vw,38px);font-weight:300;color:var(--earth);">À partir de 150 €</span>
+          <span style="font-family:var(--fd);font-size:clamp(28px,3vw,38px);font-weight:300;color:var(--earth);"><span class="fr">À partir de 150 € HT</span><span class="en">From €150 excl. VAT</span></span>
+          <span style="font-family:var(--fb);font-size:14px;letter-spacing:.08em;color:var(--earth);display:block;margin-top:6px;"><span class="fr">soit 165 € TTC (TVA 10 %)</span><span class="en">i.e. €165 incl. 10 % VAT</span></span>
           <span style="font-family:var(--fb);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--sand);display:block;margin-top:4px;"><span class="fr">Par nuit · selon dates</span><span class="en">Per night · subject to dates</span></span>
         </div>
         <a href="#contact" class="btn btn-primary" style="margin-top:24px;display:inline-block;">
@@ -2047,7 +2027,8 @@
       <div class="tdh-grid">
         <div class="tdh-formula">
           <span class="tdh-formula-label" style="font-family:var(--fb);font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--sand);display:block;margin-bottom:12px;transition:color .3s;"><span class="fr">Par personne</span><span class="en">Per person</span></span>
-          <div class="tdh-price">25 €</div>
+          <div class="tdh-price">25 € <span style="font-size:.45em;letter-spacing:.1em;"><span class="fr">HT</span><span class="en">excl. VAT</span></span></div>
+          <div class="tdh-price-label"><span class="fr">soit 27,50 € TTC (TVA 10 %)</span><span class="en">i.e. €27.50 incl. 10 % VAT</span></div>
           <div class="tdh-price-label"><span class="fr">Menu complet du soir</span><span class="en">Full evening menu</span></div>
           <hr class="tdh-rule" />
           <div class="tdh-services">
@@ -2470,20 +2451,6 @@
   window.addEventListener('scroll', () => {
     nav.classList.toggle('scrolled', window.scrollY > 10);
   });
-
-  // ══════════════════════════════════════════
-  // BANDEAU CONGÉS — hauteur réelle (texte multi-ligne en mobile)
-  // ══════════════════════════════════════════
-  const vacationBanner = document.getElementById('vacationBanner');
-  if (vacationBanner) {
-    const syncBannerHeight = () => {
-      document.documentElement.style.setProperty('--banner-h', vacationBanner.offsetHeight + 'px');
-    };
-    syncBannerHeight();
-    window.addEventListener('resize', syncBannerHeight);
-    window.addEventListener('load', syncBannerHeight);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncBannerHeight);
-  }
 
   // ══════════════════════════════════════════
   // BURGER MENU
