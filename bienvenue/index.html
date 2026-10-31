@@ -214,7 +214,9 @@
       color: var(--earth);
       white-space: nowrap;
       flex-shrink: 0;
+      text-align: right;
     }
+    .dish-price .ttc { display: block; font-size: 13px; opacity: .75; }
 
     .sub-category {
       font-family: var(--font-body);
@@ -591,7 +593,7 @@
           <div class="dish-desc"><span class="fr">À commander plusieurs jours à l'avance</span><span class="en">Order a few days in advance</span></div>
           <span class="dish-tag"><span class="fr">sur commande</span><span class="en">on request</span></span>
         </div>
-        <div class="dish-price">4 €</div>
+        <div class="dish-price">4 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">4,40 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
 
       <div class="dish">
@@ -600,7 +602,7 @@
           <div class="dish-desc"><span class="fr">Sélection du moment</span><span class="en">Today's selection</span></div>
           <span class="dish-tag"><span class="fr">sur commande</span><span class="en">on request</span></span>
         </div>
-        <div class="dish-price">4 €</div>
+        <div class="dish-price">4 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">4,40 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
 
       <div class="dish">
@@ -609,7 +611,7 @@
           <div class="dish-desc"><span class="fr">Sélection affinée</span><span class="en">Aged selection</span></div>
           <span class="dish-tag"><span class="fr">sur commande</span><span class="en">on request</span></span>
         </div>
-        <div class="dish-price">4 €</div>
+        <div class="dish-price">4 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">4,40 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
     </section>
     <span id="diner"></span>
@@ -625,8 +627,9 @@
         <span class="fr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Accueil à table dès 19h30 &nbsp;·&nbsp; Lun → Jeu &nbsp;·&nbsp; Réservation la veille</span><span class="en"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:3px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Dinner from 7:30 pm &nbsp;·&nbsp; Mon → Thu &nbsp;·&nbsp; Reservation the day before</span>
       </p>
       <div class="formula-box">
-        <div class="price-badge">25 € <span class="fr">/ personne</span><span class="en">/ person</span></div>
-        <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.1em;color:var(--earth);margin-bottom:8px;"><span class="fr">+ 5 € pour les non-résidents</span><span class="en">+ 5 € for non-residents</span></p>
+        <div class="price-badge">25 € <span class="fr">HT / personne</span><span class="en">excl. VAT / person</span></div>
+        <p style="font-family:'Jost',sans-serif;font-size:13px;letter-spacing:.1em;color:var(--earth);margin-bottom:8px;"><span class="fr">soit 27,50 € TTC par personne</span><span class="en">i.e. €27.50 incl. VAT per person</span></p>
+        <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.1em;color:var(--earth);margin-bottom:8px;"><span class="fr">+ 5 € HT (5,50 € TTC) pour les non-résidents</span><span class="en">+ €5 excl. VAT (€5.50 incl. VAT) for non-residents</span></p>
         <p class="formula-desc"><span class="fr">Menu 3 services · Boissons à la carte · Café & infusion offerts</span><span class="en">3-course menu · Drinks à la carte · Coffee & herbal tea included</span></p>
       </div>
 
@@ -684,14 +687,14 @@
           <div class="dish-name"><span class="fr">Eau minérale</span><span class="en">Still or sparkling water</span></div>
           <div class="dish-desc"><span class="fr">Plate ou gazeuse · 75 cl</span><span class="en">Still or sparkling · 75 cl</span></div>
         </div>
-        <div class="dish-price">2 €</div>
+        <div class="dish-price">2 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">2,20 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
 
       <div class="dish">
         <div class="dish-left">
           <div class="dish-name"><span class="fr">Sodas & jus de fruits <em>bio</em></span><span class="en">Organic sodas & fruit juices</span></div>
         </div>
-        <div class="dish-price">3,50 €</div>
+        <div class="dish-price">3,50 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">3,85 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
 
       <p class="sub-category"><span class="fr">Softs originaux</span><span class="en">Specialty soft drinks</span></p>
@@ -702,7 +705,7 @@
           <div class="dish-desc"><span class="fr">Pêche · Citron gingembre · Citron vert menthe · Fraise basilic · Hibiscus myrtille</span><span class="en">Peach · Lemon ginger · Lime mint · Strawberry basil · Hibiscus blueberry</span></div>
           <span class="dish-tag"><span class="fr">vivant & naturel</span><span class="en">live & natural</span></span>
         </div>
-        <div class="dish-price">5 €</div>
+        <div class="dish-price">5 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">5,50 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
 
       <div class="dish">
@@ -711,7 +714,7 @@
           <div class="dish-desc"><span class="fr">33 cl · 3 houblons · goût cerise · consignée</span><span class="en">33 cl · 3 hops · cherry flavour · returnable bottle</span></div>
           <span class="dish-tag"><span class="fr">sélection maison</span><span class="en">house selection</span></span>
         </div>
-        <div class="dish-price">5 €</div>
+        <div class="dish-price">5 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">5,50 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
 
       <p class="sub-category"><span class="fr">Vins</span><span class="en">Wine</span></p>
@@ -722,7 +725,7 @@
           <div class="dish-desc"><span class="fr">Verre · sélection bio ou Demeter du moment</span><span class="en">Glass · organic or Demeter selection of the moment</span></div>
           <span class="dish-tag"><span class="fr">bio · Demeter</span><span class="en">organic · Demeter</span></span>
         </div>
-        <div class="dish-price">4,50 €</div>
+        <div class="dish-price">4,50 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">5,40 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
 
       <p class="sub-category"><span class="fr">Bière</span><span class="en">Beer</span></p>
@@ -733,7 +736,7 @@
           <div class="dish-desc"><span class="fr">33 cl · sélection ramenée par nos soins · consignée</span><span class="en">33 cl · hand-picked selection · returnable bottle</span></div>
           <span class="dish-tag"><span class="fr">sélection maison</span><span class="en">house selection</span></span>
         </div>
-        <div class="dish-price">5 €</div>
+        <div class="dish-price">5 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">6 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
 
       <p class="sub-category"><span class="fr">Cocktails du moment</span><span class="en">Cocktails of the moment</span></p>
@@ -744,7 +747,7 @@
           <div class="dish-desc"><span class="fr">Cocktail surprise du moment · création maison selon l'envie du jour</span><span class="en">Cocktail of the moment · homemade creation of the day</span></div>
           <span class="dish-tag"><span class="fr">fait maison</span><span class="en">homemade</span></span>
         </div>
-        <div class="dish-price">8 €</div>
+        <div class="dish-price">8 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">9,60 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
 
       <p class="sub-category"><span class="fr">Digestifs & spiritueux</span><span class="en">Digestifs & spirits</span></p>
@@ -754,7 +757,7 @@
           <div class="dish-name">Whisky, Cognac, Calvados <em>& autres</em></div>
           <div class="dish-desc"><span class="fr">Sélection du moment · demandez-nous</span><span class="en">Today's selection · just ask</span></div>
         </div>
-        <div class="dish-price">6 €</div>
+        <div class="dish-price">6 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">7,20 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
 
       <p class="sub-category"><span class="fr">Chaudes</span><span class="en">Hot drinks</span></p>
@@ -763,14 +766,14 @@
         <div class="dish-left">
           <div class="dish-name"><span class="fr">Café expresso, thé, infusion</span><span class="en">Espresso, tea, herbal tea</span></div>
         </div>
-        <div class="dish-price">2 €</div>
+        <div class="dish-price">2 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">2,20 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
 
       <div class="dish">
         <div class="dish-left">
           <div class="dish-name"><span class="fr">Chocolat chaud, Cappuccino</span><span class="en">Hot chocolate, Cappuccino</span></div>
         </div>
-        <div class="dish-price">3,50 €</div>
+        <div class="dish-price">3,50 € <span class="fr">HT</span><span class="en">excl. VAT</span><span class="ttc">3,85 € <span class="fr">TTC</span><span class="en">incl. VAT</span></span></div>
       </div>
     </section>
     <span id="resto"></span>
