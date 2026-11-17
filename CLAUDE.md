@@ -31,5 +31,6 @@ Le site est bilingue français/anglais. **Toute modification de texte doit être
 
 ### Déploiement
 
-- Toujours pousser directement sur `main` (GitHub Pages sert depuis main)
-- Le site se déploie en 1-2 minutes après chaque push
+- Site servi par **Cloudflare Pages** (compte Cloudflare lafermefanost@gmail.com, projet `ferme-fanost`, relié à ce dépôt) : chaque mise à jour de `main` est mise en ligne automatiquement en 1-2 minutes ; chaque branche a son aperçu `<id>.ferme-fanost.pages.dev`. **Pas GitHub Pages** (désactivé — ne pas l'activer, ne pas ajouter de fichier CNAME).
+- Domaine `lafermefanost.com` enregistré chez iwantmyname, DNS géré chez Cloudflare (serveurs `nikon` / `rosa.ns.cloudflare.com`) : `lafermefanost.com` et `www.lafermefanost.com` → CNAME `ferme-fanost.pages.dev` (17/11/2026 : `www` pointait encore vers Cargo, l'ancien site). Adresse officielle : `https://www.lafermefanost.com` (canonique, sitemap, robots).
+- Pas d'e-mail en @lafermefanost.com (aucun MX) ; contact = lafermefanost@gmail.com en lien `mailto:` (jamais le lien codé `/cdn-cgi/…` de Cloudflare).
