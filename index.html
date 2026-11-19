@@ -486,11 +486,17 @@
       transition: background .25s, color .25s, border-color .25s;
       cursor: pointer;
     }
-    .hero-tag:hover {
-      background: rgba(247,242,234,.15);
-      color: var(--cream);
-      border-color: rgba(247,242,234,.55);
+    .hero-tag { transition: background .25s, color .25s, border-color .25s, transform .25s, box-shadow .25s; }
+    .hero-tag:hover, .hero-tag:focus-visible {
+      background: var(--cream);
+      color: var(--green-d);
+      border-color: var(--cream);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 18px rgba(0,0,0,.18);
+      outline: none;
     }
+    .hero-tag:active { transform: translateY(-1px); }
+    .hero-tag-cta { background: rgba(247,242,234,.16); color: var(--cream); border-color: rgba(247,242,234,.6); }
     .hero-scroll {
       margin-top: 40px;
       display: flex;
@@ -535,6 +541,7 @@
       }
       .hero-scroll { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); margin-top: 0; }
       .hero-lang { display: block; }
+      .hero-tags { width: min(1000px, 92vw); position: relative; left: 50%; transform: translateX(-50%); }
       .nav { transition: box-shadow .3s, transform .45s ease, opacity .35s ease; }
       .nav:not(.past-hero) { transform: translateY(-100%); opacity: 0; pointer-events: none; }
     }
@@ -1728,11 +1735,13 @@
         in a warm and family atmosphere.</span>
       </p>
       <div class="hero-tags">
-        <a href="#chambres" class="hero-tag"><span class="fr">Chambres d'hôtes</span><span class="en">Bed & Breakfast</span></a>
-        <a href="#table" class="hero-tag"><span class="fr">Table d'Hôtes</span><span class="en">Dining</span></a>
+        <a href="#chambres" class="hero-tag"><span class="fr">Chambres</span><span class="en">Rooms</span></a>
         <a href="#gite" class="hero-tag"><span class="fr">Gîte</span><span class="en">Cottage</span></a>
+        <a href="#table" class="hero-tag"><span class="fr">Table d'hôtes</span><span class="en">Dining</span></a>
         <a href="#seminaires" class="hero-tag"><span class="fr">Séminaires</span><span class="en">Seminars</span></a>
-        <a href="#seminaires" class="hero-tag"><span class="fr">Événements</span><span class="en">Events</span></a>
+        <a href="#contact" class="hero-tag">Contact</a>
+        <a href="https://www.instagram.com/lafermefanost/" target="_blank" rel="noopener" class="hero-tag">Instagram ↗</a>
+        <a href="#contact" class="hero-tag hero-tag-cta"><span class="fr">Réserver</span><span class="en">Book</span></a>
       </div>
     </div>
     <a href="#slideshow" class="hero-scroll" aria-label="Découvrir la suite / Scroll to discover">
