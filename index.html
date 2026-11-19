@@ -492,20 +492,51 @@
       border-color: rgba(247,242,234,.55);
     }
     .hero-scroll {
-      margin-top: 52px;
+      margin-top: 40px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
+      gap: 6px;
       font-family: var(--fb);
-      font-size: 15px;
-      letter-spacing: .2em;
+      font-size: 13px;
+      letter-spacing: .24em;
       text-transform: uppercase;
-      color: rgba(247,242,234,.4);
+      color: rgba(247,242,234,.6);
+      text-decoration: none;
+      position: relative;
+      z-index: 1;
+      transition: color .3s;
     }
-    .hero-scroll-line {
-      width: 40px; height: 1px;
-      background: rgba(247,242,234,.25);
+    .hero-scroll:hover { color: rgba(247,242,234,.95); }
+    .hero-scroll-arrow { animation: heroArrow 1.8s ease-in-out infinite; }
+    @keyframes heroArrow {
+      0%, 100% { transform: translateY(0); opacity: .5; }
+      50% { transform: translateY(8px); opacity: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) { .hero-scroll-arrow { animation: none; } }
+    .hero-lang {
+      display: none;
+      position: absolute; top: 28px; right: 40px; z-index: 2;
+      font-family: var(--fb); font-size: 12px; letter-spacing: .15em; text-transform: uppercase;
+      color: rgba(247,242,234,.8); background: transparent;
+      border: 1px solid rgba(247,242,234,.4); border-radius: var(--r-pill);
+      padding: 7px 16px; cursor: pointer; transition: all .2s;
+    }
+    .hero-lang:hover { background: rgba(247,242,234,.12); color: #fff; }
+
+    /* Ordinateur : panneau vert plein écran, menu du header seulement une fois le panneau dépassé */
+    @media (min-width: 901px) {
+      .hero {
+        margin-top: 0;
+        min-height: 100vh; min-height: 100svh;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 80px 40px 130px;
+      }
+      .hero-scroll { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); margin-top: 0; }
+      .hero-lang { display: block; }
+      .nav { transition: box-shadow .3s, transform .45s ease, opacity .35s ease; }
+      .nav:not(.past-hero) { transform: translateY(-100%); opacity: 0; pointer-events: none; }
     }
 
     /* ══════════════════════════════════════════════
@@ -1703,12 +1734,12 @@
         <a href="#seminaires" class="hero-tag"><span class="fr">Séminaires</span><span class="en">Seminars</span></a>
         <a href="#seminaires" class="hero-tag"><span class="fr">Événements</span><span class="en">Events</span></a>
       </div>
-      <div class="hero-scroll">
-        <span class="hero-scroll-line"></span>
-        <span class="fr">Découvrir</span><span class="en">Discover</span>
-        <span class="hero-scroll-line"></span>
-      </div>
     </div>
+    <a href="#slideshow" class="hero-scroll" aria-label="Découvrir la suite / Scroll to discover">
+      <span class="fr">Découvrir</span><span class="en">Discover</span>
+      <svg class="hero-scroll-arrow" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </a>
+    <button class="lang-btn hero-lang" onclick="toggleLang()" aria-label="FR / EN">EN</button>
   </section>
 
   <!-- ═══════════════════ DIAPORAMA ═══════════════════ -->
@@ -2463,7 +2494,15 @@
   const nav = document.getElementById('mainNav');
   window.addEventListener('scroll', () => {
     nav.classList.toggle('scrolled', window.scrollY > 10);
+    updateNavVisibility();
   });
+  const heroEl = document.getElementById('accueil');
+  function updateNavVisibility() {
+    const past = !heroEl || heroEl.getBoundingClientRect().bottom <= nav.offsetHeight;
+    nav.classList.toggle('past-hero', past);
+  }
+  window.addEventListener('resize', updateNavVisibility);
+  updateNavVisibility();
 
   // ══════════════════════════════════════════
   // BURGER MENU
