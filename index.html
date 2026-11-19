@@ -268,6 +268,7 @@
       --r-md: 24px;
       --shadow-soft: 0 6px 18px rgba(46,34,24,.07);
       --r-pill: 999px;
+      --r-band: 44px;
 
       --nav-h: 64px;
       --banner-h: 0px;
@@ -705,7 +706,7 @@
     /* ══════════════════════════════════════════════
        ROOMS
     ══════════════════════════════════════════════ */
-    .rooms-bg { background: var(--warm); }
+    .rooms-bg { background: var(--warm); border-radius: var(--r-band); }
 
     .price-cards {
       display: grid;
@@ -1006,7 +1007,7 @@
     /* ══════════════════════════════════════════════
        TABLE D'HÔTES
     ══════════════════════════════════════════════ */
-    .tdh-bg { background: var(--green-d); }
+    .tdh-bg { background: var(--green-d); border-radius: var(--r-band); }
     .tdh-bg .section-label { color: var(--sand); }
     .tdh-bg .section-title h2 { color: var(--cream); }
     .tdh-bg .section-rule { border-color: rgba(247,242,234,.2); }
@@ -1212,7 +1213,7 @@
     /* ══════════════════════════════════════════════
        AVIS GOOGLE
     ══════════════════════════════════════════════ */
-    .reviews-bg { background: var(--warm); }
+    .reviews-bg { background: var(--warm); border-radius: var(--r-band); }
     .reviews-band {
       display: flex;
       align-items: center;
@@ -1365,6 +1366,7 @@
        FOOTER
     ══════════════════════════════════════════════ */
     .footer {
+      border-radius: var(--r-band) var(--r-band) 0 0;
       background: var(--green-d);
       padding: 52px 40px 36px;
     }
@@ -1450,6 +1452,7 @@
       .section { padding: 60px 24px; }
       .section-inner { padding: 0 24px; }
       .section-full { padding: 60px 0; }
+      :root { --r-band: 28px; }
       .divider { margin: 0 24px; }
 
       .hero { padding: 60px 24px 52px; }
