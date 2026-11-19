@@ -263,8 +263,9 @@
       --fd: 'Cormorant Garamond', Georgia, serif;
       --fb: 'Jost', sans-serif;
 
-      --r-sm: 12px;
-      --r-md: 20px;
+      --r-sm: 14px;
+      --r-md: 24px;
+      --shadow-soft: 0 6px 18px rgba(46,34,24,.07);
       --r-pill: 999px;
 
       --nav-h: 64px;
@@ -679,6 +680,7 @@
       position: relative;
       transition: background .3s ease, border-color .3s ease;
       cursor: default;
+          box-shadow: var(--shadow-soft);
     }
     .price-card:hover {
       background: var(--green);
@@ -797,6 +799,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 24px;
+          box-shadow: var(--shadow-soft);
     }
     .horaire-item { }
     .horaire-label {
@@ -993,6 +996,7 @@
       text-align: center;
       transition: background .3s ease, border-color .3s ease;
       cursor: default;
+          box-shadow: var(--shadow-soft);
     }
     .tdh-formula:hover {
       background: var(--warm);
@@ -1112,6 +1116,7 @@
       padding: 32px 28px;
       background: var(--cream);
       transition: border-color .2s, box-shadow .2s;
+          box-shadow: var(--shadow-soft);
     }
     .event-card:hover {
       border-color: var(--earth);
