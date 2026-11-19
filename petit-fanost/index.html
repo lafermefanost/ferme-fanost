@@ -14,6 +14,9 @@
 
   <style>
     :root {
+      --r-sm: 14px;
+      --r-md: 24px;
+      --r-pill: 999px;
       --cream:   #FAF5EF;
       --warm:    #F2E8DC;
       --sand:    #C9A898;
@@ -256,7 +259,7 @@
     .resto-card {
       background: var(--warm);
       border: 1px solid var(--sand);
-      border-radius: 2px;
+      border-radius: var(--r-md);
       padding: 16px 18px;
       margin-bottom: 12px;
       transition: border-color 0.2s;
@@ -356,7 +359,7 @@
 
 
   <div id="lang-toggle" style="position:fixed;top:9px;right:10px;z-index:9999;">
-    <button class="lang-btn" onclick="toggleLang()" style="font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,0.9);background:rgba(154,108,96,0.88);border:none;border-radius:2px;padding:5px 10px;cursor:pointer;">EN</button>
+    <button class="lang-btn" onclick="toggleLang()" style="font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(250,245,239,0.9);background:rgba(154,108,96,0.88);border:none;border-radius:var(--r-pill);padding:5px 10px;cursor:pointer;">EN</button>
   </div>
 
   <div class="content">
@@ -384,7 +387,7 @@
       </div>
 
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:center;gap:16px;">
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:var(--r-md);padding:18px 20px;display:flex;align-items:center;gap:16px;">
           <span style="flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5l3 3"/></svg></span>
           <div style="flex:1;min-width:0;">
             <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Portail</span><span class="en">Gate</span></p>
@@ -392,7 +395,7 @@
             <p style="font-size:15px;color:var(--earth);margin-top:5px;line-height:1.55;font-style:italic;"><span class="fr">Le portail est un peu rigide — tirez-le fermement et tournez la clé deux fois pour bien le fermer à chaque passage.</span><span class="en">The gate is a bit stiff — pull it firmly and turn the key twice to lock it properly each time.</span></p>
           </div>
         </div>
-        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:center;gap:16px;">
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:var(--r-md);padding:18px 20px;display:flex;align-items:center;gap:16px;">
           <span style="flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
           <div style="flex:1;min-width:0;">
             <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Boîte à clé</span><span class="en">Key box</span></p>
@@ -400,7 +403,7 @@
             <p style="font-size:15px;color:var(--earth);margin-top:5px;line-height:1.55;font-style:italic;"><span class="fr">Boîte à gauche du portail. Changez le code après fermeture et vérifiez qu'elle est bien verrouillée.</span><span class="en">Box to the left of the gate. Change the code after closing and make sure it is properly locked.</span></p>
           </div>
         </div>
-        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:flex-start;gap:16px;">
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:var(--r-md);padding:18px 20px;display:flex;align-items:flex-start;gap:16px;">
           <span style="flex-shrink:0;margin-top:2px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
           <div style="flex:1;min-width:0;">
             <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Sécurité</span><span class="en">Security</span></p>
@@ -496,7 +499,7 @@
       </div>
 
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:center;gap:16px;">
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:var(--r-md);padding:18px 20px;display:flex;align-items:center;gap:16px;">
           <span style="flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg></span>
           <div style="flex:1;min-width:0;">
             <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Parking du Parc</span><span class="en">Parc car park</span></p>
@@ -504,14 +507,14 @@
             <p style="font-size:15px;color:var(--earth);margin-top:5px;font-style:italic;"><span class="fr">Option principale recommandée.</span><span class="en">Main recommended option.</span></p>
           </div>
         </div>
-        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:center;gap:16px;">
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:var(--r-md);padding:18px 20px;display:flex;align-items:center;gap:16px;">
           <span style="flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14l-5-9-5 9h10z"/><path d="M15 20l-3-6-3 6h6z"/><line x1="12" y1="20" x2="12" y2="22"/></svg></span>
           <div style="flex:1;min-width:0;">
             <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;">Rue du Parc</p>
             <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--dark);"><span class="fr">Stationnement gratuit en voirie, première à gauche après la maison, le long du parc.</span><span class="en">Free on-street parking, first left after the house, along the park.</span></p>
           </div>
         </div>
-        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:18px 20px;display:flex;align-items:center;gap:16px;">
+        <div style="background:var(--warm);border:1px solid var(--sand);border-radius:var(--r-md);padding:18px 20px;display:flex;align-items:center;gap:16px;">
           <span style="flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
           <div style="flex:1;min-width:0;">
             <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Déchargement</span><span class="en">Unloading</span></p>
@@ -530,21 +533,21 @@
         <hr class="section-rule" />
       </div>
 
-      <div style="text-align:center; background:var(--warm); border:1px solid var(--sand); border-radius:2px; padding:28px 24px;">
+      <div style="text-align:center; background:var(--warm); border:1px solid var(--sand); border-radius:var(--r-md); padding:28px 24px;">
         <div id="wifi-qr" style="display:inline-block;"></div>
 
         <div style="margin-top:22px; border-top:1px solid var(--rule); padding-top:18px;">
           <p style="font-family:var(--font-body); font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--earth); margin-bottom:12px;"><span class="fr">Ou connectez-vous manuellement</span><span class="en">Or connect manually</span></p>
           <div style="display:flex; flex-direction:column; gap:10px;">
-            <div style="background:var(--cream); padding:10px 16px; border-radius:2px;">
+            <div style="background:var(--cream); padding:10px 16px; border-radius:var(--r-sm);">
               <p style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--earth); margin-bottom:3px;"><span class="fr">Réseau</span><span class="en">Network</span></p>
               <p style="font-family:var(--font-display); font-size:17px; color:var(--dark); letter-spacing:0.02em; overflow-wrap:break-word; word-break:break-all;">Gite_LePetitFanost_Client</p>
             </div>
-            <div style="background:var(--cream); padding:10px 16px; border-radius:2px;">
+            <div style="background:var(--cream); padding:10px 16px; border-radius:var(--r-sm);">
               <p style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--earth); margin-bottom:3px;"><span class="fr">Mot de passe</span><span class="en">Password</span></p>
               <p style="font-family:var(--font-display); font-size:17px; color:var(--dark); letter-spacing:0.02em; overflow-wrap:break-word;">@4rueCharlesFanost</p>
               <div style="margin-top:10px;text-align:center;">
-                <button onclick="copyWifi()" style="background:none;border:1px solid var(--sand);color:var(--earth);font-family:var(--font-body);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:6px 16px;border-radius:2px;cursor:pointer;"><span class="fr">Copier le mot de passe</span><span class="en">Copy password</span></button>
+                <button onclick="copyWifi()" style="background:none;border:1px solid var(--sand);color:var(--earth);font-family:var(--font-body);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:6px 16px;border-radius:var(--r-pill);cursor:pointer;"><span class="fr">Copier le mot de passe</span><span class="en">Copy password</span></button>
                 <span id="wifi-copied" style="display:block;font-size:11px;color:var(--olive);margin-top:5px;opacity:0;transition:opacity .3s;"><span class="fr">Copié ✓</span><span class="en">Copied ✓</span></span>
               </div>
             </div>
@@ -695,7 +698,7 @@
         <hr class="section-rule" />
       </div>
 
-      <div style="border-radius:2px; overflow:hidden; border:1px solid var(--sand); margin-bottom:24px;">
+      <div style="border-radius:var(--r-md); overflow:hidden; border:1px solid var(--sand); margin-bottom:24px;">
         <iframe
           src="https://maps.google.com/maps?q=19+Ter+rue+du+G%C3%A9n%C3%A9ral+de+Gressot,+91320+Wissous,+France&t=&z=16&ie=UTF8&iwloc=B&output=embed"
           width="100%"
@@ -907,7 +910,7 @@
       <!-- Virement bancaire -->
       <p class="sub-category" style="margin-top:24px;"><span class="fr">Virement bancaire</span><span class="en">Bank transfer</span></p>
 
-      <div style="background:var(--warm);border:1px solid var(--sand);border-radius:2px;padding:20px;display:flex;flex-direction:column;gap:12px;">
+      <div style="background:var(--warm);border:1px solid var(--sand);border-radius:var(--r-md);padding:20px;display:flex;flex-direction:column;gap:12px;">
 
         <div>
           <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;"><span class="fr">Titulaire</span><span class="en">Account holder</span></p>
@@ -917,7 +920,7 @@
         <div>
           <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--earth);margin-bottom:4px;">IBAN</p>
           <p id="iban-val" style="font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;color:var(--dark);letter-spacing:.06em;">FR76 1695 8000 0162 5776 8408 903</p>
-          <button onclick="copyIban()" style="margin-top:6px;background:none;border:1px solid var(--sand);color:var(--earth);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;border-radius:2px;cursor:pointer;"><span class="fr">Copier</span><span class="en">Copy</span></button>
+          <button onclick="copyIban()" style="margin-top:6px;background:none;border:1px solid var(--sand);color:var(--earth);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;border-radius:var(--r-pill);cursor:pointer;"><span class="fr">Copier</span><span class="en">Copy</span></button>
           <span id="iban-copied" style="font-size:11px;color:var(--olive);margin-left:8px;opacity:0;transition:opacity .3s;"><span class="fr">Copié ✓</span><span class="en">Copied ✓</span></span>
         </div>
 
@@ -968,7 +971,7 @@
            style="display:inline-block; background:#25D366; color:#fff;
                   font-family:var(--font-body); font-size:13px; letter-spacing:0.12em;
                   text-transform:uppercase; text-decoration:none; padding:16px 32px;
-                  border-radius:2px;">
+                  border-radius:var(--r-pill);">
           <span class="fr">Écrire sur WhatsApp</span><span class="en">Message us on WhatsApp</span>
         </a>
       </div>
@@ -993,7 +996,7 @@
            style="display:inline-block; background:#4285F4; color:#fff;
                   font-family:var(--font-body); font-size:13px; letter-spacing:0.12em;
                   text-transform:uppercase; text-decoration:none; padding:16px 32px;
-                  border-radius:2px;">
+                  border-radius:var(--r-pill);">
           <span class="fr">Donner mon avis sur Google</span><span class="en">Leave a review on Google</span>
         </a>
       </div>
