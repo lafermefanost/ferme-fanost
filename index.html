@@ -239,6 +239,7 @@
   }
   </script>
 
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
@@ -812,15 +813,13 @@
       padding: 11px 0;
       border-bottom: 1px solid var(--rule-l);
     }
-    .equip-list li::before {
-      content: '';
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--green);
-      flex-shrink: 0;
-    }
     .equip-list li:last-child { border-bottom: none; }
+    /* Pictos de liste (Phosphor Thin, comme sur la page bienvenue) */
+    .li-ico { font-size: 24px; color: var(--green-d); flex-shrink: 0; line-height: 1; }
+    .gite-list li { display: flex; align-items: center; gap: 14px; }
+    .tdh-service-item .li-ico { color: rgba(247,242,234,.6); transition: color .3s; }
+    .tdh-formula:hover .tdh-service-item .li-ico { color: var(--green); }
+    .tdh-info-icon .li-ico { font-size: 26px; color: var(--sand); }
     .equip-icon {
       width: 28px; height: 28px;
       display: flex; align-items: center; justify-content: center;
@@ -990,16 +989,6 @@
       border-bottom: 1px solid var(--rule-l);
     }
     .gite-list li:last-child { border-bottom: none; }
-    .gite-list li::before {
-      content: '';
-      display: inline-block;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--green);
-      margin-right: 12px;
-      vertical-align: middle;
-    }
 
     @media (max-width: 900px) {
       .gite-header { padding: 52px 24px 32px; }
@@ -1078,16 +1067,6 @@
       gap: 12px;
       color: rgba(247,242,234,.75);
       font-size: 15px;
-    }
-    .tdh-service-item::before {
-      content: '•';
-      font-size: 16px;
-      color: rgba(247,242,234,.5);
-      line-height: 1;
-      flex-shrink: 0;
-    }
-    .tdh-formula:hover .tdh-service-item::before {
-      color: var(--green);
     }
     .tdh-infos {
       display: flex;
@@ -1913,16 +1892,16 @@
         <div class="equip-block">
           <h3><span class="fr">Équipements de chaque chambre</span><span class="en">Room amenities</span></h3>
           <ul class="equip-list">
-            <li><span class="fr">Lit double minimum queen size</span><span class="en">Queen size double bed minimum</span></li>
-            <li><span class="fr">WIFI fibre haut débit</span><span class="en">High-speed fibre WiFi</span></li>
-            <li><span class="fr">Salle d'eau &amp; toilettes privatives</span><span class="en">Private shower room &amp; toilet</span></li>
-            <li><span class="fr">Télévision</span><span class="en">Television</span></li>
-            <li><span class="fr">Espace bureau</span><span class="en">Workspace</span></li>
-            <li><span class="fr">Mini-frigo</span><span class="en">Mini fridge</span></li>
-            <li><span class="fr">Cafetière &amp; bouilloire</span><span class="en">Coffee maker &amp; kettle</span></li>
-            <li><span class="fr">Micro-ondes &amp; grille-pain</span><span class="en">Microwave &amp; toaster</span></li>
-            <li><span class="fr">Dressing</span><span class="en">Wardrobe</span></li>
-            <li><span class="fr">Sèche-cheveux</span><span class="en">Hairdryer</span></li>
+            <li><i class="ph-thin ph-bed li-ico" aria-hidden="true"></i><span class="fr">Lit double minimum queen size</span><span class="en">Queen size double bed minimum</span></li>
+            <li><i class="ph-thin ph-wifi-high li-ico" aria-hidden="true"></i><span class="fr">WIFI fibre haut débit</span><span class="en">High-speed fibre WiFi</span></li>
+            <li><i class="ph-thin ph-shower li-ico" aria-hidden="true"></i><span class="fr">Salle d'eau &amp; toilettes privatives</span><span class="en">Private shower room &amp; toilet</span></li>
+            <li><i class="ph-thin ph-television li-ico" aria-hidden="true"></i><span class="fr">Télévision</span><span class="en">Television</span></li>
+            <li><i class="ph-thin ph-desk li-ico" aria-hidden="true"></i><span class="fr">Espace bureau</span><span class="en">Workspace</span></li>
+            <li><i class="ph-thin ph-snowflake li-ico" aria-hidden="true"></i><span class="fr">Mini-frigo</span><span class="en">Mini fridge</span></li>
+            <li><i class="ph-thin ph-coffee li-ico" aria-hidden="true"></i><span class="fr">Cafetière &amp; bouilloire</span><span class="en">Coffee maker &amp; kettle</span></li>
+            <li><i class="ph-thin ph-oven li-ico" aria-hidden="true"></i><span class="fr">Micro-ondes &amp; grille-pain</span><span class="en">Microwave &amp; toaster</span></li>
+            <li><i class="ph-thin ph-coat-hanger li-ico" aria-hidden="true"></i><span class="fr">Dressing</span><span class="en">Wardrobe</span></li>
+            <li><i class="ph-thin ph-hair-dryer li-ico" aria-hidden="true"></i><span class="fr">Sèche-cheveux</span><span class="en">Hairdryer</span></li>
           </ul>
         </div>
         <div class="equip-block">
@@ -2050,14 +2029,14 @@
           </div>
         </div>
         <ul class="gite-list">
-          <li><span class="fr">2 chambres · jardin privatif avec terrasse</span><span class="en">2 bedrooms · private garden with terrace</span></li>
-          <li><span class="fr">Cuisine entièrement équipée</span><span class="en">Fully equipped kitchen</span></li>
-          <li><span class="fr">Salle de douche italienne</span><span class="en">Italian-style shower room</span></li>
-          <li><span class="fr">WiFi fibre · Smart TV</span><span class="en">Fibre WiFi · Smart TV</span></li>
-          <li><span class="fr">Factures incluses</span><span class="en">Bills included</span></li>
-          <li><span class="fr">Parking public gratuit à proximité</span><span class="en">Free public parking nearby</span></li>
-          <li>Orly · Rungis · Massy · Paris</li>
-          <li><span class="fr">Commerces accessibles à pied</span><span class="en">Shops within walking distance</span></li>
+          <li><i class="ph-thin ph-house-line li-ico" aria-hidden="true"></i><span class="fr">2 chambres · jardin privatif avec terrasse</span><span class="en">2 bedrooms · private garden with terrace</span></li>
+          <li><i class="ph-thin ph-cooking-pot li-ico" aria-hidden="true"></i><span class="fr">Cuisine entièrement équipée</span><span class="en">Fully equipped kitchen</span></li>
+          <li><i class="ph-thin ph-shower li-ico" aria-hidden="true"></i><span class="fr">Salle de douche italienne</span><span class="en">Italian-style shower room</span></li>
+          <li><i class="ph-thin ph-wifi-high li-ico" aria-hidden="true"></i><span class="fr">WiFi fibre · Smart TV</span><span class="en">Fibre WiFi · Smart TV</span></li>
+          <li><i class="ph-thin ph-receipt li-ico" aria-hidden="true"></i><span class="fr">Factures incluses</span><span class="en">Bills included</span></li>
+          <li><i class="ph-thin ph-car li-ico" aria-hidden="true"></i><span class="fr">Parking public gratuit à proximité</span><span class="en">Free public parking nearby</span></li>
+          <li><i class="ph-thin ph-map-pin li-ico" aria-hidden="true"></i>Orly · Rungis · Massy · Paris</li>
+          <li><i class="ph-thin ph-shopping-bag li-ico" aria-hidden="true"></i><span class="fr">Commerces accessibles à pied</span><span class="en">Shops within walking distance</span></li>
         </ul>
       </div>
     </div>
@@ -2085,53 +2064,53 @@
           <div class="tdh-price-label"><span class="fr">Menu complet du soir</span><span class="en">Full evening menu</span></div>
           <hr class="tdh-rule" />
           <div class="tdh-services">
-            <div class="tdh-service-item"><span class="fr">Menu 3 services</span><span class="en">3-course menu</span></div>
-            <div class="tdh-service-item"><span class="fr">Boissons à la carte</span><span class="en">Drinks à la carte</span></div>
-            <div class="tdh-service-item"><span class="fr">Café &amp; infusion offerts</span><span class="en">Coffee &amp; herbal tea included</span></div>
-            <div class="tdh-service-item"><span class="fr">Cuisine bio &amp; locale</span><span class="en">Organic &amp; local cuisine</span></div>
-            <div class="tdh-service-item"><span class="fr">Jamais le même menu deux fois</span><span class="en">Never the same menu twice</span></div>
+            <div class="tdh-service-item"><i class="ph-thin ph-fork-knife li-ico" aria-hidden="true"></i><span class="fr">Menu 3 services</span><span class="en">3-course menu</span></div>
+            <div class="tdh-service-item"><i class="ph-thin ph-wine li-ico" aria-hidden="true"></i><span class="fr">Boissons à la carte</span><span class="en">Drinks à la carte</span></div>
+            <div class="tdh-service-item"><i class="ph-thin ph-coffee li-ico" aria-hidden="true"></i><span class="fr">Café &amp; infusion offerts</span><span class="en">Coffee &amp; herbal tea included</span></div>
+            <div class="tdh-service-item"><i class="ph-thin ph-leaf li-ico" aria-hidden="true"></i><span class="fr">Cuisine bio &amp; locale</span><span class="en">Organic &amp; local cuisine</span></div>
+            <div class="tdh-service-item"><i class="ph-thin ph-sparkle li-ico" aria-hidden="true"></i><span class="fr">Jamais le même menu deux fois</span><span class="en">Never the same menu twice</span></div>
           </div>
         </div>
 
         <div>
           <div class="tdh-infos">
             <div class="tdh-info-row">
-              <div class="tdh-info-icon tdh-info-dash">•</div>
+              <div class="tdh-info-icon"><i class="ph-thin ph-clock li-ico" aria-hidden="true"></i></div>
               <div class="tdh-info-text">
                 <span class="tdh-info-title"><span class="fr">Horaire</span><span class="en">Time</span></span>
                 <span class="tdh-info-value"><span class="fr">Dîner servi à 19h30</span><span class="en">Dinner served at 7:30 pm</span></span>
               </div>
             </div>
             <div class="tdh-info-row">
-              <div class="tdh-info-icon tdh-info-dash">•</div>
+              <div class="tdh-info-icon"><i class="ph-thin ph-calendar-blank li-ico" aria-hidden="true"></i></div>
               <div class="tdh-info-text">
                 <span class="tdh-info-title"><span class="fr">Jours</span><span class="en">Days</span></span>
                 <span class="tdh-info-value"><span class="fr">Du lundi au jeudi uniquement</span><span class="en">Monday to Thursday only</span></span>
               </div>
             </div>
             <div class="tdh-info-row">
-              <div class="tdh-info-icon tdh-info-dash">•</div>
+              <div class="tdh-info-icon"><i class="ph-thin ph-calendar-check li-ico" aria-hidden="true"></i></div>
               <div class="tdh-info-text">
                 <span class="tdh-info-title"><span class="fr">Réservation</span><span class="en">Reservation</span></span>
                 <span class="tdh-info-value"><span class="fr">La veille au plus tard — indispensable</span><span class="en">The day before at the latest — essential</span></span>
               </div>
             </div>
             <div class="tdh-info-row">
-              <div class="tdh-info-icon tdh-info-dash">•</div>
+              <div class="tdh-info-icon"><i class="ph-thin ph-cooking-pot li-ico" aria-hidden="true"></i></div>
               <div class="tdh-info-text">
                 <span class="tdh-info-title"><span class="fr">Cuisine</span><span class="en">Cooking</span></span>
                 <span class="tdh-info-value"><span class="fr">Bio, locale &amp; de saison · fait maison</span><span class="en">Organic, local &amp; seasonal · homemade</span></span>
               </div>
             </div>
             <div class="tdh-info-row">
-              <div class="tdh-info-icon tdh-info-dash">•</div>
+              <div class="tdh-info-icon"><i class="ph-thin ph-bell-simple li-ico" aria-hidden="true"></i></div>
               <div class="tdh-info-text">
                 <span class="tdh-info-title"><span class="fr">Service</span><span class="en">Service</span></span>
                 <span class="tdh-info-value"><span class="fr">En salle ou en chambre sur demande</span><span class="en">In the dining room or in your room on request</span></span>
               </div>
             </div>
             <div class="tdh-info-row">
-              <div class="tdh-info-icon tdh-info-dash">•</div>
+              <div class="tdh-info-icon"><i class="ph-thin ph-grains li-ico" aria-hidden="true"></i></div>
               <div class="tdh-info-text">
                 <span class="tdh-info-title"><span class="fr">Régimes spéciaux</span><span class="en">Dietary needs</span></span>
                 <span class="tdh-info-value"><span class="fr">Alternatives possibles — à signaler à la réservation</span><span class="en">Alternatives available — please mention when booking</span></span>
