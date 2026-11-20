@@ -1313,7 +1313,7 @@
       transition: background .3s, transform .3s;
     }
     .reviews-dot.active { background: var(--green-d); transform: scale(1.25); }
-    .reviews-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .cta-center { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 40px; }
 
     /* ══════════════════════════════════════════════
        CONTACT & LOCALISATION
@@ -1528,7 +1528,7 @@
       .reviews-band { gap: 32px; }
       .reviews-sep { display: none; }
       .reviews-text { text-align: center; }
-      .reviews-dots, .reviews-actions { justify-content: center; }
+      .reviews-dots { justify-content: center; }
       .review blockquote { font-size: 20px; }
 
       .footer { padding: 40px 24px 28px; }
@@ -1995,10 +1995,12 @@
               </p>
             </div>
           </div>
-          <a href="#contact" class="btn btn-primary" style="display:block;text-align:center;margin-top:16px;">
-            <span class="fr">Demander une disponibilité</span><span class="en">Check availability</span>
-          </a>
         </div>
+      </div>
+      <div class="cta-center">
+        <a href="#contact" class="btn btn-primary">
+          <span class="fr">Demander une disponibilité</span><span class="en">Check availability</span>
+        </a>
       </div>
     </div>
   </section>
@@ -2075,9 +2077,6 @@
           <span class="price-card-name"><span class="fr">Par nuit</span><span class="en">Per night</span></span>
           <span class="price-card-incl"><span class="fr">À partir de · selon dates</span><span class="en">From · subject to dates</span></span>
         </div>
-        <a href="#contact" class="btn btn-primary" style="margin-top:24px;display:inline-block;">
-          <span class="fr">Demander une disponibilité</span><span class="en">Check availability</span>
-        </a>
       </div>
 
       <div class="gite-features">
@@ -2106,6 +2105,11 @@
           <li><i class="ph-thin ph-shopping-bag li-ico" aria-hidden="true"></i><span class="fr">Commerces accessibles à pied</span><span class="en">Shops within walking distance</span></li>
         </ul>
       </div>
+    </div>
+    <div class="cta-center" style="padding-bottom:64px;">
+      <a href="#contact" class="btn btn-primary">
+        <span class="fr">Demander une disponibilité</span><span class="en">Check availability</span>
+      </a>
     </div>
   </section>
 
@@ -2318,16 +2322,15 @@
             </figure>
           </div>
           <div class="reviews-dots"><button type="button" class="reviews-dot active" aria-label="Avis 1"></button><button type="button" class="reviews-dot" aria-label="Avis 2"></button><button type="button" class="reviews-dot" aria-label="Avis 3"></button><button type="button" class="reviews-dot" aria-label="Avis 4"></button><button type="button" class="reviews-dot" aria-label="Avis 5"></button></div>
-          <div class="reviews-actions">
-            <a href="https://search.google.com/local/reviews?placeid=ChIJ11XPNBh25kcRLkuZLRrDpNA" target="_blank" rel="noopener" class="btn btn-primary">
-              <span class="fr">Voir nos avis Google</span><span class="en">See our Google reviews</span>
-            </a>
-            <a href="https://search.google.com/local/writereview?placeid=ChIJ11XPNBh25kcRLkuZLRrDpNA" target="_blank" rel="noopener" class="btn btn-secondary">
-              <span class="fr">Laisser un avis</span><span class="en">Leave a review</span>
-            </a>
-          </div>
         </div>
       </div>
+      <div class="cta-center">
+        <a href="https://search.google.com/local/reviews?placeid=ChIJ11XPNBh25kcRLkuZLRrDpNA" target="_blank" rel="noopener" class="btn btn-primary">
+          <span class="fr">Voir nos avis Google</span><span class="en">See our Google reviews</span>
+        </a>
+        <a href="https://search.google.com/local/writereview?placeid=ChIJ11XPNBh25kcRLkuZLRrDpNA" target="_blank" rel="noopener" class="btn btn-secondary">
+          <span class="fr">Laisser un avis</span><span class="en">Leave a review</span>
+        </a>
       </div>
     </div>
   </section>
