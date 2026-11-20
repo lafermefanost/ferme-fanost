@@ -608,13 +608,13 @@
       letter-spacing: .02em;
     }
     /* Séparateur ornemental : barres + 3 points (même motif que le haut de page) */
-    .section-rule, .divider {
+    .section-rule {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
     }
-    .section-rule::before, .section-rule::after, .divider::before, .divider::after {
+    .section-rule::before, .section-rule::after {
       content: '';
       height: 1px; width: 60px;
       background: var(--rule);
@@ -625,7 +625,7 @@
       background: var(--earth);
       opacity: .5;
     }
-    .section-rule { margin: 16px auto 0; }
+    .section-rule { margin: 20px auto 0; }
     .section-intro {
       font-family: var(--fd);
       font-style: italic;
@@ -640,8 +640,6 @@
     /* ══════════════════════════════════════════════
        DIVIDER
     ══════════════════════════════════════════════ */
-    .divider { margin: 0 auto; padding: 4px 0; }
-    .divider-full { margin: 0; }
 
     /* ══════════════════════════════════════════════
        À PROPOS
@@ -1865,7 +1863,6 @@
     </div>
   </section>
 
-  <div class="divider" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
 
   <!-- ═══════════════════ CHAMBRES ═══════════════════ -->
   <section class="section-full rooms-bg fade-in" id="chambres">
@@ -1984,7 +1981,7 @@
     <div class="gite-header">
       <span class="section-label"><span class="fr">Location indépendante · Wissous</span><span class="en">Independent rental · Wissous</span></span>
       <h2 class="section-title-h2">Le Petit Fanost</h2>
-      <div class="section-rule" style="margin:8px auto 0;" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
+      <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
     </div>
 
     <!-- Diaporama pleine largeur -->
@@ -2083,7 +2080,6 @@
     </div>
   </section>
 
-  <div class="divider" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
 
   <!-- ═══════════════════ TABLE D'HÔTES ═══════════════════ -->
   <section class="section-full tdh-bg fade-in" id="table">
@@ -2253,12 +2249,11 @@
     </div>
   </section>
 
-  <div class="divider" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
 
   <!-- ═══════════════════ AVIS ═══════════════════ -->
   <section class="section-full reviews-bg fade-in" id="avis">
     <div class="section-inner" style="padding-top:64px;padding-bottom:64px;">
-      <div class="section-title" style="margin-bottom:40px;">
+      <div class="section-title">
         <span class="section-label"><span class="fr">Ce qu'ils en disent</span><span class="en">What they say</span></span>
         <h2><span class="fr">Avis voyageurs</span><span class="en">Guest reviews</span></h2>
         <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
@@ -2288,7 +2283,6 @@
     </div>
   </section>
 
-  <div class="divider divider-full" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
 
   <!-- ═══════════════════ CONTACT & MAP ═══════════════════ -->
   <section class="section fade-in" id="contact">
