@@ -771,7 +771,7 @@
       margin-top: 8px;
       display: block;
     }
-    .gite-price-card { margin-top: 24px; max-width: 340px; }
+    .gite-price-card { margin-top: 24px; max-width: none; }
     .price-card-ttc small { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
 
     .price-card-label {
@@ -1000,23 +1000,20 @@
     .gite-feature-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 0;
-      border: 1px solid var(--rule);
-      border-radius: var(--r-md);
-      overflow: hidden;
-      margin-bottom: 28px;
+      gap: 12px;
+      margin-bottom: 14px;
     }
     .gite-feat {
-      padding: 20px 16px;
+      padding: 22px 12px;
       text-align: center;
-      border-right: 1px solid var(--rule);
+      background: var(--green-d);
+      border-radius: var(--r-md);
     }
-    .gite-feat:last-child { border-right: none; }
     .gite-feat-n {
       font-family: var(--fd);
       font-size: 32px;
       font-weight: 300;
-      color: var(--earth);
+      color: var(--cream);
       display: block;
       line-height: 1;
     }
@@ -1027,7 +1024,7 @@
       text-transform: uppercase;
       color: var(--sand);
       display: block;
-      margin-top: 5px;
+      margin-top: 8px;
     }
     .gite-list {
       list-style: none;
@@ -1089,7 +1086,7 @@
     .tdh-formula .tdh-service-item { color: rgba(247,242,234,.75); transition: color .3s; }
     .tdh-formula:hover .tdh-price { color: var(--earth); }
     .tdh-formula:hover .tdh-price-label { color: var(--sand); }
-    .tdh-formula:hover .tdh-service-item { color: var(--dark); }
+    .tdh-formula:hover .tdh-service-item { color: var(--dark); background: rgba(94,110,77,.1); }
     .tdh-formula .tdh-formula-label { color: rgba(247,242,234,.5); }
     .tdh-formula:hover .tdh-formula-label { color: var(--sand); }
     .tdh-price {
@@ -1113,7 +1110,7 @@
     .tdh-services {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
     .tdh-service-item {
       display: flex;
@@ -1121,20 +1118,25 @@
       gap: 12px;
       color: rgba(247,242,234,.75);
       font-size: 15px;
+      padding: 10px 16px;
+      background: rgba(247,242,234,.1);
+      border-radius: var(--r-sm);
+      transition: background .3s, color .3s;
     }
     .tdh-infos {
       display: flex;
       flex-direction: column;
-      gap: 0;
+      gap: 10px;
     }
     .tdh-info-row {
       display: flex;
       align-items: center;
       gap: 16px;
-      padding: 18px 0;
-      border-bottom: 1px solid rgba(247,242,234,.12);
+      padding: 16px 20px;
+      background: rgba(247,242,234,.07);
+      border: 1px solid rgba(247,242,234,.12);
+      border-radius: var(--r-sm);
     }
-    .tdh-info-row:last-child { border-bottom: none; }
     .tdh-info-icon {
       width: 36px; height: 36px;
       display: flex; align-items: center; justify-content: center;
