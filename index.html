@@ -1325,11 +1325,29 @@
       align-items: start;
     }
     .contact-info { }
-    .contact-block {
-      padding: 20px 0;
-      border-bottom: 1px solid var(--rule-l);
+    .contact-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
     }
-    .contact-block:first-child { border-top: 1px solid var(--rule-l); }
+    .contact-block {
+      background: var(--warm);
+      border: 1px solid var(--rule-l);
+      border-radius: var(--r-md);
+      padding: 22px 24px;
+      min-width: 0;
+    }
+    .contact-block.full { grid-column: 1 / -1; }
+    @media (max-width: 600px) { .contact-cards { grid-template-columns: 1fr; } }
+    .contact-ico {
+      display: flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--cream);
+      color: var(--green-d);
+      font-size: 22px;
+      margin-bottom: 14px;
+    }
     .contact-block-label {
       font-family: var(--fb);
       font-size: 13px;
@@ -1345,6 +1363,7 @@
     }
     .contact-block-value a { transition: color .2s; }
     .contact-block-value a:hover { color: var(--earth); }
+    .contact-block-value { overflow-wrap: anywhere; }
 
     /* Form */
     .contact-form {
@@ -2352,7 +2371,9 @@
     <div class="contact-grid">
       <!-- Infos + Formulaire -->
       <div>
+        <div class="contact-cards">
         <div class="contact-block">
+          <span class="contact-ico"><i class="ph-thin ph-map-pin" aria-hidden="true"></i></span>
           <span class="contact-block-label">La Ferme Fanost</span>
           <div class="contact-block-value">
             4 rue Charles Fanost<br>
@@ -2360,13 +2381,15 @@
           </div>
         </div>
         <div class="contact-block">
+          <span class="contact-ico"><i class="ph-thin ph-house-line" aria-hidden="true"></i></span>
           <span class="contact-block-label">Le Petit Fanost · Gîte</span>
           <div class="contact-block-value">
             19Ter rue du Général de Gressot<br>
             91320 Wissous
           </div>
         </div>
-        <div class="contact-block">
+        <div class="contact-block full">
+          <span class="contact-ico"><i class="ph-thin ph-train" aria-hidden="true"></i></span>
           <span class="contact-block-label"><span class="fr">Accès</span><span class="en">Getting here</span></span>
           <div class="contact-block-value" style="font-size:15px;">
             — A6 / N7 — 25 km de Paris · 15 min d'Orly<br>
@@ -2376,28 +2399,32 @@
           </div>
         </div>
         <div class="contact-block">
+          <span class="contact-ico"><i class="ph-thin ph-phone" aria-hidden="true"></i></span>
           <span class="contact-block-label"><span class="fr">Téléphone</span><span class="en">Phone</span></span>
           <div class="contact-block-value">
             <a href="tel:+33620312119">06 20 31 21 19</a>
           </div>
         </div>
         <div class="contact-block">
+          <span class="contact-ico"><i class="ph-thin ph-whatsapp-logo" aria-hidden="true"></i></span>
           <span class="contact-block-label">WhatsApp</span>
           <div class="contact-block-value">
             <a href="https://wa.me/33620312119" target="_blank" rel="noopener"
-               style="display:inline-block;background:var(--green);color:var(--cream);font-family:var(--fb);font-size:13px;letter-spacing:.14em;text-transform:uppercase;padding:10px 22px;border-radius:var(--r-pill);transition:background .2s;"
+               style="display:inline-block;background:var(--green);color:var(--cream);font-family:var(--fb);font-size:13px;letter-spacing:.14em;text-transform:uppercase;padding:10px 22px;border-radius:22px;text-align:center;line-height:1.5;transition:background .2s;"
                onmouseover="this.style.background='var(--green-d)'" onmouseout="this.style.background='var(--green)'">
               <span class="fr">Nous écrire sur WhatsApp</span><span class="en">Message us on WhatsApp</span>
             </a>
           </div>
         </div>
         <div class="contact-block">
+          <span class="contact-ico"><i class="ph-thin ph-envelope-simple" aria-hidden="true"></i></span>
           <span class="contact-block-label">Email</span>
           <div class="contact-block-value">
             <a href="/cdn-cgi/l/email-protection#a5c9c4c3c0d7c8c0c3c4cbcad6d1e5c2c8c4ccc98bc6cac8"><span class="__cf_email__" data-cfemail="eb878a8d8e99868e8d8a8584989fab8c868a8287c5888486">[email&#160;protected]</span></a>
           </div>
         </div>
         <div class="contact-block">
+          <span class="contact-ico"><i class="ph-thin ph-instagram-logo" aria-hidden="true"></i></span>
           <span class="contact-block-label">Instagram</span>
           <div class="contact-block-value">
             <a href="https://www.instagram.com/lafermefanost/" target="_blank" rel="noopener">
@@ -2405,11 +2432,13 @@
             </a>
           </div>
         </div>
-        <div class="contact-block" style="border-bottom:none;">
+        <div class="contact-block full">
+          <span class="contact-ico"><i class="ph-thin ph-calendar-check" aria-hidden="true"></i></span>
           <span class="contact-block-label"><span class="fr">Réservation &amp; renseignements</span><span class="en">Bookings &amp; enquiries</span></span>
           <div class="contact-block-value" style="font-family:var(--fd);font-style:italic;font-size:18px;color:var(--earth);">
             <span class="fr">Utilisez le formulaire ci-contre<br>ou retrouvez-nous sur nos plateformes de réservation.</span><span class="en" style="display:block">Use the form opposite<br>or find us on our booking platforms.</span>
           </div>
+        </div>
         </div>
       </div>
 
