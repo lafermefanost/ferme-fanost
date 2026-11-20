@@ -168,12 +168,15 @@
       color: var(--earth);
       margin-bottom: 6px;
     }
+    /* Séparateur ornemental : barres + 3 points */
     .section-rule {
-      border: none;
-      border-top: 1px solid var(--rule);
-      margin: 14px auto 0;
-      width: 60px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; margin: 14px auto 0;
     }
+    .section-rule::before, .section-rule::after {
+      content: ''; height: 1px; width: 60px; background: var(--rule);
+    }
+    .orn-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--earth); opacity: .5; }
 
     /* ─── Items liste — même pattern .dish que la Ferme Fanost ─── */
     .dish {
@@ -370,7 +373,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Mot d'accueil</span><span class="en">Welcome note</span></span>
         <h2><span class="fr">Bienvenue</span><span class="en">Welcome</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
       <div class="note-box">
         <span class="fr">Nous sommes ravis de vous accueillir au Petit Fanost et vous remercions d'avoir choisi notre gîte pour votre séjour. Le logement est entièrement à vous. Nous restons disponibles et serons ravis de vous aider à tout moment, n'hésitez pas. Bienvenue et excellent séjour !</span><span class="en">We are delighted to welcome you to Le Petit Fanost, and we thank you for choosing our cottage for your stay. The space is entirely yours. We remain available and will be happy to help at any time, don't hesitate. Welcome, and enjoy your stay!</span>
@@ -383,7 +386,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Entrée &amp; sortie</span><span class="en">Entry &amp; exit</span></span>
         <h2><span class="fr">Accès</span><span class="en">Access</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:10px;">
@@ -421,7 +424,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Avant de partir</span><span class="en">Before you leave</span></span>
         <h2><span class="fr">Checklist de départ</span><span class="en">Checkout checklist</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <div class="note-box">
@@ -495,7 +498,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Stationnement</span><span class="en">Parking</span></span>
         <h2>Parking</h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:10px;">
@@ -530,7 +533,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Connexion internet</span><span class="en">Internet connection</span></span>
         <h2><span class="fr">WiFi Invités</span><span class="en">Guest WiFi</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <div style="text-align:center; background:var(--warm); border:1px solid var(--sand); border-radius:var(--r-md); padding:28px 24px;">
@@ -562,7 +565,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Votre séjour</span><span class="en">Your stay</span></span>
         <h2><span class="fr">Ce qui est inclus</span><span class="en">What's included</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <div class="dish">
@@ -617,7 +620,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Consignes</span><span class="en">Instructions</span></span>
         <h2><span class="fr">Tri des déchets</span><span class="en">Waste sorting</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <div class="note-box">
@@ -652,7 +655,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">À proximité</span><span class="en">Nearby</span></span>
         <h2><span class="fr">Commerces</span><span class="en">Shops</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <p class="sub-category"><span class="fr">Boulangeries</span><span class="en">Bakeries</span></p>
@@ -695,7 +698,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Se déplacer</span><span class="en">Getting around</span></span>
         <h2><span class="fr">Transports</span><span class="en">Transport</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <div style="border-radius:var(--r-md); overflow:hidden; border:1px solid var(--sand); margin-bottom:24px;">
@@ -746,7 +749,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Idées de balades &amp; visites</span><span class="en">Ideas for walks &amp; visits</span></span>
         <h2><span class="fr">Autour de Wissous</span><span class="en">Around Wissous</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <p class="sub-category"><span class="fr">Nature &amp; promenades</span><span class="en">Nature &amp; walks</span></p>
@@ -795,7 +798,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Nos coups de cœur</span><span class="en">Our favourites</span></span>
         <h2><span class="fr">Où dîner ?</span><span class="en">Where to dine?</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <div class="note-box">
@@ -900,7 +903,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Votre séjour</span><span class="en">Your stay</span></span>
         <h2><span class="fr">Règlement du gîte</span><span class="en">Payment</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <div class="note-box">
@@ -958,7 +961,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Une question ?</span><span class="en">A question?</span></span>
         <h2><span class="fr">Nous contacter</span><span class="en">Contact us</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <div class="note-box">
@@ -983,7 +986,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Votre retour compte</span><span class="en">Your feedback matters</span></span>
         <h2><span class="fr">Laisser un avis</span><span class="en">Leave a review</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
 
       <div class="note-box">

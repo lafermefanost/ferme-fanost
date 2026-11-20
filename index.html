@@ -607,12 +607,25 @@
       color: var(--dark);
       letter-spacing: .02em;
     }
-    .section-rule {
-      border: none;
-      border-top: 1px solid var(--rule);
-      width: 60px;
-      margin: 16px auto 0;
+    /* Séparateur ornemental : barres + 3 points (même motif que le haut de page) */
+    .section-rule, .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
+    .section-rule::before, .section-rule::after, .divider::before, .divider::after {
+      content: '';
+      height: 1px; width: 60px;
+      background: var(--rule);
+    }
+    .orn-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--earth);
+      opacity: .5;
+    }
+    .section-rule { margin: 16px auto 0; }
     .section-intro {
       font-family: var(--fd);
       font-style: italic;
@@ -627,11 +640,7 @@
     /* ══════════════════════════════════════════════
        DIVIDER
     ══════════════════════════════════════════════ */
-    .divider {
-      border: none;
-      border-top: 1px solid var(--rule-l);
-      margin: 0 40px;
-    }
+    .divider { margin: 0 auto; padding: 4px 0; }
     .divider-full { margin: 0; }
 
     /* ══════════════════════════════════════════════
@@ -1033,7 +1042,8 @@
     .tdh-bg { background: var(--green-d); border-radius: var(--r-band); }
     .tdh-bg .section-label { color: var(--sand); }
     .tdh-bg .section-title h2 { color: var(--cream); }
-    .tdh-bg .section-rule { border-color: rgba(247,242,234,.2); }
+    .tdh-bg .section-rule::before, .tdh-bg .section-rule::after { background: rgba(247,242,234,.3); }
+    .tdh-bg .section-rule .orn-dot { background: rgba(247,242,234,.8); }
     .tdh-bg .section-intro { color: rgba(247,242,234,.6); }
 
     .tdh-grid {
@@ -1473,7 +1483,6 @@
       .section-inner { padding: 0 24px; }
       .section-full { padding: 60px 0; }
       :root { --r-band: 28px; }
-      .divider { margin: 0 24px; }
 
       .hero { padding: 60px 24px 52px; }
 
@@ -1856,7 +1865,7 @@
     </div>
   </section>
 
-  <hr class="divider" />
+  <div class="divider" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
 
   <!-- ═══════════════════ CHAMBRES ═══════════════════ -->
   <section class="section-full rooms-bg fade-in" id="chambres">
@@ -1864,7 +1873,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Hébergement</span><span class="en">Accommodation</span></span>
         <h2><span class="fr">Chambres &amp; Tarifs</span><span class="en">Rooms &amp; Rates</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
       <p class="section-intro">
         <span class="fr">Cinq chambres décorées avec élégance, toutes équipées d'une salle d'eau privative
@@ -1975,7 +1984,7 @@
     <div class="gite-header">
       <span class="section-label"><span class="fr">Location indépendante · Wissous</span><span class="en">Independent rental · Wissous</span></span>
       <h2 class="section-title-h2">Le Petit Fanost</h2>
-      <hr class="section-rule" style="margin:8px auto 0;" />
+      <div class="section-rule" style="margin:8px auto 0;" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
     </div>
 
     <!-- Diaporama pleine largeur -->
@@ -2074,7 +2083,7 @@
     </div>
   </section>
 
-  <hr class="divider" />
+  <div class="divider" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
 
   <!-- ═══════════════════ TABLE D'HÔTES ═══════════════════ -->
   <section class="section-full tdh-bg fade-in" id="table">
@@ -2082,7 +2091,7 @@
       <div class="section-title">
         <span class="section-label"><span class="fr">Le soir</span><span class="en">In the evening</span></span>
         <h2><span class="fr">Table d'Hôtes</span><span class="en">Shared Dining</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
       <p class="section-intro">
         <span class="fr">Une table d'hôtes qui change chaque soir, au rythme du marché, des saisons et des produits bio.</span><span class="en" style="display:block">A shared dinner table that changes every evening, following the rhythm of the market, the seasons and organic produce.</span>
@@ -2185,7 +2194,7 @@
     <div class="section-title">
       <span class="section-label"><span class="fr">Groupes &amp; Entreprises</span><span class="en">Groups &amp; Businesses</span></span>
       <h2><span class="fr">Séminaires &amp; Événements</span><span class="en">Seminars &amp; Events</span></h2>
-      <hr class="section-rule" />
+      <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
     </div>
     <p class="section-intro">
       <span class="fr">À 25 km de Paris, La Ferme Fanost accueille vos séminaires, retraites d'équipe
@@ -2244,7 +2253,7 @@
     </div>
   </section>
 
-  <hr class="divider" />
+  <div class="divider" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
 
   <!-- ═══════════════════ AVIS ═══════════════════ -->
   <section class="section-full reviews-bg fade-in" id="avis">
@@ -2252,7 +2261,7 @@
       <div class="section-title" style="margin-bottom:40px;">
         <span class="section-label"><span class="fr">Ce qu'ils en disent</span><span class="en">What they say</span></span>
         <h2><span class="fr">Avis voyageurs</span><span class="en">Guest reviews</span></h2>
-        <hr class="section-rule" />
+        <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
       </div>
       <div class="reviews-band">
         <div class="reviews-score">
@@ -2279,14 +2288,14 @@
     </div>
   </section>
 
-  <hr class="divider divider-full" />
+  <div class="divider divider-full" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
 
   <!-- ═══════════════════ CONTACT & MAP ═══════════════════ -->
   <section class="section fade-in" id="contact">
     <div class="section-title">
       <span class="section-label"><span class="fr">Nous trouver</span><span class="en">Find us</span></span>
       <h2><span class="fr">Contact &amp; Localisation</span><span class="en">Contact &amp; Location</span></h2>
-      <hr class="section-rule" />
+      <div class="section-rule" aria-hidden="true"><span class="orn-dot"></span><span class="orn-dot"></span><span class="orn-dot"></span></div>
     </div>
     <p class="section-intro">
       <span class="fr">À 25 km de Paris, 10 min d'Orly. Facilement accessible en voiture.
