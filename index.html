@@ -330,13 +330,13 @@
     }
     .nav-links a {
       font-family: var(--fb);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 400;
-      letter-spacing: .14em;
+      letter-spacing: .12em;
       text-transform: uppercase;
       color: var(--earth);
       border: 1px solid rgba(122,98,72,.3);
-      padding: 7px 16px;
+      padding: 6px 14px;
       border-radius: var(--r-pill);
       display: inline-block;
       transition: background .25s, color .25s, border-color .25s, transform .25s;
@@ -349,15 +349,20 @@
       outline: none;
     }
     .nav-links a { white-space: nowrap; }
+    .menu-ico { font-size: 1.35em; vertical-align: -0.2em; margin-right: 7px; line-height: 1; }
+    .nav-sep { width: 1px; height: 22px; background: rgba(122,98,72,.3); margin: 0 8px; list-style: none; }
+    .hero-sep { width: 1px; height: 22px; background: rgba(247,242,234,.3); margin: 0 6px; align-self: center; }
     @media (max-width: 1180px) {
       .nav-links { gap: 5px; }
-      .nav-links a { font-size: 12px; letter-spacing: .08em; padding: 6px 10px; }
+      .nav-links a { font-size: 11.5px; letter-spacing: .08em; padding: 5px 10px; }
+      .nav-sep { margin: 0 4px; }
     }
     @media (max-width: 1050px) {
       .nav { padding: 0 20px; }
       .nav-logo { font-size: 17px; }
       .nav-links { gap: 4px; }
       .nav-links a { font-size: 11px; letter-spacing: .05em; padding: 5px 8px; }
+      .menu-ico { display: none; }
     }
 
     .nav-cta {
@@ -496,12 +501,12 @@
     }
     .hero-tag {
       font-family: var(--fb);
-      font-size: 13px;
-      letter-spacing: .14em;
+      font-size: 12px;
+      letter-spacing: .12em;
       text-transform: uppercase;
       color: rgba(247,242,234,.65);
       border: 1px solid rgba(247,242,234,.25);
-      padding: 7px 16px;
+      padding: 6px 14px;
       border-radius: var(--r-pill);
       text-decoration: none;
       display: inline-block;
@@ -1689,10 +1694,11 @@
   <nav class="nav" id="mainNav">
     <span class="nav-logo">La Ferme Fanost</span>
     <ul class="nav-links">
-      <li><a href="#chambres"><span class="fr">Chambres</span><span class="en">Rooms</span></a></li>
-      <li><a href="#gite"><span class="fr">Gîte</span><span class="en">Cottage</span></a></li>
-      <li><a href="#table"><span class="fr">Table d'hôtes</span><span class="en">Dining</span></a></li>
-      <li><a href="#seminaires"><span class="fr">Séminaires</span><span class="en">Seminars</span></a></li>
+      <li><a href="#chambres"><i class="ph-thin ph-bed menu-ico" aria-hidden="true"></i><span class="fr">Chambres</span><span class="en">Rooms</span></a></li>
+      <li><a href="#gite"><i class="ph-thin ph-house-line menu-ico" aria-hidden="true"></i><span class="fr">Gîte</span><span class="en">Cottage</span></a></li>
+      <li><a href="#table"><i class="ph-thin ph-fork-knife menu-ico" aria-hidden="true"></i><span class="fr">Table d'hôtes</span><span class="en">Dining</span></a></li>
+      <li><a href="#seminaires"><i class="ph-thin ph-users-three menu-ico" aria-hidden="true"></i><span class="fr">Séminaires</span><span class="en">Seminars</span></a></li>
+      <li class="nav-sep" aria-hidden="true"></li>
       <li><a href="#contact">Contact</a></li>
       <li><a href="https://www.instagram.com/lafermefanost/" target="_blank" rel="noopener">Instagram ↗</a></li>
       <li><a href="#contact" class="nav-cta"><span class="fr">Réserver</span><span class="en">Book</span></a></li>
@@ -1734,10 +1740,11 @@
         in a warm and family atmosphere.</span>
       </p>
       <div class="hero-tags">
-        <a href="#chambres" class="hero-tag"><span class="fr">Chambres</span><span class="en">Rooms</span></a>
-        <a href="#gite" class="hero-tag"><span class="fr">Gîte</span><span class="en">Cottage</span></a>
-        <a href="#table" class="hero-tag"><span class="fr">Table d'hôtes</span><span class="en">Dining</span></a>
-        <a href="#seminaires" class="hero-tag"><span class="fr">Séminaires</span><span class="en">Seminars</span></a>
+        <a href="#chambres" class="hero-tag"><i class="ph-thin ph-bed menu-ico" aria-hidden="true"></i><span class="fr">Chambres</span><span class="en">Rooms</span></a>
+        <a href="#gite" class="hero-tag"><i class="ph-thin ph-house-line menu-ico" aria-hidden="true"></i><span class="fr">Gîte</span><span class="en">Cottage</span></a>
+        <a href="#table" class="hero-tag"><i class="ph-thin ph-fork-knife menu-ico" aria-hidden="true"></i><span class="fr">Table d'hôtes</span><span class="en">Dining</span></a>
+        <a href="#seminaires" class="hero-tag"><i class="ph-thin ph-users-three menu-ico" aria-hidden="true"></i><span class="fr">Séminaires</span><span class="en">Seminars</span></a>
+        <span class="hero-sep" aria-hidden="true"></span>
         <a href="#contact" class="hero-tag">Contact</a>
         <a href="https://www.instagram.com/lafermefanost/" target="_blank" rel="noopener" class="hero-tag">Instagram ↗</a>
         <a href="#contact" class="hero-tag hero-tag-cta"><span class="fr">Réserver</span><span class="en">Book</span></a>
