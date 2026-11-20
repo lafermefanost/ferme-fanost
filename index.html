@@ -709,28 +709,34 @@
       display: block;
     }
     .about-stats {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
       margin-top: 28px;
     }
-    .about-stat { border-top: 1px solid var(--rule-l); padding-top: 20px; }
+    .about-stat {
+      background: var(--green-d);
+      border-radius: var(--r-md);
+      padding: 24px 12px;
+      text-align: center;
+    }
     .about-stat-n {
       font-family: var(--fd);
-      font-size: 36px;
+      font-size: 38px;
       font-weight: 300;
-      color: var(--earth);
+      color: var(--cream);
       display: block;
       line-height: 1;
     }
     .about-stat-l {
       font-family: var(--fb);
-      font-size: 15px;
-      letter-spacing: .12em;
+      font-size: 13px;
+      letter-spacing: .1em;
       text-transform: uppercase;
-      color: var(--sand);
-      margin-top: 4px;
+      color: rgba(255,255,255,.92);
+      margin-top: 10px;
       display: block;
+      line-height: 1.4;
     }
 
     /* ══════════════════════════════════════════════
@@ -1019,12 +1025,12 @@
     }
     .gite-feat-l {
       font-family: var(--fb);
-      font-size: 10px;
-      letter-spacing: .16em;
+      font-size: 13px;
+      letter-spacing: .12em;
       text-transform: uppercase;
-      color: var(--sand);
+      color: rgba(255,255,255,.92);
       display: block;
-      margin-top: 8px;
+      margin-top: 10px;
     }
     .gite-list {
       list-style: none;
@@ -1632,9 +1638,12 @@
         gap: 36px;
       }
       .about-photos-bleed { aspect-ratio: 16/9; }
+      .about-text { padding-left: 0; }
     }
     @media (max-width: 480px) {
       .about-photos-bleed { aspect-ratio: 4/3; }
+      .about-stat-n { font-size: 30px; }
+      .about-stat-l { font-size: 11px; letter-spacing: .06em; }
     }
 
     .rooms-slide {
