@@ -85,8 +85,8 @@
         ],
         "aggregateRating": {
           "@type": "AggregateRating",
-          "ratingValue": "4.9",
-          "reviewCount": "36",
+          "ratingValue": "5.0",
+          "reviewCount": "47",
           "bestRating": "5"
         },
         "sameAs": [
@@ -1277,17 +1277,43 @@
       width: 1px; height: 100px;
       background: var(--rule);
     }
-    .reviews-text {
-      max-width: 360px;
+    .reviews-text { max-width: 520px; min-width: 0; }
+    .reviews-slider { display: grid; }
+    .review {
+      grid-area: 1 / 1;
+      margin: 0;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(8px);
+      transition: opacity .6s ease, transform .6s ease, visibility .6s;
     }
-    .reviews-text p {
+    .review.active { opacity: 1; visibility: visible; transform: none; }
+    .review blockquote {
       font-family: var(--fd);
       font-style: italic;
-      font-size: 20px;
+      font-size: 22px;
       color: var(--earth);
-      line-height: 1.65;
-      margin-bottom: 24px;
+      line-height: 1.5;
     }
+    .review figcaption {
+      font-family: var(--fb);
+      font-size: 13px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--earth);
+      margin-top: 14px;
+    }
+    .review-stars { color: #e6a817; letter-spacing: 2px; margin-right: 6px; }
+    .reviews-dots { display: flex; gap: 8px; margin: 22px 0 24px; }
+    .reviews-dot {
+      width: 8px; height: 8px; padding: 0;
+      border: none; border-radius: 50%;
+      background: var(--rule);
+      cursor: pointer;
+      transition: background .3s, transform .3s;
+    }
+    .reviews-dot.active { background: var(--green-d); transform: scale(1.25); }
+    .reviews-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 
     /* ══════════════════════════════════════════════
        CONTACT & LOCALISATION
@@ -1500,7 +1526,10 @@
       .form-row { grid-template-columns: 1fr; }
 
       .reviews-band { gap: 32px; }
-      .reviews-sep { width: 80px; height: 1px; }
+      .reviews-sep { display: none; }
+      .reviews-text { text-align: center; }
+      .reviews-dots, .reviews-actions { justify-content: center; }
+      .review blockquote { font-size: 20px; }
 
       .footer { padding: 40px 24px 28px; }
       .footer-top { flex-direction: column; gap: 28px; }
@@ -1837,7 +1866,7 @@
           <span class="about-badge"><span class="fr">25 ans d'accueil</span><span class="en">25 years of hospitality</span></span>
           <span class="about-badge">XVIIe siècle</span>
           <span class="about-badge"><span class="fr">Cuisine bio</span><span class="en">Organic cuisine</span></span>
-          <span class="about-badge">4,9 · Google</span>
+          <span class="about-badge">5,0 · Google</span>
         </div>
         <div class="about-stats">
           <div class="about-stat">
@@ -1849,7 +1878,7 @@
             <span class="about-stat-l"><span class="fr">Années d'hospitalité</span><span class="en">Years of hospitality</span></span>
           </div>
           <div class="about-stat">
-            <span class="about-stat-n">4,9/5</span>
+            <span class="about-stat-n">5,0/5</span>
             <span class="about-stat-l"><span class="fr">Avis Google</span><span class="en">Google reviews</span></span>
           </div>
         </div>
@@ -2260,25 +2289,45 @@
       </div>
       <div class="reviews-band">
         <div class="reviews-score">
-          <div class="reviews-number">4,9</div>
+          <div class="reviews-number">5,0</div>
           <div class="reviews-stars">★★★★★</div>
-          
+          <div class="reviews-count"><span class="fr">47 avis Google</span><span class="en">47 Google reviews</span></div>
         </div>
         <div class="reviews-sep"></div>
         <div class="reviews-text">
-          <p>
-            <span class="fr">« Un accueil exceptionnel, une table d'hôtes délicieuse
-            et un cadre magnifique à deux pas de Paris. »</span><span class="en" style="display:block">"Exceptional hospitality, a delicious shared dinner table
-            and a magnificent setting just outside Paris."</span>
-          </p>
-          <a
-            href="https://search.google.com/local/writereview?placeid=ChIJ11XPNBh25kcRLkuZLRrDpNA"
-            target="_blank"
-            rel="noopener"
-            class="btn btn-primary">
-            <span class="fr">Laisser un avis Google</span><span class="en">Leave a Google review</span>
-          </a>
+          <div class="reviews-slider" id="reviewsSlider">
+            <figure class="review active">
+              <blockquote>« Accueil chaleureux, emplacement exceptionnel : on ne se croirait pas en région parisienne. Une très belle piscine, une verdure luxuriante… c’est un véritable havre de paix, si proche des commodités. »</blockquote>
+              <figcaption><span class="review-stars" aria-hidden="true">★★★★★</span> Jérôme A.</figcaption>
+            </figure>
+            <figure class="review">
+              <blockquote>« Marine et César sont adorables, accueillants, et très arrangeants ! Le lieu est superbe, propre, décoré avec goût, la chambre très sympa, et le petit déjeuner délicieux et copieux ! »</blockquote>
+              <figcaption><span class="review-stars" aria-hidden="true">★★★★★</span> Laure S.</figcaption>
+            </figure>
+            <figure class="review">
+              <blockquote>« Endroit charmant. Au calme. Les chambres très confortables. Un petit déjeuner excellent et que dire du dîner, un régal. Bravo au cuisinier. »</blockquote>
+              <figcaption><span class="review-stars" aria-hidden="true">★★★★★</span> Irène</figcaption>
+            </figure>
+            <figure class="review">
+              <blockquote>« Accueil très sympathique autour d’une très belle table dans un cadre plein de cachet étonnamment bien situé. Très belle chambre. »</blockquote>
+              <figcaption><span class="review-stars" aria-hidden="true">★★★★★</span> Pascal F.</figcaption>
+            </figure>
+            <figure class="review">
+              <blockquote>« Accueil adorable, un endroit tellement hors du temps, c’est très précieux. »</blockquote>
+              <figcaption><span class="review-stars" aria-hidden="true">★★★★★</span> Isabelle C.</figcaption>
+            </figure>
+          </div>
+          <div class="reviews-dots"><button type="button" class="reviews-dot active" aria-label="Avis 1"></button><button type="button" class="reviews-dot" aria-label="Avis 2"></button><button type="button" class="reviews-dot" aria-label="Avis 3"></button><button type="button" class="reviews-dot" aria-label="Avis 4"></button><button type="button" class="reviews-dot" aria-label="Avis 5"></button></div>
+          <div class="reviews-actions">
+            <a href="https://search.google.com/local/reviews?placeid=ChIJ11XPNBh25kcRLkuZLRrDpNA" target="_blank" rel="noopener" class="btn btn-primary">
+              <span class="fr">Voir nos avis Google</span><span class="en">See our Google reviews</span>
+            </a>
+            <a href="https://search.google.com/local/writereview?placeid=ChIJ11XPNBh25kcRLkuZLRrDpNA" target="_blank" rel="noopener" class="btn btn-secondary">
+              <span class="fr">Laisser un avis</span><span class="en">Leave a review</span>
+            </a>
+          </div>
         </div>
+      </div>
       </div>
     </div>
   </section>
@@ -2526,6 +2575,37 @@
   }
   window.addEventListener('resize', updateNavVisibility);
   updateNavVisibility();
+
+  // ══════════════════════════════════════════
+  // AVIS — carrousel automatique
+  // ══════════════════════════════════════════
+  (function () {
+    const root = document.getElementById('reviewsSlider');
+    if (!root) return;
+    const slides = Array.from(root.querySelectorAll('.review'));
+    const dots = Array.from(document.querySelectorAll('.reviews-dot'));
+    let cur = 0, timer = null, hover = false;
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function go(n) {
+      cur = (n + slides.length) % slides.length;
+      slides.forEach((s, i) => s.classList.toggle('active', i === cur));
+      dots.forEach((d, i) => d.classList.toggle('active', i === cur));
+    }
+    function start() { if (reduce || timer) return; timer = setInterval(() => { if (!hover) go(cur + 1); }, 6500); }
+    function stop() { clearInterval(timer); timer = null; }
+    dots.forEach((d, i) => d.addEventListener('click', () => { go(i); stop(); start(); }));
+    const zone = root.closest('.reviews-text');
+    zone.addEventListener('mouseenter', () => hover = true);
+    zone.addEventListener('mouseleave', () => hover = false);
+    let x0 = null;
+    root.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+    root.addEventListener('touchend', e => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) > 40) { go(cur + (dx < 0 ? 1 : -1)); stop(); start(); }
+    });
+    start();
+  })();
 
   // ══════════════════════════════════════════
   // BURGER MENU
