@@ -324,7 +324,7 @@
 
     .nav-links {
       display: flex;
-      gap: 32px;
+      gap: 10px;
       list-style: none;
       align-items: center;
     }
@@ -332,19 +332,39 @@
       font-family: var(--fb);
       font-size: 13px;
       font-weight: 400;
-      letter-spacing: .16em;
+      letter-spacing: .14em;
       text-transform: uppercase;
       color: var(--earth);
-      transition: color .2s;
+      border: 1px solid rgba(122,98,72,.3);
+      padding: 7px 16px;
+      border-radius: var(--r-pill);
+      display: inline-block;
+      transition: background .25s, color .25s, border-color .25s, transform .25s;
     }
-    .nav-links a:hover { color: var(--dark); }
+    .nav-links a:hover, .nav-links a:focus-visible {
+      background: var(--green-d);
+      border-color: var(--green-d);
+      color: var(--cream);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    .nav-links a { white-space: nowrap; }
+    @media (max-width: 1180px) {
+      .nav-links { gap: 5px; }
+      .nav-links a { font-size: 12px; letter-spacing: .08em; padding: 6px 10px; }
+    }
+    @media (max-width: 1050px) {
+      .nav { padding: 0 20px; }
+      .nav-logo { font-size: 17px; }
+      .nav-links { gap: 4px; }
+      .nav-links a { font-size: 11px; letter-spacing: .05em; padding: 5px 8px; }
+    }
 
     .nav-cta {
       background: var(--green);
       color: var(--cream) !important;
-      padding: 10px 20px;
-      border-radius: var(--r-pill);
-      transition: background .2s !important;
+      border-color: var(--green) !important;
+      transition: background .25s, transform .25s !important;
     }
     .nav-cta:hover { background: var(--green-d) !important; color: var(--cream) !important; }
 
