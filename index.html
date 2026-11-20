@@ -866,14 +866,29 @@
       color: var(--earth);
     }
     .horaires-box {
-      background: var(--green-d);
-      border-radius: var(--r-md);
-      padding: 28px 32px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 24px;
+      gap: 14px;
     }
-    .horaire-item { }
+    .horaire-item {
+      background: var(--green-d);
+      border-radius: var(--r-md);
+      padding: 24px 20px;
+      text-align: center;
+    }
+    .horaire-ico { display: block; font-size: 28px; color: var(--sand); line-height: 1; margin-bottom: 12px; }
+    .info-card {
+      background: var(--cream);
+      border: 1px solid var(--rule-l);
+      border-radius: var(--r-md);
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .info-card > i { font-size: 26px; color: var(--green-d); flex-shrink: 0; }
+    .info-card-col { display: block; padding: 22px 24px; }
+    .info-card-text { font-family: var(--fd); font-style: italic; font-size: 17px; color: var(--earth); line-height: 1.5; margin: 0; }
     .horaire-label {
       font-family: var(--fb);
       font-size: 15px;
@@ -1995,23 +2010,30 @@
             <li><i class="ph-thin ph-hair-dryer li-ico" aria-hidden="true"></i><span class="fr">Sèche-cheveux</span><span class="en">Hairdryer</span></li>
           </ul>
         </div>
-        <div class="equip-block">
-          <h3><span class="fr">Horaires &amp; Conditions</span><span class="en">Times &amp; Conditions</span></h3>
-          <div class="horaires-box">
-            <div class="horaire-item">
-              <span class="horaire-label">Check-in</span>
-              <span class="horaire-value"><span class="fr">À partir de 15h</span><span class="en">From 3 pm</span></span>
+        <div>
+          <div class="equip-block">
+            <h3><span class="fr">Arrivée &amp; départ</span><span class="en">Arrival &amp; departure</span></h3>
+            <div class="horaires-box">
+              <div class="horaire-item">
+                <span class="horaire-ico"><i class="ph-thin ph-sign-in" aria-hidden="true"></i></span>
+                <span class="horaire-label">Check-in</span>
+                <span class="horaire-value"><span class="fr">À partir de 15h</span><span class="en">From 3 pm</span></span>
+              </div>
+              <div class="horaire-item">
+                <span class="horaire-ico"><i class="ph-thin ph-sign-out" aria-hidden="true"></i></span>
+                <span class="horaire-label">Check-out</span>
+                <span class="horaire-value"><span class="fr">Avant 11h</span><span class="en">Before 11 am</span></span>
+              </div>
             </div>
-            <div class="horaire-item">
-              <span class="horaire-label">Check-out</span>
-              <span class="horaire-value"><span class="fr">Avant 11h</span><span class="en">Before 11 am</span></span>
+            <div class="info-card" style="margin-top:14px;">
+              <i class="ph-thin ph-car" aria-hidden="true"></i>
+              <p class="info-card-text"><span class="fr">Parking gratuit sur rue ou devant le portail.</span><span class="en">Free parking on the street or in front of the gate.</span></p>
             </div>
           </div>
-          <div style="margin-top:20px;padding:20px 0;border-top:1px solid var(--rule-l);">
-            <p style="font-size:15px;color:var(--earth);line-height:1.7;font-family:var(--fd);font-style:italic;"><span class="fr">Parking gratuit sur rue ou devant le portail.</span><span class="en">Free parking on the street or in front of the gate.</span></p>
-            <div style="border-top:1px solid var(--rule-l);padding-top:18px;margin-top:18px;">
-              <span style="font-family:var(--fb);font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--earth);display:block;margin-bottom:10px;"><span class="fr">Petit-déjeuner inclus</span><span class="en">Breakfast included</span></span>
-              <p style="font-size:15px;color:var(--dark);line-height:1.75;margin-bottom:6px;">
+          <div class="equip-block" style="margin-top:48px;">
+            <h3><span class="fr">Petit-déjeuner inclus</span><span class="en">Breakfast included</span></h3>
+            <div class="info-card info-card-col">
+              <p style="font-size:15px;color:var(--dark);line-height:1.75;margin-bottom:8px;">
                 <span class="fr">Viennoiseries, pain artisanal, confitures &amp; miel bio, yaourt maison, céréales et oléagineux, jus bio, pâtes à tartiner, café &amp; thés.</span><span class="en">Pastries, artisan bread, organic jams &amp; honey, homemade yogurt, cereals and nuts, organic juice, nut butters, coffee &amp; teas.</span>
               </p>
               <p style="font-size:17px;color:var(--earth);font-family:var(--fd);font-style:italic;">
